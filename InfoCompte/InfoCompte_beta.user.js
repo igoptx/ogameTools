@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         InfoCompte (Beta)
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      9.2.5.1
+// @version      9.2.5.3
 // @description  InfoCompte script for OGame
 // @author       Igo (Original Authors: Vulca, benneb, The Stubbs)
 // @license      MIT
@@ -893,7 +893,9 @@ const Translation = new function(){
             lifeform3: 'Mecha',
             lifeform4: 'Kaelesh',
             lifeform_buildings: 'Lifeform buildings',
+            lifeform_buildings_short: 'LF buildings',
             lifeform_researches: 'Lifeform researches',
+            lifeform_researches_short: 'LF researches',
             lifeforms: 'Lifeforms',
             lifeform_levels: 'Lifeform levels',
             lunar_buildings: 'Lunar buildings',
@@ -938,7 +940,8 @@ const Translation = new function(){
             when_finished: 'place(s) when finished',
             with: 'with',
             without_dark_matter: 'Without DM',
-            years: 'years'
+            years: 'years',
+            coords: 'Coords'
         },
         fr: {
             1: "Mine de métal",
@@ -1151,7 +1154,9 @@ const Translation = new function(){
             lifeform3: "Mecas",
             lifeform4: "Kaeleshs",
             lifeform_buildings: "Bâtiments FDV",
+            lifeform_buildings_short: "Bâtiments FDV",
             lifeform_researches: "Recherches FDV",
+            lifeform_researches_short: "Recherches FDV",
             lifeforms: "Formes de vie",
             lifeform_levels: "Niveaux des FDV",
             lunar_buildings: "Bâtiments lunaires",
@@ -1196,7 +1201,8 @@ const Translation = new function(){
             when_finished: "place(s) quand terminé",
             with: "avec",
             without_dark_matter: "Sans AM",
-            years: "années"
+            years: "années",
+            coords: 'Coords'
         },
         pt: {
             1: 'Mina de Metal',
@@ -1409,7 +1415,9 @@ const Translation = new function(){
             lifeform3: 'Mechas',
             lifeform4: 'Kaelesh',
             lifeform_buildings: 'Edifícios de Forma de Vida',
+            lifeform_buildings_short: 'Edifícios FdV',
             lifeform_researches: 'Pesquisa de Forma de Vida',
+            lifeform_researches_short: 'Pesquisa FdV',
             lifeforms: 'Formas de Vida',
             lifeform_levels: 'Níveis de Forma de Vida',
             lunar_buildings: 'Edifícios Lunares',
@@ -1429,7 +1437,7 @@ const Translation = new function(){
             planetary_buildings: 'Edifícios Planetários',
             planetary_defences: 'Defesas Planetárias',
             planets: 'Planetas',
-            planets_repartition: 'Repartição de pontos dos Planetas',
+            planets_repartition: 'Repartição de pontos por Planetas',
             points: 'Pontos',
             production: 'Produção',
             production_of: "Produção de",
@@ -1454,7 +1462,8 @@ const Translation = new function(){
             when_finished: 'lugar quando terminado',
             with: 'com',
             without_dark_matter: 'Sem DM',
-            years: 'anos'
+            years: 'anos',
+            coords: 'Coords'
         }
     };
     return translations[ document.documentElement.lang ] || translations.en;
@@ -2747,6 +2756,16 @@ const PositionsPanel = {
 						<h3>${ Translation.planets_repartition }<button></button></h3>
 						<div class="ic-component-main">
 							<table>
+							    <tr>
+							        <th>${ Translation.coords }</th>
+							        <th></th>
+							        <th>${ Translation.mines }</th>
+							        <th>${ Translation.buildings }</th>
+							        <th>${ Translation.lifeform_buildings_short }</th>
+							        <th>${ Translation.lifeform_researches_short }</th>
+							        <th>${ Translation.defence }</th>
+							        <th></th>
+                                </tr>
 								${ this.get_rows_from( data ) }
 							</table>
 						</div>
