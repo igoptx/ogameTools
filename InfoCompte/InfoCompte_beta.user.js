@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         InfoCompte (Beta)
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      9.2.5.3
+// @version      9.2.5.4
 // @description  InfoCompte script for OGame
 // @author       Igo (Original Authors: Vulca, benneb, The Stubbs)
 // @license      MIT
@@ -2666,7 +2666,7 @@ const MenuButton = {
     get_html(){
         return `<li id="ic-menu-button">
 						<span class="menu_icon">
-							<a href="https://ko-fi.com/A0A4DEZRA" target="_blank">
+							<a href="https://ko-fi.com/rodrigocorreia" target="_blank">
 								<div class="tooltipRight" title="Buy me a coffee <3">
 									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20">
 										<path fill="currentColor" d="M20 3H4v10a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-3h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/>
