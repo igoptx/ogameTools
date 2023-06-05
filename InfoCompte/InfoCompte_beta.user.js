@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         InfoCompte (Beta)
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      9.2.5.4
+// @version      9.2.5.5
 // @description  InfoCompte script for OGame
 // @author       Igo (Original Authors: Vulca, benneb, The Stubbs)
 // @license      MIT
 // @match        https://*.ogame.gameforge.com/game/*
+// @updateURL    https://github.com/igoptx/ogameTools/raw/main/InfoCompte/InfoCompte_beta.meta.js
 // @downloadURL  https://github.com/igoptx/ogameTools/raw/main/InfoCompte/InfoCompte_beta.user.js
 // @grant        GM_addStyle
 // @grant        GM_getValue
@@ -19,57 +20,57 @@
  */
 class Body {
 
-    constructor( data ){
-        Object.assign( this, data );
-        this.technologies = new Technologies( this.technologies );
+    constructor(data) {
+        Object.assign(this, data);
+        this.technologies = new Technologies(this.technologies);
     }
 
-    get_building_cost_from( data ){
+    get_building_cost_from(data) {
         let result = 0;
-        for( const id in this.technologies ){
-            const technology = this.technologies[ id ];
+        for (const id in this.technologies) {
+            const technology = this.technologies[id];
             const is_building = technology instanceof Building;
             const is_mine = technology instanceof Mine;
-            if( is_building && !is_mine ){
-                const cost = technology.get_cost_from( data );
+            if (is_building && !is_mine) {
+                const cost = technology.get_cost_from(data);
                 result += cost;
             }
         }
         return result;
     }
 
-    get_defence_cost_from( data ){
+    get_defence_cost_from(data) {
         let result = 0;
-        for( const id in this.technologies ){
-            const technology = this.technologies[ id ];
-            if( technology instanceof Defence ){
-                result += technology.get_cost_from( data );
+        for (const id in this.technologies) {
+            const technology = this.technologies[id];
+            if (technology instanceof Defence) {
+                result += technology.get_cost_from(data);
             }
         }
         return result;
     }
 
-    get_static_cost_from( data ){
+    get_static_cost_from(data) {
         let result = 0;
-        for( const id in this.technologies ){
-            const technology = this.technologies[ id ];
+        for (const id in this.technologies) {
+            const technology = this.technologies[id];
             const is_ship = technology instanceof Ship;
             const is_static_ship = technology.id === 212 || technology.id === 217;
-            if( !is_ship || is_static_ship ){
-                const cost = technology.get_cost_from( data );
+            if (!is_ship || is_static_ship) {
+                const cost = technology.get_cost_from(data);
                 result += cost;
             }
         }
         return result;
     }
 
-    get_without_fleet_cost_from( data ){
+    get_without_fleet_cost_from(data) {
         let result = 0;
-        for( const id in this.technologies ){
-            const technology = this.technologies[ id ];
+        for (const id in this.technologies) {
+            const technology = this.technologies[id];
             const is_ship = technology instanceof Ship;
-            if( !is_ship ){
-                const cost = technology.get_cost_from( data );
+            if (!is_ship) {
+                const cost = technology.get_cost_from(data);
                 result += cost;
             }
         }
@@ -79,157 +80,157 @@ class Body {
 
 class Positions {
 
-    constructor( data ){
-        for( const coordinates in data ){
-            const { planet, moon } = data[ coordinates ];
-            const position = this[ coordinates ] = {};
-            position.planet = new Planet( planet );
-            if( moon ) position.moon = new Moon( moon );
+    constructor(data) {
+        for (const coordinates in data) {
+            const {planet, moon} = data[coordinates];
+            const position = this[coordinates] = {};
+            position.planet = new Planet(planet);
+            if (moon) position.moon = new Moon(moon);
         }
     }
 
-    get_mine_cost_from( data ){
+    get_mine_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const planet = this[ coordinates ].planet;
-            result += planet.get_mine_cost_from( data );
-        }
-        return result;
-    }
-
-    get_metal_mine_cost_from( data ){
-        let result = 0;
-        for( const coordinates in this ){
-            const technologies = this[ coordinates ].planet.technologies;
-            result += technologies[1]?.get_cost_from( data ) || 0;
+        for (const coordinates in this) {
+            const planet = this[coordinates].planet;
+            result += planet.get_mine_cost_from(data);
         }
         return result;
     }
 
-    get_crystal_mine_cost_from( data ){
+    get_metal_mine_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const technologies = this[ coordinates ].planet.technologies;
-            result += technologies[2]?.get_cost_from( data ) || 0;
+        for (const coordinates in this) {
+            const technologies = this[coordinates].planet.technologies;
+            result += technologies[1]?.get_cost_from(data) || 0;
         }
         return result;
     }
 
-    get_deuterium_mine_cost_from( data ){
+    get_crystal_mine_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const technologies = this[ coordinates ].planet.technologies;
-            result += technologies[3]?.get_cost_from( data ) || 0;
+        for (const coordinates in this) {
+            const technologies = this[coordinates].planet.technologies;
+            result += technologies[2]?.get_cost_from(data) || 0;
         }
         return result;
     }
 
-    get_planetary_building_cost_from( data ){
+    get_deuterium_mine_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const planet = this[ coordinates ].planet;
-            result += planet.get_building_cost_from( data );
+        for (const coordinates in this) {
+            const technologies = this[coordinates].planet.technologies;
+            result += technologies[3]?.get_cost_from(data) || 0;
         }
         return result;
     }
 
-    get_lunar_building_cost_from( data ){
+    get_planetary_building_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const moon = this[ coordinates ].moon;
-            if( moon ){
-                result += moon.get_building_cost_from( data );
+        for (const coordinates in this) {
+            const planet = this[coordinates].planet;
+            result += planet.get_building_cost_from(data);
+        }
+        return result;
+    }
+
+    get_lunar_building_cost_from(data) {
+        let result = 0;
+        for (const coordinates in this) {
+            const moon = this[coordinates].moon;
+            if (moon) {
+                result += moon.get_building_cost_from(data);
             }
         }
         return result;
     }
 
-    get_lifeform_buildings_cost_from( data ){
+    get_lifeform_buildings_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const planet = this[ coordinates ].planet;
-            result += planet.get_lifeform_buildings_cost_from( data );
+        for (const coordinates in this) {
+            const planet = this[coordinates].planet;
+            result += planet.get_lifeform_buildings_cost_from(data);
         }
         return result;
     }
 
-    get_lifeform_researches_cost_from( data ){
+    get_lifeform_researches_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const planet = this[ coordinates ].planet;
-            result += planet.get_lifeform_researches_cost_from( data );
+        for (const coordinates in this) {
+            const planet = this[coordinates].planet;
+            result += planet.get_lifeform_researches_cost_from(data);
         }
         return result;
     }
 
-    get_defence_cost_from( data ){
+    get_defence_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const { planet, moon } = this[ coordinates ];
-            result += planet.get_defence_cost_from( data );
-            if( moon ) result += moon.get_defence_cost_from( data );
+        for (const coordinates in this) {
+            const {planet, moon} = this[coordinates];
+            result += planet.get_defence_cost_from(data);
+            if (moon) result += moon.get_defence_cost_from(data);
         }
         return result;
     }
 
-    get_destructible_cost_from( data ){
+    get_destructible_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const { planet, moon } = this[ coordinates ];
-            result += planet.get_defence_cost_from( data );
-            if( moon ){
-                result += moon.get_building_cost_from( data );
-                result += moon.get_defence_cost_from( data );
+        for (const coordinates in this) {
+            const {planet, moon} = this[coordinates];
+            result += planet.get_defence_cost_from(data);
+            if (moon) {
+                result += moon.get_building_cost_from(data);
+                result += moon.get_defence_cost_from(data);
             }
         }
         return result;
     }
 
-    get_upgrade_cost_from( data ){
+    get_upgrade_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const { planet, moon } = this[ coordinates ];
-            result += planet.technologies.get_upgrade_cost_from( data );
-            if( moon ) result += moon.technologies.get_upgrade_cost_from( data );
+        for (const coordinates in this) {
+            const {planet, moon} = this[coordinates];
+            result += planet.technologies.get_upgrade_cost_from(data);
+            if (moon) result += moon.technologies.get_upgrade_cost_from(data);
         }
         return result;
     }
 
-    get_static_cost_from( data ){
+    get_static_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const { planet, moon } = this[ coordinates ];
-            result += planet.get_static_cost_from( data );
-            if( moon ) result += moon.get_static_cost_from( data );
+        for (const coordinates in this) {
+            const {planet, moon} = this[coordinates];
+            result += planet.get_static_cost_from(data);
+            if (moon) result += moon.get_static_cost_from(data);
         }
         return result;
     }
 
-    get_without_fleet_cost_from( data ){
+    get_without_fleet_cost_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const { planet, moon } = this[ coordinates ];
-            result += planet.get_without_fleet_cost_from( data );
-            if( moon ) result += moon.get_without_fleet_cost_from( data );
+        for (const coordinates in this) {
+            const {planet, moon} = this[coordinates];
+            result += planet.get_without_fleet_cost_from(data);
+            if (moon) result += moon.get_without_fleet_cost_from(data);
         }
         return result;
     }
 
-    get_average_cost_from( data ){
-        return this.get_static_cost_from( data ) / Object.values( this ).length;
+    get_average_cost_from(data) {
+        return this.get_static_cost_from(data) / Object.values(this).length;
     }
 
-    get_upgraded_production_from( data ){
+    get_upgraded_production_from(data) {
         let result = 0;
-        for( const coordinates in this ){
-            const planet = this[ coordinates ].planet;
-            result += planet.get_upgraded_production_from( data );
+        for (const coordinates in this) {
+            const planet = this[coordinates].planet;
+            result += planet.get_upgraded_production_from(data);
         }
         return result;
     }
 
-    get_average_upgraded_production_from( data ){
-        return this.get_upgraded_production_from( data ) / Object.values( this ).length;
+    get_average_upgraded_production_from(data) {
+        return this.get_upgraded_production_from(data) / Object.values(this).length;
     }
 }
 
@@ -298,8 +299,8 @@ class Technologies {
         408: [50_000, 50_000, 0],
         502: [8_000, 0, 2_000],
         503: [12_500, 2_500, 10_000],
-        11101: [7, 2, 0 , 1.2],
-        11102: [5, 2, 0 , 1.23],
+        11101: [7, 2, 0, 1.2],
+        11102: [5, 2, 0, 1.23],
         11103: [20_000, 25_000, 10_000, 1.3],
         11104: [5_000, 3_200, 1_500, 1.7],
         11105: [50_000, 40_000, 50_000, 1.7],
@@ -328,8 +329,8 @@ class Technologies {
         11216: [320_000, 240_000, 100_000, 1.5],
         11217: [300_000, 180_000, 120_000, 1.5],
         11218: [500_000, 300_000, 200_000, 1.3],
-        12101: [9, 3, 0 , 1.2],
-        12102: [7, 2, 0 , 1.2],
+        12101: [9, 3, 0, 1.2],
+        12102: [7, 2, 0, 1.2],
         12103: [40_000, 10_000, 15_000, 1.3],
         12104: [5_000, 3_800, 1_000, 1.7],
         12105: [50_000, 40_000, 50_000, 1.65],
@@ -358,8 +359,8 @@ class Technologies {
         12216: [250_000, 250_000, 250_000, 1.4],
         12217: [500_000, 300_000, 200_000, 1.5],
         12218: [300_000, 180_000, 120_000, 1.7],
-        13101: [6, 2, 0 , 1.21],
-        13102: [5, 2, 0 , 1.18],
+        13101: [6, 2, 0, 1.21],
+        13102: [5, 2, 0, 1.18],
         13103: [30_000, 20_000, 10_000, 1.3],
         13104: [5_000, 3_800, 1_000, 1.8],
         13105: [50_000, 40_000, 50_000, 1.8],
@@ -388,8 +389,8 @@ class Technologies {
         13216: [320_000, 240_000, 100_000, 1.5],
         13217: [500_000, 300_000, 200_000, 1.5],
         13218: [300_000, 180_000, 120_000, 1.7],
-        14101: [4, 3, 0 , 1.21],
-        14102: [6, 3, 0 , 1.21],
+        14101: [4, 3, 0, 1.21],
+        14102: [6, 3, 0, 1.21],
         14103: [20_000, 20_000, 30_000, 1.3],
         14104: [7_500, 5_000, 800, 1.8],
         14105: [60_000, 30_000, 50_000, 1.8],
@@ -420,40 +421,40 @@ class Technologies {
         14218: [300_000, 180_000, 120_000, 1.7]
     }
 
-    constructor( data = {} ){
-        for( const id in data ){
+    constructor(data = {}) {
+        for (const id in data) {
             let Technology;
-            if( id > 14_200 ) Technology = LifeformResearch;
-            else if( id > 14_100 ) Technology = LifeformBuilding;
-            else if( id > 13_200 ) Technology = LifeformResearch;
-            else if( id > 13_100 ) Technology = LifeformBuilding;
-            else if( id > 12_200 ) Technology = LifeformResearch;
-            else if( id > 12_100 ) Technology = LifeformBuilding;
-            else if( id > 11_200 ) Technology = LifeformResearch;
-            else if( id > 11_100 ) Technology = LifeformBuilding;
-            else if( id > 400 ) Technology = Defence;
-            else if( id > 200 ) Technology = Ship;
-            else if( id > 100 ) Technology = Research;
-            else if( id > 3 ) Technology = Building;
+            if (id > 14_200) Technology = LifeformResearch;
+            else if (id > 14_100) Technology = LifeformBuilding;
+            else if (id > 13_200) Technology = LifeformResearch;
+            else if (id > 13_100) Technology = LifeformBuilding;
+            else if (id > 12_200) Technology = LifeformResearch;
+            else if (id > 12_100) Technology = LifeformBuilding;
+            else if (id > 11_200) Technology = LifeformResearch;
+            else if (id > 11_100) Technology = LifeformBuilding;
+            else if (id > 400) Technology = Defence;
+            else if (id > 200) Technology = Ship;
+            else if (id > 100) Technology = Research;
+            else if (id > 3) Technology = Building;
             else Technology = Mine;
-            this[ id ] = new Technology( data[ id ] );
+            this[id] = new Technology(data[id]);
         }
     }
 
-    get_cost_from( data ){
+    get_cost_from(data) {
         let result = 0;
-        for( const id in this ){
-            const technology = this[ id ];
-            result += technology.get_cost_from( data );
+        for (const id in this) {
+            const technology = this[id];
+            result += technology.get_cost_from(data);
         }
         return result;
     }
 
-    get_upgrade_cost_from( data ){
+    get_upgrade_cost_from(data) {
         let result = 0;
-        for( const id in this ){
-            const technology = this[ id ];
-            result += technology.get_upgrade_cost_from( data );
+        for (const id in this) {
+            const technology = this[id];
+            result += technology.get_upgrade_cost_from(data);
         }
         return result;
     }
@@ -461,41 +462,42 @@ class Technologies {
 
 class Technology {
 
-    constructor( data ){
-        this.id = parseInt( data.id );
+    constructor(data) {
+        this.id = parseInt(data.id);
         this.value = data.value;
         this.upgrade = data.upgrade;
         this.upgraded = data.value + data.upgrade;
     }
 }
 
-class Moon extends Body {}
+class Moon extends Body {
+}
 
 class Planet extends Body {
 
-    get_mine_cost_from( data ){
-        return ( this.technologies[1]?.get_cost_from( data ) || 0 ) +
-            ( this.technologies[2]?.get_cost_from( data ) || 0 ) +
-            ( this.technologies[3]?.get_cost_from( data ) || 0 );
+    get_mine_cost_from(data) {
+        return (this.technologies[1]?.get_cost_from(data) || 0) +
+            (this.technologies[2]?.get_cost_from(data) || 0) +
+            (this.technologies[3]?.get_cost_from(data) || 0);
     }
 
-    get_lifeform_buildings_cost_from( data ){
+    get_lifeform_buildings_cost_from(data) {
         let result = 0;
-        for( const id in this.technologies ){
-            const technology = this.technologies[ id ];
-            if( technology instanceof LifeformBuilding ){
-                result += technology.get_cost_from( data );
+        for (const id in this.technologies) {
+            const technology = this.technologies[id];
+            if (technology instanceof LifeformBuilding) {
+                result += technology.get_cost_from(data);
             }
         }
         return result;
     }
 
-    get_lifeform_researches_cost_from( data ){
+    get_lifeform_researches_cost_from(data) {
         let result = 0;
-        for( const id in this.technologies ){
-            const technology = this.technologies[ id ];
-            if( technology instanceof LifeformResearch ){
-                result += technology.get_cost_from( data );
+        for (const id in this.technologies) {
+            const technology = this.technologies[id];
+            if (technology instanceof LifeformResearch) {
+                result += technology.get_cost_from(data);
             }
         }
         return result;
@@ -515,19 +517,19 @@ class Planet extends Body {
     // 	return Math.floor( 10 * level * 1.1 ** level * speed * factor ) * rate * -1;
     // }
 
-    get_upgraded_production_from( data ){
-        const mines = this.get_upgraded_mines_production_from( data );
-        const crawlers = this.get_upgraded_crawlers_production_from( data, mines );
-        const plasma = this.get_upgraded_plasma_production_from( data, mines );
-        const classes = this.get_classes_production_from( data, mines );
-        const officers = this.get_officers_production_from( data, mines );
+    get_upgraded_production_from(data) {
+        const mines = this.get_upgraded_mines_production_from(data);
+        const crawlers = this.get_upgraded_crawlers_production_from(data, mines);
+        const plasma = this.get_upgraded_plasma_production_from(data, mines);
+        const classes = this.get_classes_production_from(data, mines);
+        const officers = this.get_officers_production_from(data, mines);
         return mines.total + crawlers + plasma + classes + officers;
     }
 
-    get_upgraded_mines_production_from( data ){
-        const metal = this.get_upgraded_metal_mine_production_from( data );
-        const crystal = this.get_upgraded_crystal_mine_production_from( data );
-        const deuterium = this.get_upgraded_deuterium_mine_production_from( data );
+    get_upgraded_mines_production_from(data) {
+        const metal = this.get_upgraded_metal_mine_production_from(data);
+        const crystal = this.get_upgraded_crystal_mine_production_from(data);
+        const deuterium = this.get_upgraded_deuterium_mine_production_from(data);
         const total = metal + crystal + deuterium;
         return {
             metal,
@@ -537,79 +539,80 @@ class Planet extends Body {
         };
     }
 
-    get_upgraded_metal_mine_production_from( data ){
+    get_upgraded_metal_mine_production_from(data) {
         const level = this.technologies?.[1].upgraded || 0;
-        const bonus = [1.35, 1.23, 1.17, 1][ Math.min( 3, Math.abs( this.position - 8 ) ) ];
+        const bonus = [1.35, 1.23, 1.17, 1][Math.min(3, Math.abs(this.position - 8))];
         const speed = data.game.universe.economy_speed;
         const rate = data?.script?.rates.metal || 1;
-        return Math.round( 30 * level * 1.1 ** level * bonus * speed ) / rate;
+        return Math.round(30 * level * 1.1 ** level * bonus * speed) / rate;
     }
 
-    get_upgraded_crystal_mine_production_from( data ){
+    get_upgraded_crystal_mine_production_from(data) {
         const level = this.technologies?.[2].upgraded || 0;
-        const bonus = Math.max( 1, 1.4 - .1 * this.position );
+        const bonus = Math.max(1, 1.4 - .1 * this.position);
         const speed = data.game.universe.economy_speed;
         const rate = data?.script?.rates.crystal || 1;
-        return Math.round( 20 * level * 1.1 ** level * bonus * speed ) / rate;
+        return Math.round(20 * level * 1.1 ** level * bonus * speed) / rate;
     }
 
-    get_upgraded_deuterium_mine_production_from( data ){
+    get_upgraded_deuterium_mine_production_from(data) {
         const level = this.technologies?.[3].upgraded || 0;
         const bonus = 1.44 - .004 * this.temperatures?.max || 0;
         const speed = data.game.universe.economy_speed;
         const rate = data?.script?.rates.deuterium || 1;
-        return Math.round( 10 * level * 1.1 ** level * bonus * speed ) / rate;
+        return Math.round(10 * level * 1.1 ** level * bonus * speed) / rate;
     }
 
-    get_upgraded_crawlers_production_from( data, productions ){
+    get_upgraded_crawlers_production_from(data, productions) {
         const metal_level = this.technologies?.[1].upgraded || 0;
         const crystal_level = this.technologies?.[2].upgraded || 0;
         const deuterium_level = this.technologies?.[3].upgraded || 0;
         const crawlers_count_bonus = data.game.player.class === 'miner' ? 1.1 : 1;
-        const crawlers_count = ( metal_level + crystal_level + deuterium_level ) * 8 * crawlers_count_bonus;
+        const crawlers_count = (metal_level + crystal_level + deuterium_level) * 8 * crawlers_count_bonus;
         const crawlers_production_bonus = data.game.player.class === 'miner' ? 1.5 : 1;
         const crawlers_production_factor = crawlers_production_bonus;
-        const crawlers_rate = Math.min( .5, .02 * crawlers_production_bonus * crawlers_production_factor * crawlers_count );
+        const crawlers_rate = Math.min(.5, .02 * crawlers_production_bonus * crawlers_production_factor * crawlers_count);
         return productions.total * crawlers_rate;
     }
 
-    get_upgraded_plasma_production_from( data, productions ){
+    get_upgraded_plasma_production_from(data, productions) {
         const level = data.game.player.researches?.[122].upgraded || 0;
         return productions.metal * .01 * level +
             productions.crystal * .0066 * level +
             productions.deuterium * .0033 * level;
     }
 
-    get_classes_production_from( data, productions ){
+    get_classes_production_from(data, productions) {
         const miner_class = data.game.player.class === 'miner';
         const trader_class = data.game.player?.alliance?.class === 'trader';
-        const bonus = ( miner_class ? .25 : 0 ) + ( trader_class ? .05 : 0 );
+        const bonus = (miner_class ? .25 : 0) + (trader_class ? .05 : 0);
         return productions.total * bonus;
     }
 
-    get_officers_production_from( data, productions ){
+    get_officers_production_from(data, productions) {
         const officers = data.game.player.officers;
-        const bonus = ( officers.geologist ? .1 : 0 ) + ( officers.all ? .02 : 0 );
+        const bonus = (officers.geologist ? .1 : 0) + (officers.all ? .02 : 0);
         return productions.total * bonus;
     }
 }
 
-class Researches extends Technologies {}
+class Researches extends Technologies {
+}
 
 class Unit extends Technology {
 
-    get_cost_from( data ){
-        const [ metal, crystal, deuterium ] = Technologies.costs[ this.id ];
-        const rates = data?.script?.rates || { metal: 1, crystal: 1, deuterium: 1 };
-        return  metal * this.value / rates.metal +
+    get_cost_from(data) {
+        const [metal, crystal, deuterium] = Technologies.costs[this.id];
+        const rates = data?.script?.rates || {metal: 1, crystal: 1, deuterium: 1};
+        return metal * this.value / rates.metal +
             crystal * this.value / rates.crystal +
             deuterium * this.value / rates.deuterium;
     }
 
-    get_upgrade_cost_from( data ){
-        const [ metal, crystal, deuterium ] = Technologies.costs[ this.id ];
-        const rates = data?.script?.rates || { metal: 1, crystal: 1, deuterium: 1 };
-        return  metal * this.upgrade / rates.metal +
+    get_upgrade_cost_from(data) {
+        const [metal, crystal, deuterium] = Technologies.costs[this.id];
+        const rates = data?.script?.rates || {metal: 1, crystal: 1, deuterium: 1};
+        return metal * this.upgrade / rates.metal +
             crystal * this.upgrade / rates.crystal +
             deuterium * this.upgrade / rates.deuterium;
     }
@@ -617,26 +620,26 @@ class Unit extends Technology {
 
 class Upgradable extends Technology {
 
-    get_cost_from( data ){
-        const [ metal, crystal, deuterium, factor ] = Technologies.costs[ this.id ];
-        const rates = data?.script?.rates || { metal: 1, crystal: 1, deuterium: 1 };
+    get_cost_from(data) {
+        const [metal, crystal, deuterium, factor] = Technologies.costs[this.id];
+        const rates = data?.script?.rates || {metal: 1, crystal: 1, deuterium: 1};
         let result = 0;
-        for( let i = 1; i <= this.value; i++ ){
-            result += this.get_level_cost_from( metal, factor, i ) / rates.metal +
-                this.get_level_cost_from( crystal, factor, i ) / rates.crystal +
-                this.get_level_cost_from( deuterium, factor, i ) / rates.deuterium;
+        for (let i = 1; i <= this.value; i++) {
+            result += this.get_level_cost_from(metal, factor, i) / rates.metal +
+                this.get_level_cost_from(crystal, factor, i) / rates.crystal +
+                this.get_level_cost_from(deuterium, factor, i) / rates.deuterium;
         }
         return result;
     }
 
-    get_upgrade_cost_from( data ){
-        const [ metal, crystal, deuterium, factor ] = Technologies.costs[ this.id ];
-        const rates = data?.script?.rates || { metal: 1, crystal: 1, deuterium: 1 };
+    get_upgrade_cost_from(data) {
+        const [metal, crystal, deuterium, factor] = Technologies.costs[this.id];
+        const rates = data?.script?.rates || {metal: 1, crystal: 1, deuterium: 1};
         let result = 0;
-        for( let i = this.value + 1; i <= this.upgraded; i++ ){
-            result += this.get_level_cost_from( metal, factor, i ) / rates.metal +
-                this.get_level_cost_from( crystal, factor, i ) / rates.crystal +
-                this.get_level_cost_from( deuterium, factor, i ) / rates.deuterium;
+        for (let i = this.value + 1; i <= this.upgraded; i++) {
+            result += this.get_level_cost_from(metal, factor, i) / rates.metal +
+                this.get_level_cost_from(crystal, factor, i) / rates.crystal +
+                this.get_level_cost_from(deuterium, factor, i) / rates.deuterium;
         }
         return result;
     }
@@ -650,22 +653,22 @@ class Ship extends Unit {
 
 class Building extends Upgradable {
 
-    get_level_cost_from( base, factor, level ){
-        return Math.floor( base * factor ** ( level - 1 ) );
+    get_level_cost_from(base, factor, level) {
+        return Math.floor(base * factor ** (level - 1));
     }
 }
 
 class Lifeform extends Upgradable {
 
-    get_level_cost_from( base, factor, level ){
-        return Math.floor( base * factor ** ( level - 1 ) * level );
+    get_level_cost_from(base, factor, level) {
+        return Math.floor(base * factor ** (level - 1) * level);
     }
 }
 
 class Research extends Upgradable {
 
-    get_level_cost_from( base, factor, level ){
-        return Math.round( base * factor ** ( level - 1 ) * .01 ) * 100;
+    get_level_cost_from(base, factor, level) {
+        return Math.round(base * factor ** (level - 1) * .01) * 100;
     }
 }
 
@@ -677,10 +680,11 @@ class LifeformBuilding extends Lifeform {
 
 class LifeformResearch extends Lifeform {
 }
+
 /**
  * Sript components
  */
-const Translation = new function(){
+const Translation = new function () {
     const translations = {
         en: {
             1: 'Metal mine',
@@ -1466,142 +1470,142 @@ const Translation = new function(){
             coords: 'Coords'
         }
     };
-    return translations[ document.documentElement.lang ] || translations.en;
+    return translations[document.documentElement.lang] || translations.en;
 };
 
-const Formats = new function(){
+const Formats = new function () {
 
     const locale = LocalizationStrings.decimalPoint === '.' ? 'en-US' : 'de-DE';
-    const number_options = { style: 'decimal', maximumFractionDigits: 2 };
-    const percent_options = { style: 'percent', minimumFractionDigits: 2 };
-    const padded_percent_options = { style: 'percent', minimumIntegerDigits: 2, minimumFractionDigits: 2 };
+    const number_options = {style: 'decimal', maximumFractionDigits: 2};
+    const percent_options = {style: 'percent', minimumFractionDigits: 2};
+    const padded_percent_options = {style: 'percent', minimumIntegerDigits: 2, minimumFractionDigits: 2};
 
     return {
-        get_duration_from( value ){
+        get_duration_from(value) {
             let unit;
-            if( value > 8_760 ){
+            if (value > 8_760) {
                 value /= 8_760
                 unit = Translation.years;
-            }else if( value > 732 ){
+            } else if (value > 732) {
                 value /= 732;
                 unit = Translation.months;
-            }else if( value > 168 ){
+            } else if (value > 168) {
                 value /= 168;
                 unit = Translation.weeks;
-            }else if( value > 24 ){
+            } else if (value > 24) {
                 value /= 24;
                 unit = Translation.days;
-            }else{
+            } else {
                 unit = Translation.hours;
             }
-            return `${ value.toLocaleString( locale, number_options ) } ${ unit }`;
+            return `${value.toLocaleString(locale, number_options)} ${unit}`;
         },
-        get_padded_percent_from( value ){
-            const string = value.toLocaleString( locale, padded_percent_options );
-            return string[0] === '0' ? `<span class="ic-padded-percent">${ string }</span>` : string;
+        get_padded_percent_from(value) {
+            const string = value.toLocaleString(locale, padded_percent_options);
+            return string[0] === '0' ? `<span class="ic-padded-percent">${string}</span>` : string;
         },
-        get_percent_from( value ){
-            return value.toLocaleString( locale, percent_options );
+        get_percent_from(value) {
+            return value.toLocaleString(locale, percent_options);
         },
-        get_number_from( value ){
-            return value.toLocaleString( locale, number_options );
+        get_number_from(value) {
+            return value.toLocaleString(locale, number_options);
         }
     };
 };
 
 const AccountPanel = {
 
-    init( data ){
-        const template = document.createElement( 'template' );
-        template.innerHTML = this.get_html_from( data );
-        document.querySelector( '#middle' ).appendChild( template.content );
+    init(data) {
+        const template = document.createElement('template');
+        template.innerHTML = this.get_html_from(data);
+        document.querySelector('#middle').appendChild(template.content);
     },
-    get_html_from( data ){
+    get_html_from(data) {
         const points = data.game.player.points;
         const percents = data.game.player.percents;
         const score = data.game.player.score;
         return `<div id="ic-account-points-component" class="ic-component" data-state="expanded">
-						<h3>${ Translation.account_points_repartition }<button></button></h3>
+						<h3>${Translation.account_points_repartition}<button></button></h3>
 						<div class="ic-component-main">
 							<table>
 								<tr>
-									<th>${ Translation.mines }</th>
-									<td>${ Formats.get_number_from( points.mines.total ) } — ${ Formats.get_padded_percent_from( percents.mines.total ) }</td>
+									<th>${Translation.mines}</th>
+									<td>${Formats.get_number_from(points.mines.total)} — ${Formats.get_padded_percent_from(percents.mines.total)}</td>
 								</tr>
 								<tr>
-									<th>${ Translation.planetary_buildings }</th>
-									<td>${ Formats.get_number_from( points.buildings.planetary ) } — ${ Formats.get_padded_percent_from( percents.buildings.planetary ) }</td>
+									<th>${Translation.planetary_buildings}</th>
+									<td>${Formats.get_number_from(points.buildings.planetary)} — ${Formats.get_padded_percent_from(percents.buildings.planetary)}</td>
 								</tr>
 								<tr>
-									<th>${ Translation.lunar_buildings }</th>
-									<td>${ Formats.get_number_from( points.buildings.lunar ) } — ${ Formats.get_padded_percent_from( percents.buildings.lunar ) }</td>
+									<th>${Translation.lunar_buildings}</th>
+									<td>${Formats.get_number_from(points.buildings.lunar)} — ${Formats.get_padded_percent_from(percents.buildings.lunar)}</td>
 								</tr>
 								<tr>
-									<th>${ Translation.lifeform_buildings }</th>
-									<td>${ Formats.get_number_from( points.lifeforms.buildings ) } — ${ Formats.get_padded_percent_from( percents.lifeforms.buildings ) }</td>
+									<th>${Translation.lifeform_buildings}</th>
+									<td>${Formats.get_number_from(points.lifeforms.buildings)} — ${Formats.get_padded_percent_from(percents.lifeforms.buildings)}</td>
 								</tr>
 								<tr>
-									<th>${ Translation.lifeform_researches }</th>
-									<td>${ Formats.get_number_from( points.lifeforms.researches ) } — ${ Formats.get_padded_percent_from( percents.lifeforms.researches ) }</td>
+									<th>${Translation.lifeform_researches}</th>
+									<td>${Formats.get_number_from(points.lifeforms.researches)} — ${Formats.get_padded_percent_from(percents.lifeforms.researches)}</td>
 								</tr>
 								<tr>
-									<th>${ Translation.research }</th>
-									<td>${ Formats.get_number_from( points.research ) } — ${ Formats.get_padded_percent_from( percents.research ) }</td>
+									<th>${Translation.research}</th>
+									<td>${Formats.get_number_from(points.research)} — ${Formats.get_padded_percent_from(percents.research)}</td>
 								</tr>
 								<tr>
-									<th>${ Translation.fleet }</th>
-									<td>${ Formats.get_number_from( points.fleet ) } — ${ Formats.get_padded_percent_from( percents.fleet ) }</td>
+									<th>${Translation.fleet}</th>
+									<td>${Formats.get_number_from(points.fleet)} — ${Formats.get_padded_percent_from(percents.fleet)}</td>
 								</tr>
 								<tr>
-									<th>${ Translation.defence }</th>
-									<td>${ Formats.get_number_from( points.defence ) } — ${ Formats.get_padded_percent_from( percents.defence ) }</td>
+									<th>${Translation.defence}</th>
+									<td>${Formats.get_number_from(points.defence)} — ${Formats.get_padded_percent_from(percents.defence)}</td>
 								</tr>
 								<tr>
-									<th>${ Translation.indestructible }</th>
+									<th>${Translation.indestructible}</th>
 									<td>
-										<div>${ Formats.get_number_from( points.indestructible ) } — ${ Formats.get_padded_percent_from( percents.indestructible ) }</div>
-										<div>- ${ score.if_destroyed } ${ Translation.if_destroyed }</div>
+										<div>${Formats.get_number_from(points.indestructible)} — ${Formats.get_padded_percent_from(percents.indestructible)}</div>
+										<div>- ${score.if_destroyed} ${Translation.if_destroyed}</div>
 									</td>
 								</tr>
 								<tr>
-									<th>${ Translation.upgrade }</th>
+									<th>${Translation.upgrade}</th>
 									<td>
-										<div>${ Formats.get_number_from( points.upgrade ) } — ${ Formats.get_padded_percent_from( percents.upgrade ) }</div>
-										<div>+ ${ score.when_finished } ${ Translation.when_finished }</div>
+										<div>${Formats.get_number_from(points.upgrade)} — ${Formats.get_padded_percent_from(percents.upgrade)}</div>
+										<div>+ ${score.when_finished} ${Translation.when_finished}</div>
 									</td>
 								</tr>
 							</table>
-							${ PieChart.get_html_from( this.get_chart_data_from( data ) ) }
+							${PieChart.get_html_from(this.get_chart_data_from(data))}
 						</div>
 					</div>`;
     },
-    get_chart_data_from( data ){
+    get_chart_data_from(data) {
         const percents = data.game.player.percents;
         return [
-            [ Colors.mines, percents.mines.total ],
-            [ Colors.planetary_buildings, percents.buildings.planetary ],
-            [ Colors.lunar_buildings, percents.buildings.lunar ],
-            [ Colors.lifeform_buildings, percents.lifeforms.buildings ],
-            [ Colors.lifeform_researches, percents.lifeforms.researches ],
-            [ Colors.research, percents.research ],
-            [ Colors.fleet, percents.fleet ],
-            [ Colors.defence, percents.defence ]
+            [Colors.mines, percents.mines.total],
+            [Colors.planetary_buildings, percents.buildings.planetary],
+            [Colors.lunar_buildings, percents.buildings.lunar],
+            [Colors.lifeform_buildings, percents.lifeforms.buildings],
+            [Colors.lifeform_researches, percents.lifeforms.researches],
+            [Colors.research, percents.research],
+            [Colors.fleet, percents.fleet],
+            [Colors.defence, percents.defence]
         ];
     }
 };
 
 const ClearButton = {
 
-    get_html(){
+    get_html() {
         return '<button id="ic-clear-button" class="ic-outline-button">Reset</button>';
     },
-    set_event_listeners(){
-        document.querySelector( '#ic-clear-button' ).addEventListener( 'click', function(){
-            if( confirm( Translation.clear_confirm ) ){
+    set_event_listeners() {
+        document.querySelector('#ic-clear-button').addEventListener('click', function () {
+            if (confirm(Translation.clear_confirm)) {
                 Storage.clear();
                 window.location.reload();
             }
-        } );
+        });
     }
 };
 
@@ -1623,65 +1627,65 @@ const Colors = {
 
 const Data = {
 
-    get(){
+    get() {
         const result = Storage.get();
-        this.set_positions_to( result );
-        this.set_researches_to( result );
+        this.set_positions_to(result);
+        this.set_researches_to(result);
         return result;
     },
-    get_from( storage, interface ){
-        const result = this.reduce( storage, interface );
-        this.clean( storage, interface, result );
-        this.set_positions_to( result );
-        this.set_researches_to( result );
-        this.set_costs_to( result );
-        this.set_points_to( result );
-        this.set_percents_to( result );
-        this.set_productions_to( result );
-        this.set_highscore_to( result );
+    get_from(storage, interface) {
+        const result = this.reduce(storage, interface);
+        this.clean(storage, interface, result);
+        this.set_positions_to(result);
+        this.set_researches_to(result);
+        this.set_costs_to(result);
+        this.set_points_to(result);
+        this.set_percents_to(result);
+        this.set_productions_to(result);
+        this.set_highscore_to(result);
         result.script ||= {};
         return result;
     },
-    reduce( ...objects ){
+    reduce(...objects) {
         const result = {};
-        for( const object of objects ){
-            for( const key in object ){
-                if( typeof result[ key ] === 'object' && typeof object[ key ] === 'object' ){
-                    const value = this.reduce( result[ key ], object[ key ] );
-                    result[ key ] = value;
-                }else result[ key ] = object[ key ]
+        for (const object of objects) {
+            for (const key in object) {
+                if (typeof result[key] === 'object' && typeof object[key] === 'object') {
+                    const value = this.reduce(result[key], object[key]);
+                    result[key] = value;
+                } else result[key] = object[key]
             }
         }
         return result;
     },
-    clean( storage, interface, result ){
+    clean(storage, interface, result) {
         const storage_positions = storage.game?.player.positions || {};
         const interface_positions = interface.game.player.positions;
         const result_positions = result.game.player.positions;
-        for( const coordinates in storage_positions ){
-            const interface_position = interface_positions[ coordinates ];
-            if( currentPage === 'empire' ){
-                if( !interface_position ){
-                    if( planetType === 0 ) delete result_positions[ coordinates ];
-                    else delete result_positions[ coordinates ].moon;
+        for (const coordinates in storage_positions) {
+            const interface_position = interface_positions[coordinates];
+            if (currentPage === 'empire') {
+                if (!interface_position) {
+                    if (planetType === 0) delete result_positions[coordinates];
+                    else delete result_positions[coordinates].moon;
                 }
-            }else{
-                if( !interface_position ) delete result_positions[ coordinates ];
-                else if( !interface_position.moon ) delete result_positions[ coordinates ].moon;
+            } else {
+                if (!interface_position) delete result_positions[coordinates];
+                else if (!interface_position.moon) delete result_positions[coordinates].moon;
             }
         }
     },
-    set_positions_to( data ){
+    set_positions_to(data) {
         const player = data.game.player;
-        player.positions = new Positions( player.positions );
+        player.positions = new Positions(player.positions);
     },
-    set_researches_to( data ){
+    set_researches_to(data) {
         const player = data.game.player;
-        player.researches = new Researches( player.researches );
+        player.researches = new Researches(player.researches);
     },
-    set_costs_to( data ){
+    set_costs_to(data) {
 
-        function get_buildings_from( data ){
+        function get_buildings_from(data) {
             const positions = data.game.player.positions;
             const planetary = positions.get_planetary_building_cost_from();
             const lunar = positions.get_lunar_building_cost_from();
@@ -1692,13 +1696,16 @@ const Data = {
                 total
             };
         }
-        function get_defence_from( data ){
+
+        function get_defence_from(data) {
             return data.game.player.positions.get_defence_cost_from();
         }
-        function get_destructible_from( data ){
+
+        function get_destructible_from(data) {
             return data.game.player.positions.get_destructible_cost_from();
         }
-        function get_lifeforms_from( data ){
+
+        function get_lifeforms_from(data) {
             const positions = data.game.player.positions;
             const buildings = positions.get_lifeform_buildings_cost_from();
             const researches = positions.get_lifeform_researches_cost_from();
@@ -1709,7 +1716,8 @@ const Data = {
                 total
             };
         }
-        function get_mines_from( data ){
+
+        function get_mines_from(data) {
             const positions = data.game.player.positions;
             return {
                 metal: positions.get_metal_mine_cost_from(),
@@ -1718,25 +1726,29 @@ const Data = {
                 total: positions.get_mine_cost_from()
             };
         }
-        function get_research_from( data ){
+
+        function get_research_from(data) {
             return data.game.player.researches.get_cost_from();
         }
-        function get_upgrade_from( data ){
+
+        function get_upgrade_from(data) {
             const positions = data.game.player.positions;
             const researches = data.game.player.researches;
             return positions.get_upgrade_cost_from() + researches.get_upgrade_cost_from();
         }
-        function get_without_fleet( data ){
+
+        function get_without_fleet(data) {
             const positions = data.game.player.positions.get_without_fleet_cost_from();
             const researches = data.game.player.researches.get_cost_from();
             return positions + researches;
         }
-        function get_positions_from( data ){
+
+        function get_positions_from(data) {
             const positions = data.game.player.positions;
             const result = {};
-            for( const coordinates in positions ){
-                const { planet, moon } = positions[ coordinates ];
-                result[ coordinates ] = {
+            for (const coordinates in positions) {
+                const {planet, moon} = positions[coordinates];
+                result[coordinates] = {
                     planet: {
                         mines: planet.get_mine_cost_from(),
                         buildings: planet.get_building_cost_from(),
@@ -1748,8 +1760,8 @@ const Data = {
                         total: planet.get_static_cost_from()
                     }
                 };
-                if( moon ){
-                    result[ coordinates ].moon = {
+                if (moon) {
+                    result[coordinates].moon = {
                         buildings: moon.get_building_cost_from(),
                         defence: moon.get_defence_cost_from(),
                         total: moon.get_static_cost_from()
@@ -1760,78 +1772,78 @@ const Data = {
         }
 
         data.game.player.costs = {
-            buildings: get_buildings_from( data ),
-            defence: get_defence_from( data ),
-            destructible: get_destructible_from( data ),
-            lifeforms: get_lifeforms_from( data ),
-            mines: get_mines_from( data ),
-            research: get_research_from( data ),
-            upgrade: get_upgrade_from( data ),
-            without_fleet: get_without_fleet( data ),
-            positions: get_positions_from( data )
+            buildings: get_buildings_from(data),
+            defence: get_defence_from(data),
+            destructible: get_destructible_from(data),
+            lifeforms: get_lifeforms_from(data),
+            mines: get_mines_from(data),
+            research: get_research_from(data),
+            upgrade: get_upgrade_from(data),
+            without_fleet: get_without_fleet(data),
+            positions: get_positions_from(data)
         };
     },
-    set_points_to( data ){
+    set_points_to(data) {
 
-        function get_from( costs ){
+        function get_from(costs) {
             const result = {};
-            for( const key in costs ){
-                const value = costs[ key ];
-                if( typeof value === 'object' ) result[ key ] = get_from( value );
-                else result[ key ] = Math.floor( value * .001 );
+            for (const key in costs) {
+                const value = costs[key];
+                if (typeof value === 'object') result[key] = get_from(value);
+                else result[key] = Math.floor(value * .001);
             }
             return result;
         }
 
         const total = data.game.player.score?.points;
-        if( total ){
+        if (total) {
             const costs = data.game.player.costs;
-            const result = get_from( costs );
-            result.fleet = total - Math.floor( costs.without_fleet * .001 );
-            result.indestructible = total - ( Math.floor( costs.destructible * .001 ) + result.fleet );
+            const result = get_from(costs);
+            result.fleet = total - Math.floor(costs.without_fleet * .001);
+            result.indestructible = total - (Math.floor(costs.destructible * .001) + result.fleet);
             result.upgraded = total + result.upgrade;
             result.total = total;
             data.game.player.points = result;
         }
     },
-    set_percents_to( data ){
+    set_percents_to(data) {
 
-        function get_from( points, total ){
+        function get_from(points, total) {
             const result = {};
-            for( const key in points ){
-                const value = points[ key ];
-                if( typeof value === 'object' ) result[ key ] = get_from( value, total );
-                else result[ key ] = value / total;
+            for (const key in points) {
+                const value = points[key];
+                if (typeof value === 'object') result[key] = get_from(value, total);
+                else result[key] = value / total;
             }
             return result;
         }
 
         const total = data.game.player.score?.points;
-        if( total ){
+        if (total) {
             const points = data.game.player.points;
-            data.game.player.percents = get_from( points, total );
+            data.game.player.percents = get_from(points, total);
         }
     },
-    set_productions_to( data ){
+    set_productions_to(data) {
 
-        function get_mines_from( data ){
+        function get_mines_from(data) {
             const positions = data.game.player.positions;
             let metal = 0;
             let crystal = 0;
             let deuterium = 0;
             let points;
-            for( const coordinates in positions ){
-                const productions = positions[ coordinates ].planet.productions;
-                if( productions ){
+            for (const coordinates in positions) {
+                const productions = positions[coordinates].planet.productions;
+                if (productions) {
                     metal += productions.mines.metal;
                     crystal += productions.mines.crystal;
                     deuterium += productions.mines.deuterium;
                 }
             }
-            metal = Math.floor( metal * 24 );
-            crystal = Math.floor( crystal * 24 );
-            deuterium = Math.floor( deuterium * 24 );
-            points = Math.floor( ( metal + crystal + deuterium ) * .001 );
+            metal = Math.floor(metal * 24);
+            crystal = Math.floor(crystal * 24);
+            deuterium = Math.floor(deuterium * 24);
+            points = Math.floor((metal + crystal + deuterium) * .001);
             return {
                 metal,
                 crystal,
@@ -1839,15 +1851,16 @@ const Data = {
                 points
             };
         }
-        function get_lifeforms_from( data ){
+
+        function get_lifeforms_from(data) {
             const positions = data.game.player.positions;
             let metal = 0;
             let crystal = 0;
             let deuterium = 0;
             let points;
-            for( const coordinates in positions ){
-                const productions = positions[ coordinates ].planet.productions;
-                if( productions ){
+            for (const coordinates in positions) {
+                const productions = positions[coordinates].planet.productions;
+                if (productions) {
                     const basic = productions.basic;
                     const mines = productions.mines;
                     const fusion = productions.fusion;
@@ -1866,10 +1879,10 @@ const Data = {
                     deuterium += total.deuterium - without_lifeform_deuterium;
                 }
             }
-            metal = Math.max( 0,  Math.floor( metal * 24 ) );
-            crystal = Math.max( 0, Math.floor( crystal * 24 ) );
-            deuterium = Math.max( 0, Math.floor( deuterium * 24 ) );
-            points = Math.floor( ( metal + crystal + deuterium ) * .001 );
+            metal = Math.max(0, Math.floor(metal * 24));
+            crystal = Math.max(0, Math.floor(crystal * 24));
+            deuterium = Math.max(0, Math.floor(deuterium * 24));
+            points = Math.floor((metal + crystal + deuterium) * .001);
             return {
                 metal,
                 crystal,
@@ -1877,16 +1890,17 @@ const Data = {
                 points
             };
         }
-        function get_free_from( data ){
-            const crawlers_rate = document.querySelector( `#officers a.on.geologist` ) ? .1 : 0;
+
+        function get_free_from(data) {
+            const crawlers_rate = document.querySelector(`#officers a.on.geologist`) ? .1 : 0;
             const positions = data.game.player.positions;
             let metal = 0;
             let crystal = 0;
             let deuterium = 0;
             let points;
-            for( const coordinates in positions ){
-                const productions = positions[ coordinates ].planet.productions;
-                if( productions ){
+            for (const coordinates in positions) {
+                const productions = positions[coordinates].planet.productions;
+                if (productions) {
                     const crawlers = productions.crawlers;
                     const objects = productions.objects;
                     const geologist = productions.geologist;
@@ -1899,10 +1913,10 @@ const Data = {
                     deuterium += productions.total.deuterium - paid_deuterium;
                 }
             }
-            metal = Math.floor( metal * 24 );
-            crystal = Math.floor( crystal * 24 );
-            deuterium = Math.floor( deuterium * 24 );
-            points = Math.floor( ( metal + crystal + deuterium ) * .001 );
+            metal = Math.floor(metal * 24);
+            crystal = Math.floor(crystal * 24);
+            deuterium = Math.floor(deuterium * 24);
+            points = Math.floor((metal + crystal + deuterium) * .001);
             return {
                 metal,
                 crystal,
@@ -1910,25 +1924,26 @@ const Data = {
                 points
             };
         }
-        function get_total_from( data ){
+
+        function get_total_from(data) {
             const positions = data.game.player.positions;
             let metal = 0;
             let crystal = 0;
             let deuterium = 0;
             let points;
-            for( const coordinates in positions ){
-                const productions = positions[ coordinates ].planet.productions;
-                if( productions ){
+            for (const coordinates in positions) {
+                const productions = positions[coordinates].planet.productions;
+                if (productions) {
                     const total = productions.total;
                     metal += total.metal;
                     crystal += total.crystal;
                     deuterium += total.deuterium;
                 }
             }
-            metal = Math.floor( metal * 24 );
-            crystal = Math.floor( crystal * 24 );
-            deuterium = Math.floor( deuterium * 24 );
-            points = Math.floor( ( metal + crystal + deuterium ) * .001 );
+            metal = Math.floor(metal * 24);
+            crystal = Math.floor(crystal * 24);
+            deuterium = Math.floor(deuterium * 24);
+            points = Math.floor((metal + crystal + deuterium) * .001);
             return {
                 metal,
                 crystal,
@@ -1938,32 +1953,32 @@ const Data = {
         }
 
         data.game.player.productions = {
-            mines: get_mines_from( data ),
-            lifeforms: get_lifeforms_from( data ),
-            free: get_free_from( data ),
-            total: get_total_from( data )
+            mines: get_mines_from(data),
+            lifeforms: get_lifeforms_from(data),
+            free: get_free_from(data),
+            total: get_total_from(data)
         };
     },
-    set_highscore_to( data ){
+    set_highscore_to(data) {
         const score = data.game.player.score;
-        if( score ){
+        if (score) {
             const highscores = data.game.universe.highscores;
             const points = data.game.player.points;
             const position = score.position;
             score.if_destroyed = 0;
             score.when_finished = 0;
-            for( const key in highscores ){
-                const value = highscores[ key ];
-                if( value < points.indestructible ){
-                    score.if_destroyed = parseInt( key ) - 1 - position;
+            for (const key in highscores) {
+                const value = highscores[key];
+                if (value < points.indestructible) {
+                    score.if_destroyed = parseInt(key) - 1 - position;
                     break;
                 }
             }
-            if( points.upgrade ){
-                for( const key in highscores ){
-                    const value = highscores[ key ];
-                    if( value < points.upgraded ){
-                        score.when_finished = position - parseInt( key );
+            if (points.upgrade) {
+                for (const key in highscores) {
+                    const value = highscores[key];
+                    if (value < points.upgraded) {
+                        score.when_finished = position - parseInt(key);
                         break;
                     }
                 }
@@ -1974,222 +1989,222 @@ const Data = {
 
 const EmpireTextExport = {
 
-    get_from( data ){
-        return	this.get_header_from( data ) +
-            TextExport.get_classes_from( data ) +
-            this.get_points_from( data ) +
-            this.get_productions_from( data ) +
-            this.get_temperatures_from( data ) +
-            this.get_planet_fields_from( data ) +
-            this.get_planetary_buildings_from( data ) +
-            this.get_lunar_buildings_from( data ) +
-            this.get_researches_from( data ) +
-            TextExport.get_lifeform_levels_from( data ) +
-            this.get_fleet_from( data ) +
-            this.get_planetary_defence_from( data ) +
-            this.get_lunar_defence_from( data );
+    get_from(data) {
+        return this.get_header_from(data) +
+            TextExport.get_classes_from(data) +
+            this.get_points_from(data) +
+            this.get_productions_from(data) +
+            this.get_temperatures_from(data) +
+            this.get_planet_fields_from(data) +
+            this.get_planetary_buildings_from(data) +
+            this.get_lunar_buildings_from(data) +
+            this.get_researches_from(data) +
+            TextExport.get_lifeform_levels_from(data) +
+            this.get_fleet_from(data) +
+            this.get_planetary_defence_from(data) +
+            this.get_lunar_defence_from(data);
     },
-    get_header_from( data ){
-        const title = TextExport.get_title_from( `${ Translation.empire_of } ${ data.game.player.name } ${ Translation.on } ${ data.game.universe.name }.${ data.game.universe.language }` );
+    get_header_from(data) {
+        const title = TextExport.get_title_from(`${Translation.empire_of} ${data.game.player.name} ${Translation.on} ${data.game.universe.name}.${data.game.universe.language}`);
         const stamp = TextExport.get_stamp();
         return title + stamp + '\n';
     },
-    get_points_from( data ){
-        const heading = TextExport.get_heading_from( Translation.account_points_repartition );
+    get_points_from(data) {
+        const heading = TextExport.get_heading_from(Translation.account_points_repartition);
         const points = data.game.player.points;
         const percents = data.game.player.percents;
-        const mines_points = TextExport.get_colored_from( Formats.get_number_from( points.mines.total ), Colors.primary );
-        const planetary_buildings_points = TextExport.get_colored_from( Formats.get_number_from( points.buildings.planetary ), Colors.primary );
-        const lunar_buildings_points = TextExport.get_colored_from( Formats.get_number_from( points.buildings.lunar ), Colors.primary );
-        const lifeform_buildings_points = TextExport.get_colored_from( Formats.get_number_from( points.lifeforms.buildings ), Colors.primary );
-        const lifeform_researches_points = TextExport.get_colored_from( Formats.get_number_from( points.lifeforms.researches ), Colors.primary );
-        const research_points = TextExport.get_colored_from( Formats.get_number_from( points.research ), Colors.primary );
-        const fleet_points = TextExport.get_colored_from( Formats.get_number_from( points.fleet ), Colors.primary );
-        const defence_points = TextExport.get_colored_from( Formats.get_number_from( points.defence ), Colors.primary );
-        const total_points = TextExport.get_colored_from( Formats.get_number_from( points.total ), Colors.primary );
-        const mines_percent = Formats.get_percent_from( percents.mines.total );
-        const planetary_buildings_percent = Formats.get_percent_from( percents.buildings.planetary );
-        const lunar_buildings_percent = Formats.get_percent_from( percents.buildings.lunar );
-        const lifeform_buildings_percent = Formats.get_percent_from( percents.lifeforms.buildings );
-        const lifeform_researches_percent = Formats.get_percent_from( percents.lifeforms.researches );
-        const research_percent = Formats.get_percent_from( percents.research ) ;
-        const fleet_percent = Formats.get_percent_from( percents.fleet );
-        const defence_percent = Formats.get_percent_from( percents.defence );
-        const indestructible_percent = Formats.get_percent_from( percents.indestructible );
-        return	heading +
-            `${ Translation.mines } : ${ mines_points } · ${ mines_percent }\n` +
-            `${ Translation.planetary_buildings } : ${ planetary_buildings_points } · ${ planetary_buildings_percent }\n` +
-            `${ Translation.lunar_buildings } : ${ lunar_buildings_points } · ${ lunar_buildings_percent }\n` +
-            `${ Translation.lifeform_buildings } : ${ lifeform_buildings_points } · ${ lifeform_buildings_percent }\n` +
-            `${ Translation.lifeform_researches } : ${ lifeform_researches_points } · ${ lifeform_researches_percent }\n` +
-            `${ Translation.researches } : ${ research_points } · ${ research_percent }\n` +
-            `${ Translation.fleet } : ${ fleet_points } · ${ fleet_percent }\n` +
-            `${ Translation.defence } : ${ defence_points } · ${ defence_percent }\n` +
-            `${ Translation.total } : ${ total_points } · ${ indestructible_percent } ${ Translation.indestructible }\n\n`;
+        const mines_points = TextExport.get_colored_from(Formats.get_number_from(points.mines.total), Colors.primary);
+        const planetary_buildings_points = TextExport.get_colored_from(Formats.get_number_from(points.buildings.planetary), Colors.primary);
+        const lunar_buildings_points = TextExport.get_colored_from(Formats.get_number_from(points.buildings.lunar), Colors.primary);
+        const lifeform_buildings_points = TextExport.get_colored_from(Formats.get_number_from(points.lifeforms.buildings), Colors.primary);
+        const lifeform_researches_points = TextExport.get_colored_from(Formats.get_number_from(points.lifeforms.researches), Colors.primary);
+        const research_points = TextExport.get_colored_from(Formats.get_number_from(points.research), Colors.primary);
+        const fleet_points = TextExport.get_colored_from(Formats.get_number_from(points.fleet), Colors.primary);
+        const defence_points = TextExport.get_colored_from(Formats.get_number_from(points.defence), Colors.primary);
+        const total_points = TextExport.get_colored_from(Formats.get_number_from(points.total), Colors.primary);
+        const mines_percent = Formats.get_percent_from(percents.mines.total);
+        const planetary_buildings_percent = Formats.get_percent_from(percents.buildings.planetary);
+        const lunar_buildings_percent = Formats.get_percent_from(percents.buildings.lunar);
+        const lifeform_buildings_percent = Formats.get_percent_from(percents.lifeforms.buildings);
+        const lifeform_researches_percent = Formats.get_percent_from(percents.lifeforms.researches);
+        const research_percent = Formats.get_percent_from(percents.research);
+        const fleet_percent = Formats.get_percent_from(percents.fleet);
+        const defence_percent = Formats.get_percent_from(percents.defence);
+        const indestructible_percent = Formats.get_percent_from(percents.indestructible);
+        return heading +
+            `${Translation.mines} : ${mines_points} · ${mines_percent}\n` +
+            `${Translation.planetary_buildings} : ${planetary_buildings_points} · ${planetary_buildings_percent}\n` +
+            `${Translation.lunar_buildings} : ${lunar_buildings_points} · ${lunar_buildings_percent}\n` +
+            `${Translation.lifeform_buildings} : ${lifeform_buildings_points} · ${lifeform_buildings_percent}\n` +
+            `${Translation.lifeform_researches} : ${lifeform_researches_points} · ${lifeform_researches_percent}\n` +
+            `${Translation.researches} : ${research_points} · ${research_percent}\n` +
+            `${Translation.fleet} : ${fleet_points} · ${fleet_percent}\n` +
+            `${Translation.defence} : ${defence_points} · ${defence_percent}\n` +
+            `${Translation.total} : ${total_points} · ${indestructible_percent} ${Translation.indestructible}\n\n`;
     },
-    get_productions_from( data ){
-        const heading = TextExport.get_heading_from( Translation.daily_productions );
+    get_productions_from(data) {
+        const heading = TextExport.get_heading_from(Translation.daily_productions);
         const total = data.game.player.productions.total;
-        const metal = Formats.get_number_from( total.metal );
-        const crystal = Formats.get_number_from( total.crystal );
-        const deuterium = Formats.get_number_from( total.deuterium );
-        return	heading +
-            `${ Translation.metal } : ${ TextExport.get_colored_from( metal, Colors.primary ) }\n` +
-            `${ Translation.crystal } : ${ TextExport.get_colored_from( crystal, Colors.primary ) }\n` +
-            `${ Translation.deuterium } : ${ TextExport.get_colored_from( deuterium, Colors.primary ) }\n\n`;
+        const metal = Formats.get_number_from(total.metal);
+        const crystal = Formats.get_number_from(total.crystal);
+        const deuterium = Formats.get_number_from(total.deuterium);
+        return heading +
+            `${Translation.metal} : ${TextExport.get_colored_from(metal, Colors.primary)}\n` +
+            `${Translation.crystal} : ${TextExport.get_colored_from(crystal, Colors.primary)}\n` +
+            `${Translation.deuterium} : ${TextExport.get_colored_from(deuterium, Colors.primary)}\n\n`;
     },
-    get_temperatures_from( data ){
-        const heading = TextExport.get_heading_from( Translation.temperatures_maximum );
+    get_temperatures_from(data) {
+        const heading = TextExport.get_heading_from(Translation.temperatures_maximum);
         const positions = data.game.player.positions;
         const values = [];
-        for( const coordinates in positions ){
-            const position = positions[ coordinates ];
-            values.push( position.planet.temperatures.max );
+        for (const coordinates in positions) {
+            const position = positions[coordinates];
+            values.push(position.planet.temperatures.max);
         }
-        const average = this.get_average_from( values ) + ' Ø';
-        return	heading +
-            `${ values.join( ', ' ) } · ${ TextExport.get_colored_from( average, Colors.primary ) }\n\n`;
+        const average = this.get_average_from(values) + ' Ø';
+        return heading +
+            `${values.join(', ')} · ${TextExport.get_colored_from(average, Colors.primary)}\n\n`;
     },
-    get_planet_fields_from( data ){
-        const heading = TextExport.get_heading_from( Translation.planet_fields );
+    get_planet_fields_from(data) {
+        const heading = TextExport.get_heading_from(Translation.planet_fields);
         const positions = data.game.player.positions;
         const maximum = [];
         const used = [];
-        for( const coordinates in positions ){
-            const fields = positions[ coordinates ].planet.fields;
-            maximum.push( fields.maximum );
-            used.push( fields.used );
+        for (const coordinates in positions) {
+            const fields = positions[coordinates].planet.fields;
+            maximum.push(fields.maximum);
+            used.push(fields.used);
         }
-        const maximum_padded = maximum.map( value => TextExport.get_padding_from( value, 3 ) + value );
-        const used_padded = used.map( value => TextExport.get_padding_from( value, 3 ) + value );
-        const maximum_average = this.get_average_from( maximum ) + ' Ø';
-        const used_average = this.get_average_from( used ) + ' Ø';
-        return	heading +
-            `${ used_padded.join( ', ' ) } · ${ TextExport.get_colored_from( used_average, Colors.primary ) } ${ Translation.used }\n` +
-            `${ maximum_padded.join( ', ' ) } · ${ TextExport.get_colored_from( maximum_average, Colors.primary ) } ${ Translation.maximum }\n\n`;
+        const maximum_padded = maximum.map(value => TextExport.get_padding_from(value, 3) + value);
+        const used_padded = used.map(value => TextExport.get_padding_from(value, 3) + value);
+        const maximum_average = this.get_average_from(maximum) + ' Ø';
+        const used_average = this.get_average_from(used) + ' Ø';
+        return heading +
+            `${used_padded.join(', ')} · ${TextExport.get_colored_from(used_average, Colors.primary)} ${Translation.used}\n` +
+            `${maximum_padded.join(', ')} · ${TextExport.get_colored_from(maximum_average, Colors.primary)} ${Translation.maximum}\n\n`;
     },
-    get_planetary_buildings_from( data ){
-        const heading = TextExport.get_heading_from( Translation.planetary_buildings );
-        const content = this.get_technologies_from( data, 'planet', Building, 2 );
+    get_planetary_buildings_from(data) {
+        const heading = TextExport.get_heading_from(Translation.planetary_buildings);
+        const content = this.get_technologies_from(data, 'planet', Building, 2);
         return content ? heading + content + '\n' : '';
     },
-    get_lunar_buildings_from( data ){
-        const heading = TextExport.get_heading_from( Translation.lunar_buildings );
-        const content = this.get_technologies_from( data, 'moon', Building, 2 );
-        return content ? heading + content  + '\n': '';
+    get_lunar_buildings_from(data) {
+        const heading = TextExport.get_heading_from(Translation.lunar_buildings);
+        const content = this.get_technologies_from(data, 'moon', Building, 2);
+        return content ? heading + content + '\n' : '';
     },
-    get_researches_from( data ){
-        const heading = TextExport.get_heading_from( Translation.researches );
+    get_researches_from(data) {
+        const heading = TextExport.get_heading_from(Translation.researches);
         const researches = data.game.player.researches;
         let content = '';
-        for( const key in researches ){
-            const research = researches[ key ];
+        for (const key in researches) {
+            const research = researches[key];
             let value;
             let color;
-            if( research.upgrade ){
+            if (research.upgrade) {
                 value = research.upgraded;
                 color = 'gold';
-            }else{
+            } else {
                 value = research.value;
                 color = Colors.primary;
             }
-            content += Translation[ key ] + ' : ' + TextExport.get_colored_from( value, color ) + '\n';
+            content += Translation[key] + ' : ' + TextExport.get_colored_from(value, color) + '\n';
         }
         return content ? heading + content + '\n' : '';
     },
-    get_fleet_from( data ){
-        const heading = TextExport.get_heading_from( Translation.fleet );
+    get_fleet_from(data) {
+        const heading = TextExport.get_heading_from(Translation.fleet);
         const positions = data.game.player.positions;
         const values = {};
         const upgraded = {};
         let content = '';
-        for( const coordinates in positions ){
-            const { planet, moon } = positions[ coordinates ];
-            const technologies = Object.values( planet.technologies );
-            if( moon ) technologies.push( ...Object.values( moon.technologies ) );
-            for( const technology of technologies ){
-                if( technology instanceof Ship ){
-                    values[ technology.id ] ||= 0;
-                    values[ technology.id ] += technology.upgraded;
-                    upgraded[ technology.id ] += technology.upgrade ? true : false;
+        for (const coordinates in positions) {
+            const {planet, moon} = positions[coordinates];
+            const technologies = Object.values(planet.technologies);
+            if (moon) technologies.push(...Object.values(moon.technologies));
+            for (const technology of technologies) {
+                if (technology instanceof Ship) {
+                    values[technology.id] ||= 0;
+                    values[technology.id] += technology.upgraded;
+                    upgraded[technology.id] += technology.upgrade ? true : false;
                 }
             }
         }
-        for( const key in values ){
-            const value = values[ key ];
-            if( value ){
-                const color = upgraded[ key ] ? 'gold' : Colors.primary;
-                content += `${ Translation[ key ] } : ${ TextExport.get_colored_from( Formats.get_number_from( value ), color ) }\n`;
+        for (const key in values) {
+            const value = values[key];
+            if (value) {
+                const color = upgraded[key] ? 'gold' : Colors.primary;
+                content += `${Translation[key]} : ${TextExport.get_colored_from(Formats.get_number_from(value), color)}\n`;
             }
         }
         return content ? heading + content + '\n' : '';
     },
-    get_planetary_defence_from( data ){
-        const heading = TextExport.get_heading_from( Translation.planetary_defences );
-        const content = this.get_technologies_from( data, 'planet', Defence, 8 );
+    get_planetary_defence_from(data) {
+        const heading = TextExport.get_heading_from(Translation.planetary_defences);
+        const content = this.get_technologies_from(data, 'planet', Defence, 8);
         return content ? heading + content + '\n' : '';
     },
-    get_lunar_defence_from( data ){
-        const heading = TextExport.get_heading_from( Translation.lunar_defences );
-        const content = this.get_technologies_from( data, 'moon', Defence, 8 );
+    get_lunar_defence_from(data) {
+        const heading = TextExport.get_heading_from(Translation.lunar_defences);
+        const content = this.get_technologies_from(data, 'moon', Defence, 8);
         return content ? heading + content + '\n' : '';
     },
-    get_technologies_from( data, body, type, digits ){
+    get_technologies_from(data, body, type, digits) {
         const positions = data.game.player.positions;
         const rows = {};
         let result = '';
-        for( const coordinates in positions ){
-            const position = positions[ coordinates ];
-            if( position[ body ] ){
-                for( const key in position[ body ].technologies ){
-                    const technology = position[ body ].technologies[ key ];
-                    if( technology instanceof type ){
-                        rows[ technology.id ] ||= [];
-                        rows[ technology.id ].push( technology );
+        for (const coordinates in positions) {
+            const position = positions[coordinates];
+            if (position[body]) {
+                for (const key in position[body].technologies) {
+                    const technology = position[body].technologies[key];
+                    if (technology instanceof type) {
+                        rows[technology.id] ||= [];
+                        rows[technology.id].push(technology);
                     }
                 }
             }
         }
-        for( const key in rows ){
-            const row = rows[ key ];
+        for (const key in rows) {
+            const row = rows[key];
             let total = 0;
-            for( let i = 0; i < row.length; i++ ){
-                const technology = row[ i ];
-                if( technology.upgrade ){
+            for (let i = 0; i < row.length; i++) {
+                const technology = row[i];
+                if (technology.upgrade) {
                     const value = technology.upgraded;
-                    row[ i ] = TextExport.get_padding_from( value, digits ) + TextExport.get_colored_from( value, 'gold' );
+                    row[i] = TextExport.get_padding_from(value, digits) + TextExport.get_colored_from(value, 'gold');
                     total += value;
-                }else{
+                } else {
                     const value = technology.value;
-                    row[ i ] = TextExport.get_padding_from( value, digits ) + value;
+                    row[i] = TextExport.get_padding_from(value, digits) + value;
                     total += value;
                 }
             }
-            if( total ){
-                result += `${ row.join( ', ' ) } · ${ TextExport.get_colored_from( Formats.get_number_from( total ), Colors.primary ) } ${ Translation[ key ] }\n`;
+            if (total) {
+                result += `${row.join(', ')} · ${TextExport.get_colored_from(Formats.get_number_from(total), Colors.primary)} ${Translation[key]}\n`;
             }
         }
         return result;
     },
-    get_sum_from( array ){
-        return array.reduce( ( previous, current ) => previous + current, 0 );
+    get_sum_from(array) {
+        return array.reduce((previous, current) => previous + current, 0);
     },
-    get_average_from( array ){
-        return Math.round( this.get_sum_from( array ) / array.length );
+    get_average_from(array) {
+        return Math.round(this.get_sum_from(array) / array.length);
     }
 };
 
 const EnergyWarnings = {
 
-    init( data ){
+    init(data) {
         const warnings = data.script.warnings ||= {};
-        const id = document.head.querySelector( 'meta[name=ogame-planet-id]' ).content;
-        if( document.querySelector( '#resources_energy.overmark' ) ) warnings[ id ] = true;
-        else warnings[ id ] = false;
-        for( const key in warnings ){
-            if( warnings[ key ] ){
-                const element = document.querySelector( `#planet-${ key } .planet-name` );
-                element.classList.add( 'ic-warning' );
+        const id = document.head.querySelector('meta[name=ogame-planet-id]').content;
+        if (document.querySelector('#resources_energy.overmark')) warnings[id] = true;
+        else warnings[id] = false;
+        for (const key in warnings) {
+            if (warnings[key]) {
+                const element = document.querySelector(`#planet-${key} .planet-name`);
+                element.classList.add('ic-warning');
             }
         }
     }
@@ -2197,168 +2212,173 @@ const EnergyWarnings = {
 
 const Exports = {
 
-    get_html(){
+    get_html() {
         return `<div id="ic-exports-component">
 						<form>
-							<button id="ic-empire-export-button" class="ic-button">${ Translation.empire }</button>
-							<button id="ic-production-export-button" class="ic-button">${ Translation.production }</button>
+							<button id="ic-empire-export-button" class="ic-button">${Translation.empire}</button>
+							<button id="ic-production-export-button" class="ic-button">${Translation.production}</button>
 							<label><input type="radio" name="export" disabled>Image</label>
 							<label><input type="radio" name="export" checked>Text</label>
 							<label><input type="checkbox" checked>BBCode</label>
 						</form>
-						<div id="ic-export-notification">${ Translation.export_notification }</div>
+						<div id="ic-export-notification">${Translation.export_notification}</div>
 					</div>`;
     },
-    set_event_listeners( data ){
-        document.querySelector( '#ic-exports-component form' ).addEventListener( 'submit', event => event.preventDefault() );
-        document.querySelector( '#ic-empire-export-button' ).addEventListener( 'click', _ => this.export_empire( data ) );
-        document.querySelector( '#ic-production-export-button' ).addEventListener( 'click', _ => this.export_production( data ) );
+    set_event_listeners(data) {
+        document.querySelector('#ic-exports-component form').addEventListener('submit', event => event.preventDefault());
+        document.querySelector('#ic-empire-export-button').addEventListener('click', _ => this.export_empire(data));
+        document.querySelector('#ic-production-export-button').addEventListener('click', _ => this.export_production(data));
     },
-    export_empire( data ){
-        this.export_text_from( EmpireTextExport.get_from( data ) );
+    export_empire(data) {
+        this.export_text_from(EmpireTextExport.get_from(data));
     },
-    export_production( data ){
-        this.export_text_from( ProductionTextExport.get_from( data ) );
+    export_production(data) {
+        this.export_text_from(ProductionTextExport.get_from(data));
     },
-    export_text_from( content ){
-        const element = document.querySelector( '#ic-exports-component [type="checkbox"]' );
-        if( !element.checked ) content = content.replace( /\[\/?[^\]]*\]/g, '' );
-        navigator.clipboard.writeText( content );
+    export_text_from(content) {
+        const element = document.querySelector('#ic-exports-component [type="checkbox"]');
+        if (!element.checked) content = content.replace(/\[\/?[^\]]*\]/g, '');
+        navigator.clipboard.writeText(content);
         this.animate();
     },
-    async animate(){
-        const form = document.querySelector( '#ic-exports-component form' );
-        const notification = document.querySelector( '#ic-export-notification' );
-        await form.animate( { opacity: 0 }, 250 ).finished;
+    async animate() {
+        const form = document.querySelector('#ic-exports-component form');
+        const notification = document.querySelector('#ic-export-notification');
+        await form.animate({opacity: 0}, 250).finished;
         form.style.display = 'none';
         notification.style.display = 'flex';
-        await notification.animate( { opacity: [ 0, 1 ] }, 250 ).finished;
-        await notification.animate( { opacity: [ 1, 0 ] }, { delay: 1500, duration: 500 } ).finished;
+        await notification.animate({opacity: [0, 1]}, 250).finished;
+        await notification.animate({opacity: [1, 0]}, {delay: 1500, duration: 500}).finished;
         notification.style.display = 'none';
         form.style.display = 'flex';
-        form.animate( { opacity: [ 0, 1 ] }, 500 );
+        form.animate({opacity: [0, 1]}, 500);
     }
 };
 
 const Footer = {
 
-    init( data ){
-        const template = document.createElement( 'template' );
+    init(data) {
+        const template = document.createElement('template');
         template.innerHTML = this.get_html();
-        document.querySelector( '#middle' ).appendChild( template.content );
-        this.set_event_listeners( data );
+        document.querySelector('#middle').appendChild(template.content);
+        this.set_event_listeners(data);
     },
-    get_html(){
-        return  `<footer id="ic-footer">
-						${ Exports.get_html() }
-						${ ClearButton.get_html() }
+    get_html() {
+        return `<footer id="ic-footer">
+						${Exports.get_html()}
+						${ClearButton.get_html()}
 					</footer>`;
     },
-    set_event_listeners( data ){
-        Exports.set_event_listeners( data );
+    set_event_listeners(data) {
+        Exports.set_event_listeners(data);
         ClearButton.set_event_listeners();
     }
 };
 
 const Highscore = {
 
-    async init(){
+    async init() {
         const selector = '#stat_list_content';
-        await Interface.element_change( selector );
-        await Interface.element_change( selector );
+        await Interface.element_change(selector);
+        await Interface.element_change(selector);
         const data = Storage.get();
-        Interface.set_highscores_to( data );
-        Storage.set( data );
+        Interface.set_highscores_to(data);
+        Storage.set(data);
     }
 };
 
 const Interface = {
 
-    async get(){
+    async get() {
         const data = {};
-        this.set_meta_to( data );
-        if( currentPage !== 'empire' ){
-            this.set_positions_to( data );
-            this.set_class_to( data );
-            this.set_lifeform_to( data );
-            this.set_officers_to( data );
-            if( currentPage === 'alliance' ) await this.set_alliance_to( data );
-            else if( currentPage === 'highscore' ) this.set_highscores_to( data );
-            else if( currentPage === 'lfsettings' ) this.set_lifeforms_to( data );
-            else if( currentPage === 'overview' ) this.set_overview_to( data );
-            else if( currentPage === 'resourceSettings' ||
-                currentPage === 'resourcesettings' ) this.set_productions_to( data );
-            else if( currentPage === 'defenses' ||
+        this.set_meta_to(data);
+        if (currentPage !== 'empire') {
+            this.set_positions_to(data);
+            this.set_class_to(data);
+            this.set_lifeform_to(data);
+            this.set_officers_to(data);
+            if (currentPage === 'alliance') await this.set_alliance_to(data);
+            else if (currentPage === 'highscore') this.set_highscores_to(data);
+            else if (currentPage === 'lfsettings') this.set_lifeforms_to(data);
+            else if (currentPage === 'overview') this.set_overview_to(data);
+            else if (currentPage === 'resourceSettings' ||
+                currentPage === 'resourcesettings') this.set_productions_to(data);
+            else if (currentPage === 'defenses' ||
                 currentPage === 'facilities' ||
                 currentPage === 'fleetdispatch' ||
                 currentPage === 'lfbuildings' ||
                 currentPage === 'lfresearch' ||
                 currentPage === 'research' ||
                 currentPage === 'shipyard' ||
-                currentPage === 'supplies' ) this.set_technologies_to( data );
-        }else await this.set_empire_to( data );
+                currentPage === 'supplies') this.set_technologies_to(data);
+        } else await this.set_empire_to(data);
         return data;
     },
-    async set_alliance_to( data ){
-        await this.element_exist( '#allyData' );
-        const classes = document.querySelector( '.alliance_class' ).classList;
+    async set_alliance_to(data) {
+        await this.element_exist('#allyData');
+        const classes = document.querySelector('.alliance_class').classList;
         const alliance = data.game.player.alliance = {};
         alliance.class = null;
-        for( const key of [ 'trader', 'warrior', 'explorer' ] ){
-            if( classes.contains( key ) ){
+        for (const key of ['trader', 'warrior', 'explorer']) {
+            if (classes.contains(key)) {
                 alliance.class = key;
                 break;
             }
         }
     },
-    async set_empire_to( data ){
+    async set_empire_to(data) {
 
-        function get_coordinates_from( element ){
-            const text = element.querySelector( '.planetData :first-child li:first-child' ).textContent;
-            return text.replaceAll( ':', '.' ).slice( 1, -1 );
+        function get_coordinates_from(element) {
+            const text = element.querySelector('.planetData :first-child li:first-child').textContent;
+            return text.replaceAll(':', '.').slice(1, -1);
         }
-        function get_body_from( element ){
 
-            function get_name_from( element ){
-                return element.querySelector( '.planetname' ).textContent;
+        function get_body_from(element) {
+
+            function get_name_from(element) {
+                return element.querySelector('.planetname').textContent;
             }
-            function get_fields_from( element ){
-                const values = element.querySelector( '.fields' ).textContent.match( /\d+/g );
+
+            function get_fields_from(element) {
+                const values = element.querySelector('.fields').textContent.match(/\d+/g);
                 return {
-                    used: parseInt( values[0] ),
-                    maximum: parseInt( values[1] )
-                };
-            }
-            function get_temperatures_from( element ){
-                const values = element.querySelector( '.planetDataBottom' ).textContent.match( /-?\d+/g );
-                return {
-                    min: parseInt( values[0] ),
-                    max: parseInt( values[1] )
+                    used: parseInt(values[0]),
+                    maximum: parseInt(values[1])
                 };
             }
 
-            const elements = element.querySelectorAll( '.values:not( .items, .resources, .storage, .research ) > div' );
+            function get_temperatures_from(element) {
+                const values = element.querySelector('.planetDataBottom').textContent.match(/-?\d+/g);
+                return {
+                    min: parseInt(values[0]),
+                    max: parseInt(values[1])
+                };
+            }
+
+            const elements = element.querySelectorAll('.values:not( .items, .resources, .storage, .research ) > div');
 
             return {
-                name: get_name_from( element ),
-                fields: get_fields_from( element ),
-                temperatures: get_temperatures_from( element ),
-                technologies: get_technologies_from( elements )
+                name: get_name_from(element),
+                fields: get_fields_from(element),
+                temperatures: get_temperatures_from(element),
+                technologies: get_technologies_from(elements)
             };
         }
-        function get_researches(){
-            const elements = document.querySelector( '.planet:not( .summary )' ).querySelectorAll( '.research > div' );
-            return get_technologies_from( elements );
-        }
-        function get_technologies_from( elements ){
 
-            function get_unit_from( element ){
-                const id = parseInt( element.classList[0] );
-                const value = parseInt( element.childNodes[0].textContent.replaceAll( LocalizationStrings.thousandSeperator, '' ) );
+        function get_researches() {
+            const elements = document.querySelector('.planet:not( .summary )').querySelectorAll('.research > div');
+            return get_technologies_from(elements);
+        }
+
+        function get_technologies_from(elements) {
+
+            function get_unit_from(element) {
+                const id = parseInt(element.classList[0]);
+                const value = parseInt(element.childNodes[0].textContent.replaceAll(LocalizationStrings.thousandSeperator, ''));
                 let upgrade = 0;
-                for( const node of element.querySelectorAll( '.active, .loop' ) ){
-                    const text = node.textContent.replaceAll( LocalizationStrings.thousandSeperator, '' );
-                    upgrade += parseInt( text );
+                for (const node of element.querySelectorAll('.active, .loop')) {
+                    const text = node.textContent.replaceAll(LocalizationStrings.thousandSeperator, '');
+                    upgrade += parseInt(text);
                 }
                 return {
                     id,
@@ -2367,13 +2387,13 @@ const Interface = {
                 };
             }
 
-            function get_upgradable_from( element ){
-                const id = parseInt( element.classList[0] );
-                const value = parseInt( element.childNodes[0].textContent.replaceAll( LocalizationStrings.thousandSeperator, '' ) );
+            function get_upgradable_from(element) {
+                const id = parseInt(element.classList[0]);
+                const value = parseInt(element.childNodes[0].textContent.replaceAll(LocalizationStrings.thousandSeperator, ''));
                 let upgrade = 0;
-                for( const node of element.querySelectorAll( '.active, .loop' ) ){
-                    const text = node.textContent.replaceAll( LocalizationStrings.thousandSeperator, '' );
-                    if( Math.max( 0, parseInt( text ) - value ) > 0 ) upgrade++;
+                for (const node of element.querySelectorAll('.active, .loop')) {
+                    const text = node.textContent.replaceAll(LocalizationStrings.thousandSeperator, '');
+                    if (Math.max(0, parseInt(text) - value) > 0) upgrade++;
                 }
                 return {
                     id,
@@ -2383,228 +2403,228 @@ const Interface = {
             }
 
             const result = {};
-            for( const element of elements ){
-                const id = parseInt( element.classList[0] );
+            for (const element of elements) {
+                const id = parseInt(element.classList[0]);
                 const is_unit = id > 200 && id < 600;
-                result[ id ] = is_unit ? get_unit_from( element ) : get_upgradable_from( element );
+                result[id] = is_unit ? get_unit_from(element) : get_upgradable_from(element);
             }
             return result;
         }
 
-        await this.element_exist( '.planetWrapper' );
+        await this.element_exist('.planetWrapper');
         const body = planetType === 0 ? 'planet' : 'moon';
         const positions = data.game.player.positions = {};
         data.game.player.researches = get_researches();
-        for( const node of document.querySelectorAll( '.planet:not( .summary )' ) ){
-            const coordinates = get_coordinates_from( node );
-            const position = positions[ coordinates ] = {};
-            position[ body ] = get_body_from( node );
+        for (const node of document.querySelectorAll('.planet:not( .summary )')) {
+            const coordinates = get_coordinates_from(node);
+            const position = positions[coordinates] = {};
+            position[body] = get_body_from(node);
         }
     },
-    set_class_to( data ){
+    set_class_to(data) {
         const player = data.game.player;
         player.class = null;
-        for( const key of [ 'miner', 'warrior', 'explorer' ] ){
-            if( document.querySelector( `#characterclass .${ key }` ) ){
+        for (const key of ['miner', 'warrior', 'explorer']) {
+            if (document.querySelector(`#characterclass .${key}`)) {
                 player.class = key;
                 break;
             }
         }
     },
-    set_highscores_to( data ){
-        if( currentCategory === 1 && currentType === 0 ){
+    set_highscores_to(data) {
+        if (currentCategory === 1 && currentType === 0) {
             const highscores = data.game.universe.highscores ||= {};
-            for( const node of document.querySelectorAll( '#ranks tr[ id ]' ) ){
-                const position = parseInt( node.querySelector( '.position' ).textContent );
-                const points = parseInt( node.querySelector( '.score' ).firstChild.textContent.replaceAll( LocalizationStrings.thousandSeperator, '' ) ); // firstChild used for OGLight compatibility
-                highscores[ position ] = points;
+            for (const node of document.querySelectorAll('#ranks tr[ id ]')) {
+                const position = parseInt(node.querySelector('.position').textContent);
+                const points = parseInt(node.querySelector('.score').firstChild.textContent.replaceAll(LocalizationStrings.thousandSeperator, '')); // firstChild used for OGLight compatibility
+                highscores[position] = points;
             }
         }
     },
-    set_lifeform_to( data ){
+    set_lifeform_to(data) {
         const coordinates = data.game.interface.current_coordinates;
-        const planet = data.game.player.positions[ coordinates ].planet;
+        const planet = data.game.player.positions[coordinates].planet;
         planet.lifeform = null;
-        for( const key of [ 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4' ] ){
-            if( document.querySelector( `#lifeform .${ key }` ) ){
+        for (const key of ['lifeform1', 'lifeform2', 'lifeform3', 'lifeform4']) {
+            if (document.querySelector(`#lifeform .${key}`)) {
                 planet.lifeform = key;
                 break;
             }
         }
     },
-    set_lifeforms_to( data ){
+    set_lifeforms_to(data) {
         const lifeforms = data.game.player.lifeforms = {};
-        for( const node of document.querySelectorAll( '.lifeform-item' ) ){
-            const id = node.querySelector( '.lifeform-item-icon' ).classList[1];
-            const values = node.querySelector( '.lifeform-item-wrapper p:nth-last-of-type(2)' ).textContent.match( /\d+/g );
-            lifeforms[ id ] = {
-                level: parseInt( values[0] ),
+        for (const node of document.querySelectorAll('.lifeform-item')) {
+            const id = node.querySelector('.lifeform-item-icon').classList[1];
+            const values = node.querySelector('.lifeform-item-wrapper p:nth-last-of-type(2)').textContent.match(/\d+/g);
+            lifeforms[id] = {
+                level: parseInt(values[0]),
                 xp: {
-                    current: parseInt( values[1] ),
-                    maximum: parseInt( values[2] )
+                    current: parseInt(values[1]),
+                    maximum: parseInt(values[2])
                 }
             };
         }
     },
-    set_meta_to( data ){
+    set_meta_to(data) {
         data.game = {
             interface: {
-                current_body_type: document.head.querySelector( 'meta[name=ogame-planet-type]' ).content,
-                current_coordinates: document.head.querySelector( 'meta[name=ogame-planet-coordinates]' ).content.replaceAll( ':', '.' )
+                current_body_type: document.head.querySelector('meta[name=ogame-planet-type]').content,
+                current_coordinates: document.head.querySelector('meta[name=ogame-planet-coordinates]').content.replaceAll(':', '.')
             },
             player: {
-                id: parseInt( document.head.querySelector( 'meta[name=ogame-player-id]' ).content ),
-                name: document.head.querySelector( 'meta[name=ogame-player-name]' ).content
+                id: parseInt(document.head.querySelector('meta[name=ogame-player-id]').content),
+                name: document.head.querySelector('meta[name=ogame-player-name]').content
             },
             universe: {
-                economy_speed: parseInt( document.head.querySelector( 'meta[name=ogame-universe-speed]' ).content ),
-                language: document.head.querySelector( 'meta[name=ogame-language]' ).content,
-                name: document.head.querySelector( 'meta[name=ogame-universe-name]' ).content
+                economy_speed: parseInt(document.head.querySelector('meta[name=ogame-universe-speed]').content),
+                language: document.head.querySelector('meta[name=ogame-language]').content,
+                name: document.head.querySelector('meta[name=ogame-universe-name]').content
             }
         }
     },
-    set_officers_to( data ){
+    set_officers_to(data) {
         const officers = data.game.player.officers = {};
         officers.all = true;
-        for( const key of [ 'commander', 'admiral', 'engineer', 'geologist', 'technocrat' ] ){
-            const element = document.querySelector( `#officers a.on.${ key }` );
-            if( element ) officers[ key ] = true;
-            else officers[ key ] = officers.all = false;
+        for (const key of ['commander', 'admiral', 'engineer', 'geologist', 'technocrat']) {
+            const element = document.querySelector(`#officers a.on.${key}`);
+            if (element) officers[key] = true;
+            else officers[key] = officers.all = false;
         }
     },
-    set_overview_to( data ){
+    set_overview_to(data) {
 
-        function get_name(){
-            return document.head.querySelector( 'meta[name=ogame-planet-name]' ).content;
+        function get_name() {
+            return document.head.querySelector('meta[name=ogame-planet-name]').content;
         }
 
-        function get_fields_from( text ){
-            const values = text.match( /\d+/g );
+        function get_fields_from(text) {
+            const values = text.match(/\d+/g);
             return {
-                used: parseInt( values[2] ),
-                maximum: parseInt( values[3] )
+                used: parseInt(values[2]),
+                maximum: parseInt(values[3])
             };
         }
 
-        function get_temperatures_from( text ){
-            const values = text.replaceAll( /\\.{5}/g, '' ).match( /-?\d+/g );
+        function get_temperatures_from(text) {
+            const values = text.replaceAll(/\\.{5}/g, '').match(/-?\d+/g);
             return {
-                min: parseInt( values[1] ),
-                max: parseInt( values[2] )
+                min: parseInt(values[1]),
+                max: parseInt(values[2])
             };
         }
 
-        function get_score_from( text ){
-            const values = text.match( /\d+/g );
+        function get_score_from(text) {
+            const values = text.match(/\d+/g);
             return {
-                points: parseInt( values[2] ),
-                position: parseInt( values[3] )
+                points: parseInt(values[2]),
+                position: parseInt(values[3])
             };
         }
 
-        const text = document.querySelector( '#overviewcomponent > script:nth-child(2)' ).textContent;
-        const rows = text.replaceAll( LocalizationStrings.thousandSeperator, '' ).split( '\n' );
-        const position = data.game.player.positions[ data.game.interface.current_coordinates ];
-        data.game.player.score = get_score_from( rows[20] );
-        position[ data.game.interface.current_body_type ] = {
+        const text = document.querySelector('#overviewcomponent > script:nth-child(2)').textContent;
+        const rows = text.replaceAll(LocalizationStrings.thousandSeperator, '').split('\n');
+        const position = data.game.player.positions[data.game.interface.current_coordinates];
+        data.game.player.score = get_score_from(rows[20]);
+        position[data.game.interface.current_body_type] = {
             name: get_name(),
-            fields: get_fields_from( rows[14] ),
-            temperatures: get_temperatures_from( rows[16] )
+            fields: get_fields_from(rows[14]),
+            temperatures: get_temperatures_from(rows[16])
         };
     },
-    set_positions_to( data ){
+    set_positions_to(data) {
         const positions = data.game.player.positions = {};
-        for( const node of document.querySelectorAll( '#planetList .smallplanet' ) ){
-            const coordinates = node.querySelector( '.planet-koords' ).textContent.replaceAll( ':', '.' ).slice( 1, -1 );
-            const has_moon = node.querySelector( '.moonlink' );
-            const position = parseInt( coordinates.split( '.' )[2] );
-            positions[ coordinates ] = {
-                planet: { position },
-                moon: has_moon ? { position } : null
+        for (const node of document.querySelectorAll('#planetList .smallplanet')) {
+            const coordinates = node.querySelector('.planet-koords').textContent.replaceAll(':', '.').slice(1, -1);
+            const has_moon = node.querySelector('.moonlink');
+            const position = parseInt(coordinates.split('.')[2]);
+            positions[coordinates] = {
+                planet: {position},
+                moon: has_moon ? {position} : null
             };
         }
     },
-    set_productions_to( data ){
+    set_productions_to(data) {
 
-        function get_value_from( element ){
-            const title = element.querySelector( 'span' ).title;
-            const text = title.replaceAll( LocalizationStrings.thousandSeperator, '' ).replace( LocalizationStrings.decimalPoint, '.' );
-            return parseFloat( text );
+        function get_value_from(element) {
+            const title = element.querySelector('span').title;
+            const text = title.replaceAll(LocalizationStrings.thousandSeperator, '').replace(LocalizationStrings.decimalPoint, '.');
+            return parseFloat(text);
         }
 
-        function get_factor_from( element ){
+        function get_factor_from(element) {
             // alternative drop downs management
-            const value = element.querySelector( 'a' )?.dataset.value || element.querySelector( 'option:checked' )?.value;
-            return parseInt( value ) * .01;
+            const value = element.querySelector('a')?.dataset.value || element.querySelector('option:checked')?.value;
+            return parseInt(value) * .01;
         }
 
-        const element = document.querySelector( '.listOfResourceSettingsPerPlanet' );
-        const position = data.game.player.positions[ data.game.interface.current_coordinates ];
-        position[ data.game.interface.current_body_type ].productions = {
+        const element = document.querySelector('.listOfResourceSettingsPerPlanet');
+        const position = data.game.player.positions[data.game.interface.current_coordinates];
+        position[data.game.interface.current_body_type].productions = {
             basic: {
-                metal: get_value_from( element.querySelector( 'tr.alt :nth-child(2)' ) ),
-                crystal: get_value_from( element.querySelector( 'tr.alt :nth-child(3)' ) )
+                metal: get_value_from(element.querySelector('tr.alt :nth-child(2)')),
+                crystal: get_value_from(element.querySelector('tr.alt :nth-child(3)'))
             },
             mines: {
-                metal: get_value_from( element.querySelector( 'tr.\\31  :nth-child(3)' ) ),
-                crystal: get_value_from( element.querySelector( 'tr.\\32  :nth-child(4)' ) ),
-                deuterium: get_value_from( element.querySelector( 'tr.\\33  :nth-child(5)' ) )
+                metal: get_value_from(element.querySelector('tr.\\31  :nth-child(3)')),
+                crystal: get_value_from(element.querySelector('tr.\\32  :nth-child(4)')),
+                deuterium: get_value_from(element.querySelector('tr.\\33  :nth-child(5)'))
             },
             fusion: {
-                deuterium: get_value_from( element.querySelector( 'tr.\\31 2  :nth-child(5)' ) ),
-                factor: get_factor_from( element.querySelector( 'tr.\\31 2' ) )
+                deuterium: get_value_from(element.querySelector('tr.\\31 2  :nth-child(5)')),
+                factor: get_factor_from(element.querySelector('tr.\\31 2'))
             },
             crawlers: {
-                metal: get_value_from( element.querySelector( 'tr.\\32 17 :nth-child(3)' ) ),
-                crystal: get_value_from( element.querySelector( 'tr.\\32 17 :nth-child(4)' ) ),
-                deuterium: get_value_from( element.querySelector( 'tr.\\32 17 :nth-child(5)' ) ),
-                factor: get_factor_from( element.querySelector( 'tr.\\32 17' ) )
+                metal: get_value_from(element.querySelector('tr.\\32 17 :nth-child(3)')),
+                crystal: get_value_from(element.querySelector('tr.\\32 17 :nth-child(4)')),
+                deuterium: get_value_from(element.querySelector('tr.\\32 17 :nth-child(5)')),
+                factor: get_factor_from(element.querySelector('tr.\\32 17'))
             },
             plasma: {
-                metal: get_value_from( element.querySelector( 'tr.\\31 22 :nth-child(3)' ) ),
-                crystal: get_value_from( element.querySelector( 'tr.\\31 22 :nth-child(4)' ) ),
-                deuterium: get_value_from( element.querySelector( 'tr.\\31 22 :nth-child(5)' ) )
+                metal: get_value_from(element.querySelector('tr.\\31 22 :nth-child(3)')),
+                crystal: get_value_from(element.querySelector('tr.\\31 22 :nth-child(4)')),
+                deuterium: get_value_from(element.querySelector('tr.\\31 22 :nth-child(5)'))
             },
             objects: {
-                metal: get_value_from( element.querySelector( 'tr.\\31 000 :nth-child(3)' ) ),
-                crystal: get_value_from( element.querySelector( 'tr.\\31 000 :nth-child(4)' ) ),
-                deuterium: get_value_from( element.querySelector( 'tr.\\31 000 :nth-child(5)' ) )
+                metal: get_value_from(element.querySelector('tr.\\31 000 :nth-child(3)')),
+                crystal: get_value_from(element.querySelector('tr.\\31 000 :nth-child(4)')),
+                deuterium: get_value_from(element.querySelector('tr.\\31 000 :nth-child(5)'))
             },
             geologist: {
-                metal: get_value_from( element.querySelector( 'tr.\\31 001 :nth-child(3)' ) ),
-                crystal: get_value_from( element.querySelector( 'tr.\\31 001 :nth-child(4)' ) ),
-                deuterium: get_value_from( element.querySelector( 'tr.\\31 001 :nth-child(5)' ) )
+                metal: get_value_from(element.querySelector('tr.\\31 001 :nth-child(3)')),
+                crystal: get_value_from(element.querySelector('tr.\\31 001 :nth-child(4)')),
+                deuterium: get_value_from(element.querySelector('tr.\\31 001 :nth-child(5)'))
             },
             officers: {
-                metal: get_value_from( element.querySelector( 'tr.\\31 003 :nth-child(3)' ) ),
-                crystal: get_value_from( element.querySelector( 'tr.\\31 003 :nth-child(4)' ) ),
-                deuterium: get_value_from( element.querySelector( 'tr.\\31 003 :nth-child(5)' ) )
+                metal: get_value_from(element.querySelector('tr.\\31 003 :nth-child(3)')),
+                crystal: get_value_from(element.querySelector('tr.\\31 003 :nth-child(4)')),
+                deuterium: get_value_from(element.querySelector('tr.\\31 003 :nth-child(5)'))
             },
             classes: {
                 player: {
-                    metal: get_value_from( element.querySelector( 'tr.\\31 004 :nth-child(3)' ) ),
-                    crystal: get_value_from( element.querySelector( 'tr.\\31 004 :nth-child(4)' ) ),
-                    deuterium: get_value_from( element.querySelector( 'tr.\\31 004 :nth-child(5)' ) )
+                    metal: get_value_from(element.querySelector('tr.\\31 004 :nth-child(3)')),
+                    crystal: get_value_from(element.querySelector('tr.\\31 004 :nth-child(4)')),
+                    deuterium: get_value_from(element.querySelector('tr.\\31 004 :nth-child(5)'))
                 },
                 alliance: {
-                    metal: get_value_from( element.querySelector( 'tr.\\31 005 :nth-child(3)' ) ),
-                    crystal: get_value_from( element.querySelector( 'tr.\\31 005 :nth-child(4)' ) ),
-                    deuterium: get_value_from( element.querySelector( 'tr.\\31 005 :nth-child(5)' ) )
+                    metal: get_value_from(element.querySelector('tr.\\31 005 :nth-child(3)')),
+                    crystal: get_value_from(element.querySelector('tr.\\31 005 :nth-child(4)')),
+                    deuterium: get_value_from(element.querySelector('tr.\\31 005 :nth-child(5)'))
                 }
             },
             total: {
-                metal: get_value_from( element.querySelector( 'tr.summary :nth-child(2)' ) ),
-                crystal: get_value_from( element.querySelector( 'tr.summary :nth-child(3)' ) ),
-                deuterium: get_value_from( element.querySelector( 'tr.summary :nth-child(4)' ) )
+                metal: get_value_from(element.querySelector('tr.summary :nth-child(2)')),
+                crystal: get_value_from(element.querySelector('tr.summary :nth-child(3)')),
+                deuterium: get_value_from(element.querySelector('tr.summary :nth-child(4)'))
             }
         }
     },
-    set_technologies_to( data ){
+    set_technologies_to(data) {
 
-        function get_unit_from( element ){
+        function get_unit_from(element) {
             const id = element.dataset.technology;
-            const value = parseInt( element.querySelector( '.amount' ).dataset.value );
-            const upgrade = parseInt( element.querySelector( '.targetamount' )?.dataset.value || 0 );
+            const value = parseInt(element.querySelector('.amount').dataset.value);
+            const upgrade = parseInt(element.querySelector('.targetamount')?.dataset.value || 0);
             return {
                 id,
                 value,
@@ -2612,10 +2632,10 @@ const Interface = {
             };
         }
 
-        function get_upgradable_from( element ){
+        function get_upgradable_from(element) {
             const id = element.dataset.technology;
-            const value = parseInt( element.querySelector( '.level' ).dataset.value );
-            const upgrade = Math.max( 0, parseInt( element.querySelector( '.targetlevel' )?.dataset.value || 0 ) - value ) > 0 ? 1 : 0;
+            const value = parseInt(element.querySelector('.level').dataset.value);
+            const upgrade = Math.max(0, parseInt(element.querySelector('.targetlevel')?.dataset.value || 0) - value) > 0 ? 1 : 0;
             return {
                 id,
                 value,
@@ -2624,46 +2644,46 @@ const Interface = {
         }
 
         const result = {};
-        for( const node of document.querySelectorAll( '#technologies ul > li.hasDetails' ) ){
+        for (const node of document.querySelectorAll('#technologies ul > li.hasDetails')) {
             const id = node.dataset.technology;
             const is_unit = id > 200 && id < 600;
-            result[ id ] = is_unit ? get_unit_from( node ) : get_upgradable_from( node );
+            result[id] = is_unit ? get_unit_from(node) : get_upgradable_from(node);
         }
-        if( currentPage === 'research' ) data.game.player.researches = result;
-        else data.game.player.positions[ data.game.interface.current_coordinates ][ data.game.interface.current_body_type ].technologies = result;
+        if (currentPage === 'research') data.game.player.researches = result;
+        else data.game.player.positions[data.game.interface.current_coordinates][data.game.interface.current_body_type].technologies = result;
     },
-    element_exist( selector ){
-        return new Promise( function( resolve ){
-            if( !document.querySelector( selector ) ){
-                const observer = new MutationObserver( function(){
-                    if( document.querySelector( selector ) ){
+    element_exist(selector) {
+        return new Promise(function (resolve) {
+            if (!document.querySelector(selector)) {
+                const observer = new MutationObserver(function () {
+                    if (document.querySelector(selector)) {
                         observer.disconnect();
                         resolve();
                     }
-                } );
-                observer.observe( document.body, { childList: true, subtree: true } );
-            }else resolve();
-        } );
+                });
+                observer.observe(document.body, {childList: true, subtree: true});
+            } else resolve();
+        });
     },
-    element_change( selector ){
-        return new Promise( function( resolve ){
-            const observer = new MutationObserver( function(){
+    element_change(selector) {
+        return new Promise(function (resolve) {
+            const observer = new MutationObserver(function () {
                 observer.disconnect();
                 resolve();
-            } );
-            observer.observe( document.querySelector( selector ), { childList: true, subtree: true } );
-        } );
+            });
+            observer.observe(document.querySelector(selector), {childList: true, subtree: true});
+        });
     }
 };
 
 const MenuButton = {
 
-    init(){
-        const template = document.createElement( 'template' );
+    init() {
+        const template = document.createElement('template');
         template.innerHTML = this.get_html();
-        document.querySelector( '#menuTable' ).appendChild( template.content );
+        document.querySelector('#menuTable').appendChild(template.content);
     },
-    get_html(){
+    get_html() {
         return `<li id="ic-menu-button">
 						<span class="menu_icon">
 							<a href="https://ko-fi.com/rodrigocorreia" target="_blank">
@@ -2675,7 +2695,7 @@ const MenuButton = {
 							</a>
 						</span>
 						<a class="menubutton" href="https://board.fr.ogame.gameforge.com/index.php?thread/746302-infocompte/" target="_blank">
-							<span class="textlabel">InfoCompte ${ GM_info.script.version }</span>
+							<span class="textlabel">InfoCompte ${GM_info.script.version}</span>
 						</a>
 					</li>`;
     }
@@ -2683,39 +2703,39 @@ const MenuButton = {
 
 const Panels = {
 
-    init( data ){
+    init(data) {
         const collapsables = data.script.collapsables || {};
-        for( const button of document.querySelectorAll( '.ic-component h3 button' ) ){
+        for (const button of document.querySelectorAll('.ic-component h3 button')) {
             const panel = button.parentElement.parentElement;
-            if( collapsables[ panel.id ] === 'collapsed' ) this.collapse( panel );
-            else if( collapsables[ panel.id ] === 'expanded' ) this.expand( panel );
-            else if( panel.dataset.state === 'collapsed' ) this.collapse( panel );
-            else if( panel.dataset.state === 'expanded' ) this.expand( panel );
-            button.addEventListener( 'click', _ => this.toggle( panel ) );
+            if (collapsables[panel.id] === 'collapsed') this.collapse(panel);
+            else if (collapsables[panel.id] === 'expanded') this.expand(panel);
+            else if (panel.dataset.state === 'collapsed') this.collapse(panel);
+            else if (panel.dataset.state === 'expanded') this.expand(panel);
+            button.addEventListener('click', _ => this.toggle(panel));
         }
     },
-    toggle( panel ){
+    toggle(panel) {
         const data = Storage.get();
         const collapsables = data.script.collapsables ||= {};
-        if( panel.dataset.state === 'collapsed' ){
-            this.expand( panel );
-            collapsables[ panel.id ] = 'expanded';
-        }else if( panel.dataset.state === 'expanded' ){
-            this.collapse( panel );
-            collapsables[ panel.id ] = 'collapsed';
+        if (panel.dataset.state === 'collapsed') {
+            this.expand(panel);
+            collapsables[panel.id] = 'expanded';
+        } else if (panel.dataset.state === 'expanded') {
+            this.collapse(panel);
+            collapsables[panel.id] = 'collapsed';
         }
-        Storage.set( data );
+        Storage.set(data);
     },
-    collapse( panel ){
-        const button = panel.querySelector( '.ic-component h3 button' );
-        const main = panel.querySelector( '.ic-component-main' );
+    collapse(panel) {
+        const button = panel.querySelector('.ic-component h3 button');
+        const main = panel.querySelector('.ic-component-main');
         main.style.display = 'none';
         button.textContent = '⏴';
         panel.dataset.state = 'collapsed';
     },
-    expand( panel ){
-        const button = panel.querySelector( '.ic-component h3 button' );
-        const main = panel.querySelector( '.ic-component-main' );
+    expand(panel) {
+        const button = panel.querySelector('.ic-component h3 button');
+        const main = panel.querySelector('.ic-component-main');
         main.style.display = null;
         button.textContent = '⏷';
         panel.dataset.state = 'expanded';
@@ -2724,113 +2744,113 @@ const Panels = {
 
 const PieChart = {
 
-    get_html_from( data ){
-        let	start = 0;
+    get_html_from(data) {
+        let start = 0;
         let content = '';
-        for( const [ color, percentage ] of data ){
-            content += this.get_slice_from( color, percentage, start );
+        for (const [color, percentage] of data) {
+            content += this.get_slice_from(color, percentage, start);
             start += percentage;
         }
-        return `<svg viewBox="0 0 100 100" transform="rotate(-90)">${ content }</svg>`;
+        return `<svg viewBox="0 0 100 100" transform="rotate(-90)">${content}</svg>`;
     },
-    get_slice_from( color, value, start ){
+    get_slice_from(color, value, start) {
         const offset = 2 * Math.PI * 25;
         return `<circle cx=50 cy=50 r=25
 							fill=transparent
-							stroke=${ color }
+							stroke=${color}
 							stroke-width=50
-							stroke-dasharray="${ value * offset } ${ offset }"
-							transform="rotate( ${ start * 360 } 50 50 )"/>`;
+							stroke-dasharray="${value * offset} ${offset}"
+							transform="rotate( ${start * 360} 50 50 )"/>`;
     }
 };
 
 const PositionsPanel = {
 
-    init( data ){
-        const template = document.createElement( 'template' );
-        template.innerHTML = this.get_html_from( data );
-        document.querySelector( '#middle' ).appendChild( template.content );
+    init(data) {
+        const template = document.createElement('template');
+        template.innerHTML = this.get_html_from(data);
+        document.querySelector('#middle').appendChild(template.content);
     },
-    get_html_from( data ){
+    get_html_from(data) {
         return `<div id="ic-positions-panel" class="ic-component" data-state="collapsed">
-						<h3>${ Translation.planets_repartition }<button></button></h3>
+						<h3>${Translation.planets_repartition}<button></button></h3>
 						<div class="ic-component-main">
 							<table>
 							    <tr>
-							        <th>${ Translation.coords }</th>
+							        <th>${Translation.coords}</th>
 							        <th></th>
-							        <th>${ Translation.mines }</th>
-							        <th>${ Translation.buildings }</th>
-							        <th>${ Translation.lifeform_buildings_short }</th>
-							        <th>${ Translation.lifeform_researches_short }</th>
-							        <th>${ Translation.defence }</th>
+							        <th>${Translation.mines}</th>
+							        <th>${Translation.buildings}</th>
+							        <th>${Translation.lifeform_buildings_short}</th>
+							        <th>${Translation.lifeform_researches_short}</th>
+							        <th>${Translation.defence}</th>
 							        <th></th>
                                 </tr>
-								${ this.get_rows_from( data ) }
+								${this.get_rows_from(data)}
 							</table>
 						</div>
 					</div>`;
     },
-    get_rows_from( data ){
+    get_rows_from(data) {
         const positions = data.game.player.positions;
         let result = '';
-        for( const coordinates in positions ){
-            result += this.get_row_from( data, coordinates );
+        for (const coordinates in positions) {
+            result += this.get_row_from(data, coordinates);
         }
         return result;
     },
-    get_row_from( data, coordinates ){
-        const position = data.game.player.positions[ coordinates ];
-        const points = data.game.player.points.positions[ coordinates ];
-        const percents = data.game.player.percents.positions[ coordinates ];
+    get_row_from(data, coordinates) {
+        const position = data.game.player.positions[coordinates];
+        const points = data.game.player.points.positions[coordinates];
+        const percents = data.game.player.percents.positions[coordinates];
         return `<tr>
-						<th>${ coordinates }</th>
-						<td>${ this.get_names_from( position ) }</td>
-						<td>${ this.get_mines_from( points ) }</td>
-						<td>${ this.get_buildings_from( points ) }</td>
-						<td>${ this.get_lifeform_buildings_from( points ) }</td>
-						<td>${ this.get_lifeform_researches_from( points ) }</td>
-						<td>${ this.get_defences_from( points ) }</td>
-						<td>${ this.get_total_from( points, percents ) }</td>
+						<th>${coordinates}</th>
+						<td>${this.get_names_from(position)}</td>
+						<td>${this.get_mines_from(points)}</td>
+						<td>${this.get_buildings_from(points)}</td>
+						<td>${this.get_lifeform_buildings_from(points)}</td>
+						<td>${this.get_lifeform_researches_from(points)}</td>
+						<td>${this.get_defences_from(points)}</td>
+						<td>${this.get_total_from(points, percents)}</td>
 					</tr>`;
     },
-    get_names_from( position ){
-        let result = `<div>${ position.planet.name || Translation.planet }</div>`;
-        if( position.moon ){
-            result += `<div>${ position.moon.name || Translation.moon }</div>`;
+    get_names_from(position) {
+        let result = `<div>${position.planet.name || Translation.planet}</div>`;
+        if (position.moon) {
+            result += `<div>${position.moon.name || Translation.moon}</div>`;
         }
         return result;
     },
-    get_mines_from( points ){
-        return `${ Formats.get_number_from( points.planet.mines ) }`;
+    get_mines_from(points) {
+        return `${Formats.get_number_from(points.planet.mines)}`;
     },
-    get_buildings_from( points ){
-        let result = `${ Formats.get_number_from( points.planet.buildings ) }`;
-        if( points.moon ){
-            result = `<div>${ result }</div>
-						  <div>${ Formats.get_number_from( points.moon.buildings ) }</div>`;
+    get_buildings_from(points) {
+        let result = `${Formats.get_number_from(points.planet.buildings)}`;
+        if (points.moon) {
+            result = `<div>${result}</div>
+						  <div>${Formats.get_number_from(points.moon.buildings)}</div>`;
         }
         return result;
     },
-    get_lifeform_buildings_from( points ){
-        return `${ Formats.get_number_from( points.planet.lifeforms.buildings ) }`;
+    get_lifeform_buildings_from(points) {
+        return `${Formats.get_number_from(points.planet.lifeforms.buildings)}`;
     },
-    get_lifeform_researches_from( points ){
-        return `${ Formats.get_number_from( points.planet.lifeforms.researches ) }`;
+    get_lifeform_researches_from(points) {
+        return `${Formats.get_number_from(points.planet.lifeforms.researches)}`;
     },
-    get_defences_from( points ){
-        let result = `${ Formats.get_number_from( points.planet.defence ) }`;
-        if( points.moon ){
-            result = `<div>${ result }</div>
-						  <div>${ Formats.get_number_from( points.moon.defence ) }</div>`;
+    get_defences_from(points) {
+        let result = `${Formats.get_number_from(points.planet.defence)}`;
+        if (points.moon) {
+            result = `<div>${result}</div>
+						  <div>${Formats.get_number_from(points.moon.defence)}</div>`;
         }
         return result;
     },
-    get_total_from( points, percents ){
-        let result = `${ Formats.get_number_from( points.planet.total ) } — ${ Formats.get_padded_percent_from( percents.planet.total ) }`;
-        if( points.moon ){
-            result = `<div>${ result }</div>
-						  <div>${ Formats.get_number_from( points.moon.total ) } — ${ Formats.get_padded_percent_from( percents.moon.total ) }</div>`;
+    get_total_from(points, percents) {
+        let result = `${Formats.get_number_from(points.planet.total)} — ${Formats.get_padded_percent_from(percents.planet.total)}`;
+        if (points.moon) {
+            result = `<div>${result}</div>
+						  <div>${Formats.get_number_from(points.moon.total)} — ${Formats.get_padded_percent_from(percents.moon.total)}</div>`;
         }
         return result;
     }
@@ -2838,48 +2858,48 @@ const PositionsPanel = {
 
 const ProductionsPanel = {
 
-    init( data ){
-        const template = document.createElement( 'template' );
-        template.innerHTML = this.get_html_from( data );
-        document.querySelector( '#middle' ).appendChild( template.content );
+    init(data) {
+        const template = document.createElement('template');
+        template.innerHTML = this.get_html_from(data);
+        document.querySelector('#middle').appendChild(template.content);
     },
-    get_html_from( data ){
+    get_html_from(data) {
         const productions = data.game.player.productions;
         const mines = productions.mines;
         const lifeforms = productions.lifeforms;
         const free = productions.free;
         const total = productions.total;
-        return  `<div id="ic-productions-panel" class="ic-component" data-state="collapsed">
-						<h3>${ Translation.daily_productions }<button></button></h3>
+        return `<div id="ic-productions-panel" class="ic-component" data-state="collapsed">
+						<h3>${Translation.daily_productions}<button></button></h3>
 						<div class="ic-component-main">
 							<table>
 								<tr>
-									<th>${ Translation.mines }</th>
-									<td>${ Formats.get_number_from( mines.metal ) }</td>
-									<td>${ Formats.get_number_from( mines.crystal ) }</td>
-									<td>${ Formats.get_number_from( mines.deuterium ) }</td>
-									<td>${ Formats.get_number_from( mines.points ) } pts</td>
+									<th>${Translation.mines}</th>
+									<td>${Formats.get_number_from(mines.metal)}</td>
+									<td>${Formats.get_number_from(mines.crystal)}</td>
+									<td>${Formats.get_number_from(mines.deuterium)}</td>
+									<td>${Formats.get_number_from(mines.points)} pts</td>
 								</tr>
 								<tr>
-									<th>${ Translation.lifeforms }</th>
-									<td>${ Formats.get_number_from( lifeforms.metal ) }</td>
-									<td>${ Formats.get_number_from( lifeforms.crystal ) }</td>
-									<td>${ Formats.get_number_from( lifeforms.deuterium ) }</td>
-									<td>${ Formats.get_number_from( lifeforms.points ) } pts</td>
+									<th>${Translation.lifeforms}</th>
+									<td>${Formats.get_number_from(lifeforms.metal)}</td>
+									<td>${Formats.get_number_from(lifeforms.crystal)}</td>
+									<td>${Formats.get_number_from(lifeforms.deuterium)}</td>
+									<td>${Formats.get_number_from(lifeforms.points)} pts</td>
 								</tr>
 								<tr>
-									<th>${ Translation.without_dark_matter }</th>
-									<td>${ Formats.get_number_from( free.metal ) }</td>
-									<td>${ Formats.get_number_from( free.crystal ) }</td>
-									<td>${ Formats.get_number_from( free.deuterium ) }</td>
-									<td>${ Formats.get_number_from( free.points ) } pts</td>
+									<th>${Translation.without_dark_matter}</th>
+									<td>${Formats.get_number_from(free.metal)}</td>
+									<td>${Formats.get_number_from(free.crystal)}</td>
+									<td>${Formats.get_number_from(free.deuterium)}</td>
+									<td>${Formats.get_number_from(free.points)} pts</td>
 								</tr>
 								<tr>
-									<th>${ Translation.total }</th>
-									<td>${ Formats.get_number_from( total.metal ) }</td>
-									<td>${ Formats.get_number_from( total.crystal ) }</td>
-									<td>${ Formats.get_number_from( total.deuterium ) }</td>
-									<td>${ Formats.get_number_from( total.points ) } pts</td>
+									<th>${Translation.total}</th>
+									<td>${Formats.get_number_from(total.metal)}</td>
+									<td>${Formats.get_number_from(total.crystal)}</td>
+									<td>${Formats.get_number_from(total.deuterium)}</td>
+									<td>${Formats.get_number_from(total.points)} pts</td>
 								</tr>
 							</table>
 						</div>
@@ -2889,209 +2909,209 @@ const ProductionsPanel = {
 
 const ProductionTextExport = {
 
-    get_from( data ){
-        return	this.get_header_from( data ) +
-            TextExport.get_classes_from( data ) +
-            this.get_planets_from( data ) +
-            this.get_researches_from( data ) +
-            TextExport.get_lifeform_levels_from( data ) +
-            this.get_productions_from( data ) +
-            this.get_points_from( data );
+    get_from(data) {
+        return this.get_header_from(data) +
+            TextExport.get_classes_from(data) +
+            this.get_planets_from(data) +
+            this.get_researches_from(data) +
+            TextExport.get_lifeform_levels_from(data) +
+            this.get_productions_from(data) +
+            this.get_points_from(data);
     },
-    get_header_from( data ){
-        const title = TextExport.get_title_from( `${ Translation.production_of } ${ data.game.player.name } ${ Translation.on } ${ data.game.universe.name }.${ data.game.universe.language }` );
+    get_header_from(data) {
+        const title = TextExport.get_title_from(`${Translation.production_of} ${data.game.player.name} ${Translation.on} ${data.game.universe.name}.${data.game.universe.language}`);
         const stamp = TextExport.get_stamp();
         return title + stamp + '\n';
     },
-    get_planets_from( data ){
+    get_planets_from(data) {
 
-        function get_place_from( value ){
-            return value.toString().padStart( 2, '0' ) + '. ';
+        function get_place_from(value) {
+            return value.toString().padStart(2, '0') + '. ';
         }
 
-        function get_technology_from( technology, color, padding ){
+        function get_technology_from(technology, color, padding) {
             let value;
-            if( technology.upgrade ){
+            if (technology.upgrade) {
                 value = technology.upgraded;
                 color = 'gold';
-            }else value = technology.value;
-            return TextExport.get_padding_from( value, padding ) + TextExport.get_colored_from( Formats.get_number_from( value ), color ) + ', ';
+            } else value = technology.value;
+            return TextExport.get_padding_from(value, padding) + TextExport.get_colored_from(Formats.get_number_from(value), color) + ', ';
         }
 
-        function get_temperature_from( value ){
-            return TextExport.get_colored_from( value + ' °C', '#f5bbb4' ) + '\n';
+        function get_temperature_from(value) {
+            return TextExport.get_colored_from(value + ' °C', '#f5bbb4') + '\n';
         }
 
-        const heading = TextExport.get_heading_from( Translation.planets );
+        const heading = TextExport.get_heading_from(Translation.planets);
         const positions = data.game.player.positions;
         let content = '';
         let i = 1;
-        for( const coordinates in positions ){
-            const { technologies, temperatures } = positions[ coordinates ].planet;
-            content += get_place_from( i++ );
-            content += get_technology_from( technologies[1], Colors.metal, 2 );
-            content += get_technology_from( technologies[2], Colors.crystal, 2 );
-            content += get_technology_from( technologies[3], Colors.deuterium, 2 );
-            content += get_technology_from( technologies[217], Colors.crawlers, 0 );
-            content += get_temperature_from( temperatures.max );
+        for (const coordinates in positions) {
+            const {technologies, temperatures} = positions[coordinates].planet;
+            content += get_place_from(i++);
+            content += get_technology_from(technologies[1], Colors.metal, 2);
+            content += get_technology_from(technologies[2], Colors.crystal, 2);
+            content += get_technology_from(technologies[3], Colors.deuterium, 2);
+            content += get_technology_from(technologies[217], Colors.crawlers, 0);
+            content += get_temperature_from(temperatures.max);
         }
         return heading + content + '\n';
     },
-    get_researches_from( data ){
-        const heading = TextExport.get_heading_from( Translation.researches );
+    get_researches_from(data) {
+        const heading = TextExport.get_heading_from(Translation.researches);
         let content = '';
         const researches = data.game.player.researches;
-        for( const key in researches ){
-            if( key == 122 ){
-                const research = researches[ key ];
+        for (const key in researches) {
+            if (key == 122) {
+                const research = researches[key];
                 let value;
                 let color;
-                if( research.upgrade ){
+                if (research.upgrade) {
                     value = research.upgraded;
                     color = 'gold';
-                }else{
+                } else {
                     value = research.value;
                     color = Colors.primary;
                 }
-                content += `${ Translation[ key ] } : ${ TextExport.get_colored_from( value, color ) }\n`
+                content += `${Translation[key]} : ${TextExport.get_colored_from(value, color)}\n`
             }
         }
         return content ? heading + content + '\n' : '';
     },
-    get_productions_from( data ){
-        const heading = TextExport.get_heading_from( Translation.daily_productions );
+    get_productions_from(data) {
+        const heading = TextExport.get_heading_from(Translation.daily_productions);
         const productions = data.game.player.productions;
         const mines = productions.mines;
         const free = productions.free;
         const lifeforms = productions.lifeforms;
         const total = productions.total;
-        const mines_metal = TextExport.get_colored_from( Formats.get_number_from( mines.metal ), Colors.metal );
-        const mines_crystal = TextExport.get_colored_from( Formats.get_number_from( mines.crystal ), Colors.crystal );
-        const mines_deuterium = TextExport.get_colored_from( Formats.get_number_from( mines.deuterium ), Colors.deuterium );
-        const lifeforms_metal = TextExport.get_colored_from( Formats.get_number_from( lifeforms.metal ), Colors.metal );
-        const lifeforms_crystal = TextExport.get_colored_from( Formats.get_number_from( lifeforms.crystal ), Colors.crystal );
-        const lifeforms_deuterium = TextExport.get_colored_from( Formats.get_number_from( lifeforms.deuterium ), Colors.deuterium );
-        const free_metal = TextExport.get_colored_from( Formats.get_number_from( free.metal ), Colors.metal );
-        const free_crystal = TextExport.get_colored_from( Formats.get_number_from( free.crystal ), Colors.crystal );
-        const free_deuterium = TextExport.get_colored_from( Formats.get_number_from( free.deuterium ), Colors.deuterium );
-        const total_metal = TextExport.get_colored_from( Formats.get_number_from( total.metal ), Colors.metal );
-        const total_crystal = TextExport.get_colored_from( Formats.get_number_from( total.crystal ), Colors.crystal );
-        const total_deuterium = TextExport.get_colored_from( Formats.get_number_from( total.deuterium ), Colors.deuterium );
-        return	heading +
-            `${ Translation.mines } : ${ mines_metal }, ${ mines_crystal }, ${ mines_deuterium }\n` +
-            `${ Translation.lifeforms } : ${ lifeforms_metal }, ${ lifeforms_crystal }, ${ lifeforms_deuterium }\n` +
-            `${ Translation.without_dark_matter } : ${ free_metal }, ${ free_crystal }, ${ free_deuterium }\n` +
-            `${ Translation.total } : ${ total_metal }, ${ total_crystal }, ${ total_deuterium }\n\n`;
+        const mines_metal = TextExport.get_colored_from(Formats.get_number_from(mines.metal), Colors.metal);
+        const mines_crystal = TextExport.get_colored_from(Formats.get_number_from(mines.crystal), Colors.crystal);
+        const mines_deuterium = TextExport.get_colored_from(Formats.get_number_from(mines.deuterium), Colors.deuterium);
+        const lifeforms_metal = TextExport.get_colored_from(Formats.get_number_from(lifeforms.metal), Colors.metal);
+        const lifeforms_crystal = TextExport.get_colored_from(Formats.get_number_from(lifeforms.crystal), Colors.crystal);
+        const lifeforms_deuterium = TextExport.get_colored_from(Formats.get_number_from(lifeforms.deuterium), Colors.deuterium);
+        const free_metal = TextExport.get_colored_from(Formats.get_number_from(free.metal), Colors.metal);
+        const free_crystal = TextExport.get_colored_from(Formats.get_number_from(free.crystal), Colors.crystal);
+        const free_deuterium = TextExport.get_colored_from(Formats.get_number_from(free.deuterium), Colors.deuterium);
+        const total_metal = TextExport.get_colored_from(Formats.get_number_from(total.metal), Colors.metal);
+        const total_crystal = TextExport.get_colored_from(Formats.get_number_from(total.crystal), Colors.crystal);
+        const total_deuterium = TextExport.get_colored_from(Formats.get_number_from(total.deuterium), Colors.deuterium);
+        return heading +
+            `${Translation.mines} : ${mines_metal}, ${mines_crystal}, ${mines_deuterium}\n` +
+            `${Translation.lifeforms} : ${lifeforms_metal}, ${lifeforms_crystal}, ${lifeforms_deuterium}\n` +
+            `${Translation.without_dark_matter} : ${free_metal}, ${free_crystal}, ${free_deuterium}\n` +
+            `${Translation.total} : ${total_metal}, ${total_crystal}, ${total_deuterium}\n\n`;
     },
-    get_points_from( data ){
-        const heading = TextExport.get_heading_from( Translation.mines_points );
+    get_points_from(data) {
+        const heading = TextExport.get_heading_from(Translation.mines_points);
         const points = data.game.player.points;
-        return	heading +
-            `${ Translation.metal } : ${ TextExport.get_colored_from( Formats.get_number_from( points.mines.metal ), Colors.metal ) }\n` +
-            `${ Translation.crystal } : ${ TextExport.get_colored_from( Formats.get_number_from( points.mines.crystal ), Colors.crystal ) }\n` +
-            `${ Translation.deuterium } : ${ TextExport.get_colored_from( Formats.get_number_from( points.mines.deuterium ), Colors.deuterium ) }\n` +
-            `${ Translation.total } : ${ Formats.get_number_from( points.mines.total ) }`;
+        return heading +
+            `${Translation.metal} : ${TextExport.get_colored_from(Formats.get_number_from(points.mines.metal), Colors.metal)}\n` +
+            `${Translation.crystal} : ${TextExport.get_colored_from(Formats.get_number_from(points.mines.crystal), Colors.crystal)}\n` +
+            `${Translation.deuterium} : ${TextExport.get_colored_from(Formats.get_number_from(points.mines.deuterium), Colors.deuterium)}\n` +
+            `${Translation.total} : ${Formats.get_number_from(points.mines.total)}`;
     }
 };
 
 const RentabilitiesPanel = {
 
-    init(){
-        const template = document.createElement( 'template' );
-        template.innerHTML = this.get_html_from( data );
-        document.querySelector( '#middle' ).appendChild( template.content );
+    init() {
+        const template = document.createElement('template');
+        template.innerHTML = this.get_html_from(data);
+        document.querySelector('#middle').appendChild(template.content);
         this.set_event_listeners();
     },
-    get_html_from( data ){
-        return  `<div id="ic-rentabilities-panel" class="ic-component" data-state="collapsed">
-						<h3>${ Translation.rentabilities }<button></button></h3>
+    get_html_from(data) {
+        return `<div id="ic-rentabilities-panel" class="ic-component" data-state="collapsed">
+						<h3>${Translation.rentabilities}<button></button></h3>
 						<div class="ic-component-main">
 							<form>
-								<h1>${ Translation.rates }</h1>
-								<input type="number" value="${ data.script.rates?.metal || 2 }" step="0.01">
-								<input type="number" value="${ data.script.rates?.crystal || 1.5 }" step="0.01">
-								<input type="number" value="${ data.script.rates?.deuterium || 1 }" disabled>
-								<button class="ic-button">${ Translation.validate }</button>
+								<h1>${Translation.rates}</h1>
+								<input type="number" value="${data.script.rates?.metal || 2}" step="0.01">
+								<input type="number" value="${data.script.rates?.crystal || 1.5}" step="0.01">
+								<input type="number" value="${data.script.rates?.deuterium || 1}" disabled>
+								<button class="ic-button">${Translation.validate}</button>
 							</form>
 							<div></div>
 						</div>
 					</div>`;
     },
-    get_mines_table(){
+    get_mines_table() {
         const data = Data.get();
         const positions = data.game.player.positions;
         let rows = '';
-        for( const coordinates in positions ){
-            const planet = positions[ coordinates ].planet;
+        for (const coordinates in positions) {
+            const planet = positions[coordinates].planet;
             const technologies = planet.technologies;
             rows += `<tr>
-							<th>${ planet.name }</th>
+							<th>${planet.name}</th>
 							<td>
-								<div>${ Translation.metal } ${ technologies[1].upgraded + 1 }</div>
-								<div>${ Formats.get_duration_from( this.get_next_mine_upgrade_rentability_from( data, planet, technologies[1] ) ) }</div>
+								<div>${Translation.metal} ${technologies[1].upgraded + 1}</div>
+								<div>${Formats.get_duration_from(this.get_next_mine_upgrade_rentability_from(data, planet, technologies[1]))}</div>
 							</td>
 							<td>
-								<div>${ Translation.crystal } ${ technologies[2].upgraded + 1 }</div>
-								<div>${ Formats.get_duration_from( this.get_next_mine_upgrade_rentability_from( data, planet, technologies[2] ) ) }</div>
+								<div>${Translation.crystal} ${technologies[2].upgraded + 1}</div>
+								<div>${Formats.get_duration_from(this.get_next_mine_upgrade_rentability_from(data, planet, technologies[2]))}</div>
 							</td>
 							<td>
-								<div>${ Translation.deuterium } ${ technologies[3].upgraded + 1 }</div>
-								<div>${ Formats.get_duration_from( this.get_next_mine_upgrade_rentability_from( data, planet, technologies[3] ) ) }</div>
+								<div>${Translation.deuterium} ${technologies[3].upgraded + 1}</div>
+								<div>${Formats.get_duration_from(this.get_next_mine_upgrade_rentability_from(data, planet, technologies[3]))}</div>
 							</td>
 						  </tr>`;
         }
         return `<table id="ic-mines-table">
-						<caption>${ Translation.mines }</caption>
-						<tbody>${ rows }</tbody>
+						<caption>${Translation.mines}</caption>
+						<tbody>${rows}</tbody>
 					</table>`;
     },
-    get_researches_table(){
+    get_researches_table() {
         const data = Data.get();
         const plasma = data.game.player.researches[122];
         const astrophysics = data.game.player.researches[124];
         let plasma_cells = '';
         let astrophysics_cells = '';
-        for( let i = 0; i < 3; i++ ){
-            const rentability = this.get_next_plasma_upgrade_rentability_from( data );
-            plasma_cells += `<td><div>${ plasma.upgraded += 1 }</div><div>${ Formats.get_duration_from( rentability ) }</div></td>`;
+        for (let i = 0; i < 3; i++) {
+            const rentability = this.get_next_plasma_upgrade_rentability_from(data);
+            plasma_cells += `<td><div>${plasma.upgraded += 1}</div><div>${Formats.get_duration_from(rentability)}</div></td>`;
         }
         plasma.upgraded -= 3
-        for( let i = 0; i < 3; i++ ){
-            const rentability = this.get_next_astrophysics_upgrade_rentability_from( data );
+        for (let i = 0; i < 3; i++) {
+            const rentability = this.get_next_astrophysics_upgrade_rentability_from(data);
             astrophysics.value = astrophysics.upgraded;
-            astrophysics.upgrade = ( Math.ceil( astrophysics.value * .5 ) * 2 + 1 ) - astrophysics.value;
+            astrophysics.upgrade = (Math.ceil(astrophysics.value * .5) * 2 + 1) - astrophysics.value;
             astrophysics.upgraded = astrophysics.value + astrophysics.upgrade;
-            astrophysics_cells += `<td><div>${ astrophysics.upgraded - 1 }/${ astrophysics.upgraded }</div><div>${ Formats.get_duration_from( rentability ) }</div></td>`;
+            astrophysics_cells += `<td><div>${astrophysics.upgraded - 1}/${astrophysics.upgraded}</div><div>${Formats.get_duration_from(rentability)}</div></td>`;
         }
         return `<table id="ic-researches-table">
-						<caption>${ Translation.researches }</caption>
+						<caption>${Translation.researches}</caption>
 						<tbody>
-                            <tr><th>${ Translation[122] }</th>${ plasma_cells }</tr>
-                            <tr><th>${ Translation[124] }</th>${ astrophysics_cells }</tr>
+                            <tr><th>${Translation[122]}</th>${plasma_cells}</tr>
+                            <tr><th>${Translation[124]}</th>${astrophysics_cells}</tr>
                         </tbody>
 					</table>`;
     },
-    get_queue_table(){
+    get_queue_table() {
         const data = Data.get();
         const positions = data.game.player.positions;
         const researches = data.game.player.researches;
         let rows = '';
         // set initial rentabilities
         const rentabilities = {
-            astrophysics: this.get_next_astrophysics_upgrade_rentability_from( data ),
-            plasma: this.get_next_plasma_upgrade_rentability_from( data )
+            astrophysics: this.get_next_astrophysics_upgrade_rentability_from(data),
+            plasma: this.get_next_plasma_upgrade_rentability_from(data)
         };
-        for( const coordinates in positions ){
-            const planet = positions[ coordinates ].planet;
+        for (const coordinates in positions) {
+            const planet = positions[coordinates].planet;
             const technologies = planet.technologies;
-            rentabilities[ coordinates ] = {
-                metal : this.get_next_mine_upgrade_rentability_from( data, planet, technologies[ 1 ] ),
-                crystal : this.get_next_mine_upgrade_rentability_from( data, planet, technologies[ 2 ] ),
-                deuterium : this.get_next_mine_upgrade_rentability_from( data, planet, technologies[ 3 ] )
+            rentabilities[coordinates] = {
+                metal: this.get_next_mine_upgrade_rentability_from(data, planet, technologies[1]),
+                crystal: this.get_next_mine_upgrade_rentability_from(data, planet, technologies[2]),
+                deuterium: this.get_next_mine_upgrade_rentability_from(data, planet, technologies[3])
             };
         }
         // add rows
-        for( let i = 1; i <= 100; i++ ){
+        for (let i = 1; i <= 100; i++) {
             let rentability = Infinity;
             let coordinates;
             let planet;
@@ -3101,118 +3121,118 @@ const RentabilitiesPanel = {
             let technology_name;
             let technology_class;
             // filter lowest mine rentability
-            for( const _coordinates in positions ){
-                const technologies = positions[ _coordinates ].planet.technologies;
-                const { metal, crystal, deuterium } = rentabilities[ _coordinates ];
-                const _rentability = Math.min( metal, crystal, deuterium );
-                if( _rentability < rentability ){
+            for (const _coordinates in positions) {
+                const technologies = positions[_coordinates].planet.technologies;
+                const {metal, crystal, deuterium} = rentabilities[_coordinates];
+                const _rentability = Math.min(metal, crystal, deuterium);
+                if (_rentability < rentability) {
                     rentability = _rentability;
                     coordinates = _coordinates;
-                    planet = positions[ _coordinates ].planet;
-                    if( metal === _rentability ){
+                    planet = positions[_coordinates].planet;
+                    if (metal === _rentability) {
                         technology = technologies[1];
                         technology_type = 'metal';
-                    }else if( crystal === _rentability ){
+                    } else if (crystal === _rentability) {
                         technology = technologies[2];
                         technology_type = 'crystal';
-                    }else if( deuterium === _rentability ){
+                    } else if (deuterium === _rentability) {
                         technology = technologies[3];
                         technology_type = 'deuterium';
                     }
                 }
             }
             // filter lowest technology rentability
-            const _rentability = Math.min( rentabilities.astrophysics, rentabilities.plasma );
-            if( _rentability < rentability ){
+            const _rentability = Math.min(rentabilities.astrophysics, rentabilities.plasma);
+            if (_rentability < rentability) {
                 rentability = _rentability;
                 planet_name = '';
                 technology_class = '';
-                if( rentabilities.astrophysics === _rentability ){
-                    const technology = researches[ 124 ];
+                if (rentabilities.astrophysics === _rentability) {
+                    const technology = researches[124];
                     technology.value = technology.upgraded;
-                    technology.upgrade = ( Math.ceil( technology.value * .5 ) * 2 + 1 ) - technology.value;
+                    technology.upgrade = (Math.ceil(technology.value * .5) * 2 + 1) - technology.value;
                     technology.upgraded = technology.value + technology.upgrade;
-                    technology_name = `${ Translation[ technology.id ] } ${ technology.upgraded - 1 }/${ technology.upgraded }`;
+                    technology_name = `${Translation[technology.id]} ${technology.upgraded - 1}/${technology.upgraded}`;
                     technology_class = `ic-research`;
-                    rentabilities.astrophysics = this.get_next_astrophysics_upgrade_rentability_from( data );
-                }else if( rentabilities.plasma === _rentability ){
-                    const technology = researches[ 122 ];
+                    rentabilities.astrophysics = this.get_next_astrophysics_upgrade_rentability_from(data);
+                } else if (rentabilities.plasma === _rentability) {
+                    const technology = researches[122];
                     technology.value = technology.upgraded;
                     technology.upgrade = 1;
                     technology.upgraded = technology.value + technology.upgrade;
-                    technology_name = `${ Translation[ technology.id ] } ${ technology.upgraded }`;
+                    technology_name = `${Translation[technology.id]} ${technology.upgraded}`;
                     technology_class = `ic-research`;
-                    rentabilities.plasma = this.get_next_plasma_upgrade_rentability_from( data );
+                    rentabilities.plasma = this.get_next_plasma_upgrade_rentability_from(data);
                 }
-            }else{
+            } else {
                 technology.value = technology.upgraded;
                 technology.upgrade = 1;
                 technology.upgraded = technology.value + technology.upgrade;
                 planet_name = planet.name;
-                technology_name = `${ Translation[ technology_type ] } ${ technology.upgraded }`;
-                technology_class = `ic-${ technology_type }-mine`;
-                rentabilities[ coordinates ][ technology_type ] = this.get_next_mine_upgrade_rentability_from( data, planet, technology );
+                technology_name = `${Translation[technology_type]} ${technology.upgraded}`;
+                technology_class = `ic-${technology_type}-mine`;
+                rentabilities[coordinates][technology_type] = this.get_next_mine_upgrade_rentability_from(data, planet, technology);
             }
             // add row
-            rows += `<tr><th>${ i }.</th><td>${ planet_name }</td><td class="${ technology_class }"><div>${ technology_name }</div><div>${ Formats.get_duration_from( rentability ) }</div></td></tr>`;
+            rows += `<tr><th>${i}.</th><td>${planet_name}</td><td class="${technology_class}"><div>${technology_name}</div><div>${Formats.get_duration_from(rentability)}</div></td></tr>`;
         }
         return `<table id="ic-queue-table">
-						<caption>${ Translation.queue }</caption>
-						<tbody>${ rows }</tbody>
+						<caption>${Translation.queue}</caption>
+						<tbody>${rows}</tbody>
 					</table>`;
     },
-    get_next_mine_upgrade_rentability_from( data, planet, technology ){
-        const initial_production = planet.get_upgraded_production_from( data );
+    get_next_mine_upgrade_rentability_from(data, planet, technology) {
+        const initial_production = planet.get_upgraded_production_from(data);
         const initial_value = technology.value;
         const initial_upgrade = technology.upgrade;
         const initial_upgraded = technology.upgraded;
         technology.value = technology.upgraded;
         technology.upgrade = 1;
         technology.upgraded = technology.value + technology.upgrade;
-        const upgrade_cost = technology.get_upgrade_cost_from( data );
-        const upgraded_production = planet.get_upgraded_production_from( data );
+        const upgrade_cost = technology.get_upgrade_cost_from(data);
+        const upgraded_production = planet.get_upgraded_production_from(data);
         technology.value = initial_value;
         technology.upgrade = initial_upgrade;
         technology.upgraded = initial_upgraded;
-        return upgrade_cost / ( upgraded_production - initial_production );
+        return upgrade_cost / (upgraded_production - initial_production);
     },
-    get_next_plasma_upgrade_rentability_from( data ){
+    get_next_plasma_upgrade_rentability_from(data) {
         const positions = data.game.player.positions;
         const technology = data.game.player.researches[122];
-        const initial_production = positions.get_upgraded_production_from( data );
+        const initial_production = positions.get_upgraded_production_from(data);
         const initial_value = technology.value;
         const initial_upgrade = technology.upgrade;
         const initial_upgraded = technology.upgraded;
         technology.value = technology.upgraded;
         technology.upgrade = 1;
         technology.upgraded = technology.value + technology.upgrade;
-        const upgrade_cost = technology.get_upgrade_cost_from( data );
-        const upgraded_production = positions.get_upgraded_production_from( data );
+        const upgrade_cost = technology.get_upgrade_cost_from(data);
+        const upgraded_production = positions.get_upgraded_production_from(data);
         technology.value = initial_value;
         technology.upgrade = initial_upgrade;
         technology.upgraded = initial_upgraded;
-        return upgrade_cost / ( upgraded_production - initial_production );
+        return upgrade_cost / (upgraded_production - initial_production);
     },
-    get_next_astrophysics_upgrade_rentability_from( data ){
+    get_next_astrophysics_upgrade_rentability_from(data) {
         const positions = data.game.player.positions;
         const technology = data.game.player.researches[124];
         const initial_value = technology.value;
         const initial_upgrade = technology.upgrade;
         const initial_upgraded = technology.upgraded;
         technology.value = technology.upgraded;
-        technology.upgrade = Math.ceil( technology.value * .5 ) * 2 + 1 - technology.value;
+        technology.upgrade = Math.ceil(technology.value * .5) * 2 + 1 - technology.value;
         technology.upgraded = technology.value + technology.upgrade;
-        const upgrade_costs = technology.get_upgrade_cost_from( data );
+        const upgrade_costs = technology.get_upgrade_cost_from(data);
         technology.value = initial_value;
         technology.upgrade = initial_upgrade;
         technology.upgraded = initial_upgraded;
-        return ( positions.get_average_cost_from( data ) + upgrade_costs ) / positions.get_average_upgraded_production_from( data );
+        return (positions.get_average_cost_from(data) + upgrade_costs) / positions.get_average_upgraded_production_from(data);
     },
-    set_event_listeners(){
-        const component = document.querySelector( '#ic-rentabilities-panel' );
-        const inputs = component.querySelectorAll( 'input' );
-        const tables = component.querySelector( '.ic-component-main > div' );
-        component.addEventListener( 'submit', event => {
+    set_event_listeners() {
+        const component = document.querySelector('#ic-rentabilities-panel');
+        const inputs = component.querySelectorAll('input');
+        const tables = component.querySelector('.ic-component-main > div');
+        component.addEventListener('submit', event => {
             event.preventDefault();
             const data = Storage.get();
             data.script.rates = {
@@ -3220,32 +3240,32 @@ const RentabilitiesPanel = {
                 crystal: inputs[1].value,
                 deuterium: inputs[2].value
             };
-            Storage.set( data );
+            Storage.set(data);
             tables.innerHTML = this.get_mines_table() +
                 this.get_researches_table() +
                 this.get_queue_table();
-        } );
+        });
     }
 };
 
 const Storage = {
 
-    key: document.head.querySelector( 'meta[name=ogame-player-id]' ).content + '_v2',
+    key: document.head.querySelector('meta[name=ogame-player-id]').content + '_v2',
 
-    get(){
-        return GM_getValue( this.key, {} );
+    get() {
+        return GM_getValue(this.key, {});
     },
-    set( data ){
-        GM_setValue( this.key, data );
+    set(data) {
+        GM_setValue(this.key, data);
     },
-    clear(){
-        GM_setValue( this.key, {} );
+    clear() {
+        GM_setValue(this.key, {});
     }
 };
 
 const Style = {
 
-    init(){
+    init() {
         const style =
             `@charset "utf-8";
 				.ic-component {
@@ -3278,7 +3298,7 @@ const Style = {
 				}
 				.ic-component h3 {
 					background: url('//gf1.geo.gfsrv.net/cdnfb/a4e7913209228ebaf2297429aeb87b.png');
-					color: ${ Colors.primary };
+					color: ${Colors.primary};
 					font: bold 12px/27px Verdana,Arial,Helvetica,sans-serif;
 					margin: -9px -8px 4px;
 					text-align: center;
@@ -3324,7 +3344,7 @@ const Style = {
 					margin-bottom: 8px;
 				}
 				.ic-component caption {
-					color: ${ Colors.primary };
+					color: ${Colors.primary};
 					font: bold 12px/27px Verdana,Arial,Helvetica,sans-serif;
 					padding-left: 6px;
 					text-align: left;
@@ -3394,28 +3414,28 @@ const Style = {
 					margin-right: 8px;
 				}
 				#ic-account-points-component tr:nth-child( 1 ) th::before {
-					color: ${ Colors.mines };
+					color: ${Colors.mines};
 				}
 				#ic-account-points-component tr:nth-child( 2 ) th::before {
-					color: ${ Colors.planetary_buildings };
+					color: ${Colors.planetary_buildings};
 				}
 				#ic-account-points-component tr:nth-child( 3 ) th::before {
-					color: ${ Colors.lunar_buildings };
+					color: ${Colors.lunar_buildings};
 				}
 				#ic-account-points-component tr:nth-child( 4 ) th::before {
-					color: ${ Colors.lifeform_buildings };
+					color: ${Colors.lifeform_buildings};
 				}
 				#ic-account-points-component tr:nth-child( 5 ) th::before {
-					color: ${ Colors.lifeform_researches };
+					color: ${Colors.lifeform_researches};
 				}
 				#ic-account-points-component tr:nth-child( 6 ) th::before {
-					color: ${ Colors.research };
+					color: ${Colors.research};
 				}
 				#ic-account-points-component tr:nth-child( 7 ) th::before {
-					color: ${ Colors.fleet };
+					color: ${Colors.fleet};
 				}
 				#ic-account-points-component tr:nth-child( 8 ) th::before {
-					color: ${ Colors.defence };
+					color: ${Colors.defence};
 				}
 				#ic-account-points-component svg {
 					margin: auto;
@@ -3434,22 +3454,22 @@ const Style = {
 					text-align: left;
 				}
 				#ic-positions-panel td:nth-child( 3 ) {
-					color: ${ Colors.mines };
+					color: ${Colors.mines};
 				}
 				#ic-positions-panel td:nth-child( 4 ) {
-					color: ${ Colors.planetary_buildings };
+					color: ${Colors.planetary_buildings};
 				}
 				#ic-positions-panel td:nth-child( 4 ) div:nth-child( 2 ){
-					color: ${ Colors.lunar_buildings };
+					color: ${Colors.lunar_buildings};
 				}
 				#ic-positions-panel td:nth-child( 5 ) {
-					color: ${ Colors.lifeform_buildings };
+					color: ${Colors.lifeform_buildings};
 				}
 				#ic-positions-panel td:nth-child( 6 ) {
-					color: ${ Colors.lifeform_researches };
+					color: ${Colors.lifeform_researches};
 				}
 				#ic-positions-panel td:nth-child( 7 ) {
-					color: ${ Colors.defence };
+					color: ${Colors.defence};
 				}
 				#ic-positions-panel td:not( :nth-child( 2 ) ) {
 					width: 0;
@@ -3459,13 +3479,13 @@ const Style = {
 					width: 100%;
 				}
 				#ic-productions-panel td:nth-child( 2 ) {
-					color: ${ Colors.metal };
+					color: ${Colors.metal};
 				}
 				#ic-productions-panel td:nth-child( 3 ) {
-					color: ${ Colors.crystal };
+					color: ${Colors.crystal};
 				}
 				#ic-productions-panel td:nth-child( 4 ) {
-					color: ${ Colors.deuterium };
+					color: ${Colors.deuterium};
 				}
 				#ic-rentabilities-panel .ic-component-main {
 					flex-direction: column;
@@ -3513,13 +3533,13 @@ const Style = {
 					table-layout: fixed;
 				}
 				#ic-mines-table td:nth-child( 2 ) {
-					color: ${ Colors.metal };
+					color: ${Colors.metal};
 				}
 				#ic-mines-table td:nth-child( 3 ) {
-					color: ${ Colors.crystal };
+					color: ${Colors.crystal};
 				}
 				#ic-mines-table td:nth-child( 4 ) {
-					color: ${ Colors.deuterium };
+					color: ${Colors.deuterium};
 				}
 				#ic-researches-table {
 					table-layout: fixed;
@@ -3537,16 +3557,16 @@ const Style = {
 					text-align: left;
 				}
 				#ic-queue-table .ic-metal-mine {
-					color: ${ Colors.metal }
+					color: ${Colors.metal}
 				}
 				#ic-queue-table .ic-crystal-mine {
-					color: ${ Colors.crystal }
+					color: ${Colors.crystal}
 				}
 				#ic-queue-table .ic-deuterium-mine {
-					color: ${ Colors.deuterium }
+					color: ${Colors.deuterium}
 				}
                 #ic-queue-table .ic-research {
-					color: ${ Colors.research }
+					color: ${Colors.research}
 				}
 				#ic-footer {
 					display: flex;
@@ -3626,76 +3646,76 @@ const Style = {
 						opacity: 0;
 					}
 				}`;
-        GM_addStyle( style );
+        GM_addStyle(style);
     }
 };
 
 const TextExport = {
 
-    get_title_from( value ){
-        return this.get_sized_from( this.get_colored_from( value, Colors.primary ), 24 ) + '\n';
+    get_title_from(value) {
+        return this.get_sized_from(this.get_colored_from(value, Colors.primary), 24) + '\n';
     },
-    get_heading_from( value ){
-        return this.get_sized_from( this.get_colored_from( value, Colors.primary ), 18 ) + '\n';
+    get_heading_from(value) {
+        return this.get_sized_from(this.get_colored_from(value, Colors.primary), 18) + '\n';
     },
-    get_stamp(){
+    get_stamp() {
         const date = new Date();
-        return `${ Translation.generated_on } ${ date.toLocaleDateString( 'fr-FR' ) } ${ Translation.at } ${ date.toLocaleTimeString( 'de-DE', { timeStyle: 'short'} ) } ${ Translation.with } [url=https://board.fr.ogame.gameforge.com/index.php?thread/746302-infocompte/]InfoCompte ${ GM_info.script.version }[/url]\n`;
+        return `${Translation.generated_on} ${date.toLocaleDateString('fr-FR')} ${Translation.at} ${date.toLocaleTimeString('de-DE', {timeStyle: 'short'})} ${Translation.with} [url=https://board.fr.ogame.gameforge.com/index.php?thread/746302-infocompte/]InfoCompte ${GM_info.script.version}[/url]\n`;
     },
-    get_classes_from( data ){
+    get_classes_from(data) {
         const player_class = data.game.player.class;
         const alliance_class = data.game.player.alliance?.class;
         let result = '';
-        if( player_class ){
-            const value = Translation[ player_class + '_player_class' ];
-            result += this.get_colored_from( value, Colors.primary );
+        if (player_class) {
+            const value = Translation[player_class + '_player_class'];
+            result += this.get_colored_from(value, Colors.primary);
         }
-        if( alliance_class ){
-            if( result !== '' ) result += ' & ';
-            const value = Translation[ alliance_class + '_alliance_class' ];
-            result += this.get_colored_from( value, Colors.primary );
+        if (alliance_class) {
+            if (result !== '') result += ' & ';
+            const value = Translation[alliance_class + '_alliance_class'];
+            result += this.get_colored_from(value, Colors.primary);
         }
-        return result ? this.get_sized_from( result, 14 ) + '\n\n' : '';
+        return result ? this.get_sized_from(result, 14) + '\n\n' : '';
     },
-    get_lifeform_levels_from( data ){
-        const heading = this.get_heading_from( Translation.lifeform_levels );
+    get_lifeform_levels_from(data) {
+        const heading = this.get_heading_from(Translation.lifeform_levels);
         const lifeforms = data.game.player.lifeforms;
         let result = '';
-        for( const key in lifeforms ){
-            const lifeform = lifeforms[ key ];
-            const level = this.get_colored_from( lifeform.level, Colors.primary );
-            const current_xp = Formats.get_number_from( lifeform.xp.current );
-            const maximum_xp = Formats.get_number_from( lifeform.xp.maximum );
-            result += `${ Translation[ key ] } : ${ level } · ${ current_xp }/${ maximum_xp } xp\n`;
+        for (const key in lifeforms) {
+            const lifeform = lifeforms[key];
+            const level = this.get_colored_from(lifeform.level, Colors.primary);
+            const current_xp = Formats.get_number_from(lifeform.xp.current);
+            const maximum_xp = Formats.get_number_from(lifeform.xp.maximum);
+            result += `${Translation[key]} : ${level} · ${current_xp}/${maximum_xp} xp\n`;
         }
         return result ? heading + result + '\n' : '';
     },
-    get_padding_from( value, length ){
-        const count = Math.max( 0, length - value.toString().length );
-        return '_'.repeat( count );
+    get_padding_from(value, length) {
+        const count = Math.max(0, length - value.toString().length);
+        return '_'.repeat(count);
     },
-    get_colored_from( value, color ){
-        return `[color=${ color }]${ value }[/color]`;
+    get_colored_from(value, color) {
+        return `[color=${color}]${value}[/color]`;
     },
-    get_sized_from( value, size ){
-        return `[size=${ size }]${ value }[/size]`;
+    get_sized_from(value, size) {
+        return `[size=${size}]${value}[/size]`;
     }
 };
 /**
  * Script initialization
  */
-const data = Data.get_from( Storage.get(), await Interface.get() );
-if( currentPage !== 'empire' ){
-    if( currentPage === 'overview' ){
-        AccountPanel.init( data );
-        PositionsPanel.init( data );
-        ProductionsPanel.init( data );
+const data = Data.get_from(Storage.get(), await Interface.get());
+if (currentPage !== 'empire') {
+    if (currentPage === 'overview') {
+        AccountPanel.init(data);
+        PositionsPanel.init(data);
+        ProductionsPanel.init(data);
         RentabilitiesPanel.init();
-        Panels.init( data );
-        Footer.init( data );
-    }else if( currentPage === 'highscore' ) Highscore.init();
-    EnergyWarnings.init( data );
+        Panels.init(data);
+        Footer.init(data);
+    } else if (currentPage === 'highscore') Highscore.init();
+    EnergyWarnings.init(data);
     MenuButton.init();
     Style.init();
 }
-Storage.set( data );
+Storage.set(data);
