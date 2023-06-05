@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OgLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.5
+// @version      4.2.5.6
 // @description  OgLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
