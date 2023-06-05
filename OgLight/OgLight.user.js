@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OgLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.4
+// @version      4.2.5.5
 // @description  OgLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -21,8 +21,7 @@
 'use strict';
 
 // ogl lazy loading
-if(new URL(window.location.href).searchParams.get('oglLazy') == 'true' && !document.hasFocus())
-{
+if (new URL(window.location.href).searchParams.get('oglLazy') === 'true' && !document.hasFocus()) {
     window.onfocus = () => window.location.href = 'https://' + window.location.host + window.location.pathname + window.location.search.replace('&oglLazy=true', '');
     localStorage.setItem('ogl-redirect', false);
     window.stop();
@@ -30,8 +29,7 @@ if(new URL(window.location.href).searchParams.get('oglLazy') == 'true' && !docum
 
 // redirect user if needed
 let redirect = localStorage.getItem('ogl-redirect');
-if(redirect?.indexOf('https') > -1)
-{
+if (redirect?.indexOf('https') > -1) {
     GM_addStyle(`
         body { background:#000 !important; }
         body * { display:none !important; }
@@ -44,16 +42,14 @@ if(redirect?.indexOf('https') > -1)
 }
 
 // goodbye default tooltips
-function goodbyeTipped()
-{
-    if(typeof Tipped !== 'undefined')
-    {
-        for(let [key] of Object.entries(Tipped))
-        {
-            Tipped[key] = function() { return false; }
+function goodbyeTipped() {
+    if (typeof Tipped !== 'undefined') {
+        for (let [key] of Object.entries(Tipped)) {
+            Tipped[key] = function () {
+                return false;
+            }
         }
-    }
-    else requestAnimationFrame(() => goodbyeTipped());
+    } else requestAnimationFrame(() => goodbyeTipped());
 }
 
 goodbyeTipped();
@@ -7343,88 +7339,69 @@ GM_addStyle(oglcss);
 
 // ogl
 // #region
-class OGLight
-{
-    constructor(cache)
-    {
+class OGLight {
+    constructor(cache) {
         //if(!document.body) document.location.reload();
         //document.body.classList.add('ogl_noPointer');
 
-        if(document.querySelector('#fleet1 .allornonewrap .secondcol'))
-        {
+        if (document.querySelector('#fleet1 .allornonewrap .secondcol')) {
             document.querySelector('#fleet1 .allornonewrap .secondcol').prepend(document.querySelector('#fleet1 .show_fleet_apikey'));
             document.querySelector('#fleetboxbriefingandresources form').prepend(document.querySelector('#fleetboxmission #missions'));
         }
 
-        if(redirect && redirect.indexOf('https') > -1) return;
+        if (redirect && redirect.indexOf('https') > -1) return;
 
-        this.performances = [['Initial',performance.now()]];
+        this.performances = [['Initial', performance.now()]];
         this.mode = new URLSearchParams(window.location.search).get('ogl_mode') || 0; // 1:collect 2:raid 3:locked 4:linked
         this.page = new URL(window.location.href).searchParams.get('component') || new URL(window.location.href).searchParams.get('page');
         this.id = GM_getValue('ogl_id') || false;
         this.ptre = localStorage.getItem('ogl-ptreTK') || false;
         this.ptre = (this.ptre && this.ptre.indexOf('false') > -1) ? false : this.ptre;
-        this.version = GM_info.script.version.indexOf('b') > -1 ? 'beta' : 'v'+GM_info.script.version;
+        this.version = GM_info.script.version.indexOf('b') > -1 ? 'beta' : 'v' + GM_info.script.version;
         this.ogameVersion = document.querySelector('meta[name="ogame-version"]').getAttribute('content');
         this.updateQueue = [];
         this.observerQueue = {};
         this.mutationList = {};
         this.observerExcludedID = ['tempcounter', 'resources_metal', 'resources_crystal', 'resources_deuterium', 'resources_darkmatter', 'resources_energy', 'promotionCountdown'];
-        this.observerExcludedClass = ['OGameClock', 'textBeefy', 'ogl_endTime', 'planetlink', 'moonlink', 'ogl_stock', 'ogl_resourcesSum', 'ogl_panel', 'ogl_metal', , 'ogl_crystal', 'ogl_deut', 'ogl_stats', 'ogl_menuOptions'];
+        this.observerExcludedClass = ['OGameClock', 'textBeefy', 'ogl_endTime', 'planetlink', 'moonlink', 'ogl_stock', 'ogl_resourcesSum', 'ogl_panel', 'ogl_metal', 'ogl_crystal', 'ogl_deut', 'ogl_stats', 'ogl_menuOptions'];
         this.maxPinnedTargets = 30;
         this.observerTimers = [];
         this.galaxyLoaded = false;
-        this.observer = new MutationObserver(mutations =>
-        {
-            (() =>
-            {
+        this.observer = new MutationObserver(mutations => {
+            (() => {
                 let now = performance.now();
 
-                for(let i=0, len=mutations.length; i<len; i++)
-                {
+                for (let i = 0, len = mutations.length; i < len; i++) {
                     let mutation = mutations[i];
 
-                    if(this.observerExcludedID.indexOf(mutation.target.id) > -1) return;
-                    if(mutation.target.className.trim().split(' ').filter(e => this.observerExcludedClass.includes(e)).length > 0) return;
+                    if (this.observerExcludedID.indexOf(mutation.target.id) > -1) return;
+                    if (mutation.target.className.trim().split(' ').filter(e => this.observerExcludedClass.includes(e)).length > 0) return;
 
                     /*if(mutation.target.id && mutation.target.id != "") console.log('#'+mutation.target.id+': '+(performance.now()-this.perf));
                     else if(mutation.target.className && mutation.target.className != "") console.log('.'+mutation.target.className+': '+(performance.now()-this.perf));
                     else console.log(mutation.target.outerHTML+': '+(performance.now()-this.perf));*/
 
-                    if(this.page == 'galaxy' && (mutation.target.classList.contains('microplanet') || mutation.target.classList.contains('planetMoveIcons') || mutation.target.id == 'amountColonized') && !this.galaxyLoaded && document.querySelector('#galaxyLoading').style.display.trim() != '')
-                    {
+                    if (this.page == 'galaxy' && (mutation.target.classList.contains('microplanet') || mutation.target.classList.contains('planetMoveIcons') || mutation.target.id == 'amountColonized') && !this.galaxyLoaded && document.querySelector('#galaxyLoading').style.display.trim() != '') {
                         this.galaxyLoaded = true;
                         this.galaxyCoords = [galaxy, system];
                         this.mutationList['crawler'] = now;
                         this.mutationList['galaxy'] = now;
-                    }
-                    else if(mutation.target.id == 'stat_list_content')
-                    {
+                    } else if (mutation.target.id == 'stat_list_content') {
                         this.mutationList['crawler'] = now;
                         this.mutationList['highscore'] = now;
-                    }
-                    else if(mutation.target.classList.contains('ui-tabs-panel'))
-                    {
+                    } else if (mutation.target.classList.contains('ui-tabs-panel')) {
                         this.mutationList['messagesdate'] = now;
                         this.mutationList['tablereport'] = now;
-                    }
-                    else if(mutation.target.id == 'technologydetails_content')
-                    {
+                    } else if (mutation.target.id == 'technologydetails_content') {
                         this.mutationList['details'] = now;
-                    }
-                    else if(mutation.target.classList.contains('ui-dialog-content'))
-                    {
+                    } else if (mutation.target.classList.contains('ui-dialog-content')) {
                         let dialogType = mutation.target.getAttribute('data-page');
-                        if(dialogType == 'jumpgatelayer') this.mutationList['jumpgate'] = now;
-                        else if(dialogType == 'phalanx') this.mutationList['tooltip'] = now;
-                        else if(dialogType == 'messages') this.mutationList['simbutton'] = now;
-                    }
-                    else if(mutation.target.id == 'eventboxContent')
-                    {
+                        if (dialogType == 'jumpgatelayer') this.mutationList['jumpgate'] = now;
+                        else if (dialogType == 'phalanx') this.mutationList['tooltip'] = now;
+                        else if (dialogType == 'messages') this.mutationList['simbutton'] = now;
+                    } else if (mutation.target.id == 'eventboxContent') {
                         this.mutationList['eventbox'] = now;
-                    }
-                    else if(mutation.target.className.indexOf('tooltip') && !mutation.target.classList.contains('ogl_tooltipReady'))
-                    {
+                    } else if (mutation.target.className.indexOf('tooltip') && !mutation.target.classList.contains('ogl_tooltipReady')) {
                         this.mutationList['tooltip'] = now;
                     }
                     /*else if(this.observerQueue['tooltip'])
@@ -7434,35 +7411,33 @@ class OGLight
                 }
             })();
 
-            if(Object.keys(this.mutationList).length > 0) tryUpdate();
+            if (Object.keys(this.mutationList).length > 0) tryUpdate();
         });
 
-        let tryUpdate = () =>
-        {
-            Object.keys(this.mutationList).forEach(k =>
-            {
-                if(typeof this.observerQueue[k] === 'function') this.observerQueue[k]();
+        let tryUpdate = () => {
+            Object.keys(this.mutationList).forEach(k => {
+                if (typeof this.observerQueue[k] === 'function') this.observerQueue[k]();
                 delete this.mutationList[k];
             });
         }
 
         // fix resources tooltips
-        if(!document.querySelector('#metal_box')?.getAttribute('title') && this.mode != 1 && this.mode != 4) getAjaxResourcebox();
+        if (!document.querySelector('#metal_box')?.getAttribute('title') && this.mode != 1 && this.mode != 4) getAjaxResourcebox();
 
         this.loop();
         window.addEventListener('beforeunload', () => this.save());
-        this.observer.observe(document.documentElement, {childList:true, subtree:true, attributes:true});
+        this.observer.observe(document.documentElement, {childList: true, subtree: true, attributes: true});
 
         // player data
         this.account = {};
         this.account.id = document.querySelector('head meta[name="ogame-player-id"]').getAttribute('content');
         this.account.name = document.querySelector('head meta[name="ogame-player-name"]').getAttribute('content');
-        this.account.rank = document.querySelector('#bar a[href*="page=highscore"').parentNode.textContent.match(/\d+/g)[0];
+        this.account.rank = document.querySelector('#bar a[href*="page=highscore"]').parentNode.textContent.match(/\d+/g)[0];
         this.account.planetCount = document.querySelector('#countColonies span').textContent.match(/\d+/g)[0];
         this.account.planetMax = document.querySelector('#countColonies span').textContent.match(/\d+/g)[1];
         this.account.class = document.querySelector('#characterclass .sprite').classList.contains('miner') ? 1 : document.querySelector('#characterclass .sprite').classList.contains('warrior') ? 2 : 3;
-        this.account.totalResources = [0,0,0];
-        this.account.totalProd = [0,0,0];
+        this.account.totalResources = [0, 0, 0];
+        this.account.totalProd = [0, 0, 0];
         this.account.planetsCount = document.querySelector('#countColonies .textCenter span').textContent;
 
         // universe data
@@ -7473,7 +7448,7 @@ class OGLight
         this.universe.fleetSpeedPeaceful = document.querySelector('head meta[name="ogame-universe-speed-fleet-peaceful"]').getAttribute('content');
 
         this.universe.name = document.querySelector('head meta[name="ogame-universe-name"]').getAttribute('content');
-        this.universe.number = window.location.host.replace(/\D/g,'');
+        this.universe.number = window.location.host.replace(/\D/g, '');
         this.universe.lang = document.querySelector('head meta[name="ogame-language"]').getAttribute('content');
         this.universe.timestamp = document.querySelector('head meta[name="ogame-timestamp"]').getAttribute('content') * 1000;
 
@@ -7481,7 +7456,7 @@ class OGLight
         this.current = {};
         this.current.smallplanet = document.querySelector('.smallplanet.hightlightPlanet') || document.querySelector('.smallplanet.hightlightMoon') || document.querySelector('.smallplanet');
         this.current.type = document.querySelector('head meta[name="ogame-planet-type"]').getAttribute('content');
-        this.current.coords = this.current.smallplanet.querySelector('.planetlink .planet-koords').textContent.slice(1,-1).split(':');
+        this.current.coords = this.current.smallplanet.querySelector('.planetlink .planet-koords').textContent.slice(1, -1).split(':');
         this.current.id = document.querySelector('head meta[name="ogame-planet-id"]').getAttribute('content');
         this.current.metal = Math.floor(resourcesBar.resources.metal.amount);
         this.current.crystal = Math.floor(resourcesBar.resources.crystal.amount);
@@ -7498,26 +7473,20 @@ class OGLight
         this.prev = {};
         this.prev.smallplanet = this.current.smallplanet.previousElementSibling || document.querySelectorAll('.smallplanet')[document.querySelectorAll('.smallplanet').length - 1];
 
-        if(document.querySelector('.moonlink'))
-        {
-            if(document.querySelectorAll('.moonlink').length > 1)
-            {
+        if (document.querySelector('.moonlink')) {
+            if (document.querySelectorAll('.moonlink').length > 1) {
                 this.next.smallplanetWithMoon = this.next.smallplanet;
-                if(!this.next.smallplanetWithMoon.querySelector('.moonlink'))
-                {
+                if (!this.next.smallplanetWithMoon.querySelector('.moonlink')) {
                     do this.next.smallplanetWithMoon = this.next.smallplanetWithMoon.nextElementSibling || document.querySelectorAll('.moonlink')[0].parentNode;
-                    while(!this.next.smallplanetWithMoon.querySelector('.moonlink'));
+                    while (!this.next.smallplanetWithMoon.querySelector('.moonlink'));
                 }
 
                 this.prev.smallplanetWithMoon = this.prev.smallplanet;
-                if(!this.prev.smallplanetWithMoon.querySelector('.moonlink'))
-                {
+                if (!this.prev.smallplanetWithMoon.querySelector('.moonlink')) {
                     do this.prev.smallplanetWithMoon = this.prev.smallplanetWithMoon.previousElementSibling || document.querySelectorAll('.moonlink')[document.querySelectorAll('.moonlink').length - 1].parentNode;
-                    while(!this.prev.smallplanetWithMoon.querySelector('.moonlink'));
+                    while (!this.prev.smallplanetWithMoon.querySelector('.moonlink'));
                 }
-            }
-            else
-            {
+            } else {
                 this.next.smallplanetWithMoon = this.current.smallplanet;
                 this.prev.smallplanetWithMoon = this.current.smallplanet;
             }
@@ -7534,8 +7503,8 @@ class OGLight
 
         (document.querySelector('#pageReloader') || document.querySelector('#logoLink')).classList.add('tooltipBottom');
         (document.querySelector('#pageReloader') || document.querySelector('#logoLink')).setAttribute('title', universeInfo);
-        document.querySelector('#pageContent').appendChild(Util.createDom('div', {'class':'ogl_universeName'}, `${this.universe.name}.${this.universe.lang}`));
-        document.querySelector('#bar ul').appendChild(Util.createDom('li', {'class':'ogl_planetsCount'}, `${this.account.planetsCount}<span class="material-icons">language</span>`));
+        document.querySelector('#pageContent').appendChild(Util.createDom('div', {'class': 'ogl_universeName'}, `${this.universe.name}.${this.universe.lang}`));
+        document.querySelector('#bar ul').appendChild(Util.createDom('li', {'class': 'ogl_planetsCount'}, `${this.account.planetsCount}<span class="material-icons">language</span>`));
 
         this.ptreIcon =
             `
@@ -7555,7 +7524,7 @@ class OGLight
         this.db = JSON.parse(GM_getValue(this.DBName) || '{}');
         this.db.players = this.db.players || [];
         this.db.positions = this.db.positions || [];
-        this.db.stats = this.db.stats || { total:{} };
+        this.db.stats = this.db.stats || {total: {}};
         this.db.loca = this.db.loca || {};
         this.db.ships = this.db.ships || {};
         this.db.me = this.db.me || {};
@@ -7572,8 +7541,7 @@ class OGLight
         this.db.servertTimezone = this.db.servertTimezone || 0;
         this.db.clientTimezone = this.db.clientTimezone || 0;
 
-        if(!this.db.ships?.[202] && this.page != 'fleetdispatch')
-        {
+        if (!this.db.ships?.[202] && this.page != 'fleetdispatch') {
             window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
             return;
         }
@@ -7582,7 +7550,7 @@ class OGLight
         this.db.options.rval = this.db.options.rval || 300000 * this.universe.ecoSpeed;
         this.db.options.defaultShip = this.db.options.defaultShip || 202;
         this.db.options.defaultMission = this.db.options.defaultMission || 3;
-        this.db.options.resSaver = this.db.options.resSaver || [0,0,0,0];
+        this.db.options.resSaver = this.db.options.resSaver || [0, 0, 0, 0];
         this.db.options.spyFilter = this.db.options.spyFilter || '$';
         this.db.options.togglesOff = this.db.options.togglesOff || ['autoclean', 'fleetDetailsName', 'bigShip', 'rightMenuTooltips', 'ignoreExpeShips'];
         this.db.options.excludedColors = this.db.options.excludedColors || [];
@@ -7596,15 +7564,11 @@ class OGLight
         this.betterInputs();
 
         // update old player positions
-        if(!this.db.dataFormat || this.db.dataFormat < 4)
-        {
+        if (!this.db.dataFormat || this.db.dataFormat < 4) {
             let oldDB = JSON.parse(localStorage.getItem('ogl_redata') || '{}');
-            if(oldDB.stalkList)
-            {
-                if(confirm('Do you want to import your V3 targets ?'))
-                {
-                    for(let v of Object.values(oldDB.stalkList))
-                    {
+            if (oldDB.stalkList) {
+                if (confirm('Do you want to import your V3 targets ?')) {
+                    for (let v of Object.values(oldDB.stalkList)) {
                         let newObj = {};
                         newObj.id = v.id;
                         newObj.playerID = v.player;
@@ -7613,8 +7577,7 @@ class OGLight
                         newObj.moonID = v.moonID || -1;
                         newObj.color = v.color;
 
-                        if(v.color && v.id == -1)
-                        {
+                        if (v.color && v.id == -1) {
                             newObj.id = -2;
                             newObj.playerID = -2;
                         }
@@ -7625,29 +7588,24 @@ class OGLight
                 }
 
                 this.db.dataFormat = 4;
-            }
-            else this.db.dataFormat = 4;
+            } else this.db.dataFormat = 4;
 
             //this.saveAsync();
         }
 
         // clear old empty player positions
-        if(this.db.dataFormat < 5)
-        {
+        if (this.db.dataFormat < 5) {
             let tmpDB = [];
-            this.db.positions.forEach(e =>
-            {
-                if(e.id != '-1') tmpDB.push(e);
+            this.db.positions.forEach(e => {
+                if (e.id != '-1') tmpDB.push(e);
             });
             this.db.positions = tmpDB;
             this.db.dataFormat = 5;
         }
 
         // clear badly formatted PTRE key
-        if(this.db.dataFormat < 6)
-        {
-            if(this.ptre && (this.ptre.replace(/-/g, '').length != 18 || this.ptre.indexOf('TM') != 0))
-            {
+        if (this.db.dataFormat < 6) {
+            if (this.ptre && (this.ptre.replace(/-/g, '').length != 18 || this.ptre.indexOf('TM') != 0)) {
                 localStorage.removeItem('ogl-ptreTK');
             }
 
@@ -7655,8 +7613,7 @@ class OGLight
         }
 
         // generate a new id
-        if(!this.id || !this.id[0])
-        {
+        if (!this.id || !this.id[0]) {
             let uuid = [crypto.randomUUID(), 0];
             GM_setValue('ogl_id', uuid);
             this.id == uuid;
@@ -7683,29 +7640,25 @@ class OGLight
         this.component.empire = new EmpireManager(this);
         this.component.menu = new MenuManager(this);
 
-        if(this.page == 'galaxy' && !this.galaxyLoaded)
-        {
+        if (this.page == 'galaxy' && !this.galaxyLoaded) {
             document.querySelector('#amountColonized').textContent = document.querySelector('#amountColonized').textContent;
         }
 
-        this.performances.push(['Loaded',performance.now()]);
+        this.performances.push(['Loaded', performance.now()]);
         this.displayPerformances();
     }
 
-    delay(ms)
-    {
+    delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    findRaw(table, key, value)
-    {
+    findRaw(table, key, value) {
         const result = [];
         const isValid = e => typeof e[key] !== typeof undefined && e[key].toString().toLowerCase() === value.toString().toLowerCase();
 
-        for(let i=0; i<table.length; i++)
-        {
+        for (let i = 0; i < table.length; i++) {
             let item = table[i];
-            if(isValid(item)) result.push(item);
+            if (isValid(item)) result.push(item);
         }
 
         result.sort((a, b) => a.rawCoords - b.rawCoords)
@@ -7713,56 +7666,46 @@ class OGLight
         return result;
     }
 
-    find(table, key, value, multipleResult)
-    {
+    find(table, key, value, multipleResult) {
         const result = [];
         const tmp = [];
         const lowerValue = value.toString().toLowerCase();
         const typeUndefined = typeof undefined;
 
         let isValid;
-        if(key == 'coords' || key == 'rawCoords') isValid = e => e[key] === value;
+        if (key == 'coords' || key == 'rawCoords') isValid = e => e[key] === value;
         else isValid = e => typeof e[key] !== typeUndefined && e[key].toString().toLowerCase() === lowerValue;
 
-        if(multipleResult)
-        {
-            for(let i=0, len=table.length; i<len; i++)
-            {
+        if (multipleResult) {
+            for (let i = 0, len = table.length; i < len; i++) {
                 let item = table[i];
-                if(isValid(item))
-                {
+                if (isValid(item)) {
                     tmp.push(item);
                 }
             }
 
-            tmp.sort((a, b) => a.rawCoords - b.rawCoords).forEach(entry =>
-            {
+            tmp.sort((a, b) => a.rawCoords - b.rawCoords).forEach(entry => {
                 let index = table.indexOf(entry).toString();
                 result.push(index);
             });
-        }
-        else
-        {
+        } else {
             let index = table.findIndex(isValid);
-            if(!isNaN(index) && index > -1) result.push(index);
+            if (!isNaN(index) && index > -1) result.push(index);
         }
 
         return result;
     }
 
-    getPositionsByCoords(sliced)
-    {
+    getPositionsByCoords(sliced) {
         let table = this.db.positions;
         let result = {};
         const isValid = e => e.color && e.color != 'none' && this.db.options.excludedColors.indexOf(e.color) == -1;
 
-        for(let i=0, len=table.length; i<len; i++)
-        {
+        for (let i = 0, len = table.length; i < len; i++) {
             let item = table[i];
             let id = sliced ? item.rawCoords.slice(0, -3) : item.rawCoords;
-            if(isValid(item))
-            {
-                if(!result[id]) result[id] = [];
+            if (isValid(item)) {
+                if (!result[id]) result[id] = [];
                 result[id].push(item);
             }
         }
@@ -7770,19 +7713,16 @@ class OGLight
         return result;
     }
 
-    getPositionsByPlayerId(id)
-    {
+    getPositionsByPlayerId(id) {
         let table = this.db.positions;
         let result = {};
         const isValid = e => typeof e.playerID !== typeof undefined && e.playerID == id;
 
-        for(let i=0, len=table.length; i<len; i++)
-        {
+        for (let i = 0, len = table.length; i < len; i++) {
             let item = table[i];
             let id = item.playerID;
-            if(isValid(item))
-            {
-                if(!result[id]) result[id] = [];
+            if (isValid(item)) {
+                if (!result[id]) result[id] = [];
                 result[id].push(item);
             }
         }
@@ -7790,37 +7730,31 @@ class OGLight
         return result;
     }
 
-    getPlayersById()
-    {
+    getPlayersById() {
         let table = this.db.players;
         let result = {};
 
-        for(let i=0, len=table.length; i<len; i++)
-        {
+        for (let i = 0, len = table.length; i < len; i++) {
             result[table[i].id] = table[i];
         }
 
         return result;
     }
 
-    findTargets(table, key, min, max)
-    {
+    findTargets(table, key, min, max) {
         const result = [];
         const tmp = [];
         let isValid;
         isValid = e => e.color && e.color != 'none' && parseInt(e[key]) >= parseInt(min) && parseInt(e[key]) <= parseInt(max) && this.db.options.excludedColors.indexOf(e.color) == -1;
 
-        for(let i=0, len=table.length; i<len; i++)
-        {
+        for (let i = 0, len = table.length; i < len; i++) {
             let item = table[i];
-            if(isValid(item))
-            {
+            if (isValid(item)) {
                 tmp.push(item);
             }
         }
 
-        tmp.sort((a, b) => a.rawCoords - b.rawCoords).forEach(entry =>
-        {
+        tmp.sort((a, b) => a.rawCoords - b.rawCoords).forEach(entry => {
             let index = table.indexOf(entry).toString();
             result.push(index);
         });
@@ -7828,41 +7762,34 @@ class OGLight
         return result;
     }
 
-    saveObj(table, entry, newEntry)
-    {
+    saveObj(table, entry, newEntry) {
         let index = table.indexOf(entry).toString() ?? table.length;
         table[index] = {...table[index], ...newEntry};
     }
 
-    observeMutation(callback, id)
-    {
+    observeMutation(callback, id) {
         this.observerQueue[id] = callback;
     }
 
-    addToUpdateQueue(callback)
-    {
+    addToUpdateQueue(callback) {
         this.updateQueue.push(callback);
     }
 
-    async loop()
-    {
+    async loop() {
         setInterval(() => this.updateQueue.forEach(callback => callback()), 400);
     }
 
-    betterInputs()
-    {
-        setInterval(() =>
-        {
-            document.querySelectorAll('.ogl_input:not(.ogl_inputReady)').forEach(input =>
-            {
+    betterInputs() {
+        setInterval(() => {
+            document.querySelectorAll('.ogl_input:not(.ogl_inputReady)').forEach(input => {
                 input.classList.add('ogl_inputReady');
 
-                input.addEventListener('input', () => { setTimeout(() => input.dispatchEvent(new Event('change')), 10); });
-                input.addEventListener('change', () =>
-                {
-                    if(input.value)
-                    {
-                        let newValue =  parseInt(input.value.toLowerCase().replace(/[\,\. ]/g, '').replace('g', '000000000').replace('m', '000000').replace('k', '000'));
+                input.addEventListener('input', () => {
+                    setTimeout(() => input.dispatchEvent(new Event('change')), 10);
+                });
+                input.addEventListener('change', () => {
+                    if (input.value) {
+                        let newValue = parseInt(input.value.toLowerCase().replace(/[\,\. ]/g, '').replace('g', '000000000').replace('m', '000000').replace('k', '000'));
                         input.value = isNaN(newValue) || newValue <= 0 ? 0 : newValue.toLocaleString('de-DE');
                     }
                 });
@@ -7872,21 +7799,18 @@ class OGLight
         }, 300);
     }
 
-    save(data)
-    {
-        if(data && typeof data === 'object') this.db = data;
+    save(data) {
+        if (data && typeof data === 'object') this.db = data;
         GM_saveTab([this.cache]);
         GM_setValue(this.DBName, JSON.stringify(this.db));
         unsafeWindow.ogl = null;
     }
 
-    saveAsync(data)
-    {
+    saveAsync(data) {
         setTimeout(() => this.save(data));
     }
 
-    checkVersion()
-    {
+    checkVersion() {
         let leftMenu = document.querySelector('#menuTable').appendChild(Util.createDom('li', {},
             `
             <span class="menu_icon ogl_leftMenuIcon">
@@ -7897,8 +7821,7 @@ class OGLight
             </a>
         `));
 
-        if(this.ptre)
-        {
+        if (this.ptre) {
             let link = this.universe.lang == 'fr' ? `https://board.fr.ogame.gameforge.com/index.php?thread/740025-paye-ton-re-ptre-int%C3%A9gration-oglight/` : `https://forum.origin.ogame.gameforge.com/forum/thread/37-ptre-spy-report-sharing-tool-over-discord-and-ingame-oglight/`;
 
             document.querySelector('#menuTable').appendChild(Util.createDom('li', {},
@@ -7912,8 +7835,7 @@ class OGLight
             `));
         }
 
-        let updateButton = () =>
-        {
+        let updateButton = () => {
             leftMenu.querySelector('.menubutton').classList.add('ogl_active');
             leftMenu.querySelector('.menubutton').setAttribute('data-title', 'A new version is available !');
             leftMenu.querySelector('.menubutton').setAttribute('href', 'https://github.com/igoptx/ogameTools');
@@ -7923,41 +7845,38 @@ class OGLight
 
         let target = document.querySelector('#siteFooter .fright');
         target.appendChild(Util.createDom('span', {}, '| '));
-        target.appendChild(Util.createDom('a', {'target':'_blank', 'href':'https://board.fr.ogame.gameforge.com/index.php?thread/740025-paye-ton-re-ptre-intégration-oglight/'}, this.ptre ? 'PTRE <span class="ogl_ok material-icons">done</span>' : 'PTRE <span class="ogl_danger material-icons">clear</span>'));
+        target.appendChild(Util.createDom('a', {
+            'target': '_blank',
+            'href': 'https://board.fr.ogame.gameforge.com/index.php?thread/740025-paye-ton-re-ptre-intégration-oglight/'
+        }, this.ptre ? 'PTRE <span class="ogl_ok material-icons">done</span>' : 'PTRE <span class="ogl_danger material-icons">clear</span>'));
 
-        if(typeof GM_xmlhttpRequest !== 'undefined' && serverTime.getTime() > this.db.lastVersionCheck + 3600000 && !isOldVersion)
-        {
+        if (typeof GM_xmlhttpRequest !== 'undefined' && serverTime.getTime() > this.db.lastVersionCheck + 3600000 && !isOldVersion) {
             this.db.lastVersionCheck = serverTime.getTime();
 
             GM_xmlhttpRequest(
                 {
-                    method:'GET',
-                    url:'https://github.com/igoptx/ogameTools/raw/main/OgLight/OgLight.meta.js',
-                    onload:result =>
-                    {
+                    method: 'GET',
+                    url: 'https://github.com/igoptx/ogameTools/raw/main/OgLight/OgLight.meta.js',
+                    onload: result => {
                         let updateAvailable = (result.responseText.replace(/\D/g, "") != this.version.replace(/\D/g, "") && this.version.indexOf('b') == -1) ? true : false;
 
-                        if(updateAvailable)
-                        {
+                        if (updateAvailable) {
                             this.db.newVersion = result.responseText.replace(/\D/g, "");
                             updateButton();
                         }
                     }
                 });
-        }
-        else if(isOldVersion && this.db.newVersion != 0) updateButton();
+        } else if (isOldVersion && this.db.newVersion != 0) updateButton();
 
         this.checkOGLID();
     }
 
-    checkTopScore()
-    {
-        if(!this.db.researchSpeed || this.db.topScore[1] < serverTime.getTime() - 3600000) // check every 1h max
+    checkTopScore() {
+        if (!this.db.researchSpeed || this.db.topScore[1] < serverTime.getTime() - 3600000) // check every 1h max
         {
             fetch('https://' + window.location.host + '/api/serverData.xml')
                 .then(result => result.text())
-                .then(txt =>
-                {
+                .then(txt => {
                     let parser = new DOMParser();
                     let xmlResult = parser.parseFromString(txt, 'text/xml');
                     this.db.topScore = [parseInt(xmlResult.querySelector('topScore').innerHTML), serverTime.getTime()];
@@ -7966,26 +7885,21 @@ class OGLight
         }
     }
 
-    displayPerformances()
-    {
-        if(this.version.indexOf('b') !== -1)
-        {
+    displayPerformances() {
+        if (this.version.indexOf('b') !== -1) {
             let initialTime = 0;
             let previousTime = 0;
 
-            setTimeout(() =>
-            {
+            setTimeout(() => {
                 console.groupCollapsed(`[OGL loading performances]`);
 
-                this.performances.forEach((entry, index) =>
-                {
-                    if(entry[0] != 'Initial') console.log(`${entry[0].padEnd(16, '_')} ${(entry[1] - previousTime).toFixed(2)} ms`);
+                this.performances.forEach((entry, index) => {
+                    if (entry[0] != 'Initial') console.log(`${entry[0].padEnd(16, '_')} ${(entry[1] - previousTime).toFixed(2)} ms`);
                     else initialTime = entry[1];
 
                     previousTime = entry[1];
 
-                    if(index == this.performances.length - 1)
-                    {
+                    if (index == this.performances.length - 1) {
                         console.log(''.padEnd(24, '-'));
                         console.log('Total'.padEnd(16, '_') + ` ${(entry[1] - initialTime).toFixed(2)} ms`);
                     }
@@ -7996,26 +7910,22 @@ class OGLight
         }
     }
 
-    checkOGLID()
-    {
-        if(serverTime.getTime() > this.id[1] + 86400000)
-        {
+    checkOGLID() {
+        if (serverTime.getTime() > this.id[1] + 86400000) {
             let version = this.version == 'beta' ? `${this.version}-${hash}` : this.version;
 
             let json =
                 {
-                    ogl_id:this.id[0] || '-',
-                    version:version || '-',
-                    script_name:GM_info.script.name || '-',
-                    script_namespace:GM_info.script.downloadURL || '-',
+                    ogl_id: this.id[0] || '-',
+                    version: version || '-',
+                    script_name: GM_info.script.name || '-',
+                    script_namespace: GM_info.script.downloadURL || '-',
                 }
 
-            fetch('https://ptre.chez.gg/scripts/oglight_update_version.php?tool=oglight', { method:'POST', body:JSON.stringify(json) })
+            fetch('https://ptre.chez.gg/scripts/oglight_update_version.php?tool=oglight', {method: 'POST', body: JSON.stringify(json)})
                 .then(response => response.json())
-                .then(data =>
-                {
-                    if(data.code == 1)
-                    {
+                .then(data => {
+                    if (data.code == 1) {
                         this.id[1] = serverTime.getTime();
                         GM_setValue('ogl_id', this.id);
                     }
@@ -8024,16 +7934,13 @@ class OGLight
     }
 }
 
-class CrawlerManager
-{
-    constructor(ogl)
-    {
+class CrawlerManager {
+    constructor(ogl) {
         this.ogl = ogl;
         this.ogl.db.stats.total = this.ogl.db.stats.total || {};
-        if(this.ogl.page == 'highscore' || this.ogl.page == 'supplies') this.init();
+        if (this.ogl.page == 'highscore' || this.ogl.page == 'supplies') this.init();
 
-        this.ogl.observeMutation(() =>
-        {
+        this.ogl.observeMutation(() => {
             this.init();
         }, 'crawler');
 
@@ -8052,35 +7959,28 @@ class CrawlerManager
         // if(this.ogl.current.type == 'planet') this.getPlanetProduction();
     }
 
-    init()
-    {
-        if(this.ogl.page == 'supplies')
-        {
+    init() {
+        if (this.ogl.page == 'supplies') {
             let coords = this.ogl.current.coords.join(':');
             let upgrade = document.querySelector('.targetlevel')?.getAttribute('data-value');
 
-            if(upgrade && this.ogl.current.type == 'planet')
-            {
+            if (upgrade && this.ogl.current.type == 'planet') {
                 let techID = document.querySelector('.targetlevel').closest('.technology').getAttribute('data-technology');
 
                 this.ogl.db.me.planets[coords] = this.ogl.db.me.planets[coords] || {};
                 this.ogl.db.me.planets[coords].upgrade = [techID, parseInt(upgrade)];
 
-            }
-            else
-            {
+            } else {
                 this.ogl.db.me.planets[coords] = this.ogl.db.me.planets[coords] || {};
                 this.ogl.db.me.planets[coords].upgrade = [];
             }
             // this.ogl.saveAsync();
-        }
-        else if(this.ogl.page == 'highscore')
-        {
-            if(document.querySelector('#stat_list_content .ajaxLoad')
+        } else if (this.ogl.page == 'highscore') {
+            if (document.querySelector('#stat_list_content .ajaxLoad')
                 || !document.querySelector('#row #player').classList.contains('active')) return;
 
             this.ogl.db.lastRankUpdate = !this.ogl.db.lastRankUpdate || typeof this.ogl.db.lastRankUpdate !== 'object' ? {} : this.ogl.db.lastRankUpdate;
-            this.ogl.db.lastStatusUpdate = !this.ogl.db.lastStatusUpdate ||  typeof this.ogl.db.lastStatusUpdate !== 'object' ? {} : this.ogl.db.lastStatusUpdate;
+            this.ogl.db.lastStatusUpdate = !this.ogl.db.lastStatusUpdate || typeof this.ogl.db.lastStatusUpdate !== 'object' ? {} : this.ogl.db.lastStatusUpdate;
 
             let rankPoint = document.querySelector('a#points').classList.contains('active');
             let rankFleet = document.querySelector('a#fleet').classList.contains('active');
@@ -8088,28 +7988,23 @@ class CrawlerManager
             let updateRank = serverTime.getTime() - (this.ogl.db.lastRankUpdate?.[rankPage] || 0) > 12 * 60 * 60 * 1000;
             let updateStatus = serverTime.getTime() - (this.ogl.db.lastStatusUpdate?.[rankPage] || 0) > 12 * 60 * 60 * 1000;
 
-            if(updateStatus)
-            {
-                Util.getXML(`https://${window.location.host}/api/players.xml`, result =>
-                {
+            if (updateStatus) {
+                Util.getXML(`https://${window.location.host}/api/players.xml`, result => {
                     let xmlTimestamp = parseInt(result.querySelector('players').getAttribute('timestamp')) * 1000;
 
-                    document.querySelectorAll('#ranks tbody > tr').forEach((line, index) =>
-                    {
-                        setTimeout(() =>
-                        {
+                    document.querySelectorAll('#ranks tbody > tr').forEach((line, index) => {
+                        setTimeout(() => {
                             let id = line.getAttribute('id').replace('position', '');
                             let playerStatus = result.querySelector(`player[id="${id}"]`)?.getAttribute('status') || 'status_abbr_active';
 
-                            if(playerStatus.indexOf('v') > -1  && playerStatus != 'status_abbr_active') playerStatus = 'status_abbr_vacation';
-                            else if(playerStatus === "I") playerStatus = 'status_abbr_longinactive';
-                            else if(playerStatus === "i") playerStatus = 'status_abbr_inactive';
+                            if (playerStatus.indexOf('v') > -1 && playerStatus != 'status_abbr_active') playerStatus = 'status_abbr_vacation';
+                            else if (playerStatus === "I") playerStatus = 'status_abbr_longinactive';
+                            else if (playerStatus === "i") playerStatus = 'status_abbr_inactive';
 
                             let entryID = this.ogl.find(this.ogl.db.players, 'id', id)[0] ?? this.ogl.db.players.length;
                             let player = this.ogl.db.players[entryID];
 
-                            if(player && (player.lastStatusUpdate ?? 0) < xmlTimestamp)
-                            {
+                            if (player && (player.lastStatusUpdate ?? 0) < xmlTimestamp) {
                                 line.querySelector('.playername').classList.remove(Array.from(line.querySelector('.playername').classList).filter(e => e.startsWith('status_'))[0]);
 
                                 this.ogl.db.players[entryID].status = playerStatus;
@@ -8125,8 +8020,7 @@ class CrawlerManager
             }
 
             // add status / names
-            document.querySelectorAll('#ranks tbody > tr').forEach((line, index) =>
-            {
+            document.querySelectorAll('#ranks tbody > tr').forEach((line, index) => {
                 let id = line.getAttribute('id').replace('position', '');
                 let playerIndex = this.ogl.find(this.ogl.db.players, 'id', id)[0] ?? this.ogl.db.players.length;
 
@@ -8135,27 +8029,22 @@ class CrawlerManager
                 player.name = line.querySelector('.playername').textContent.trim();
                 player.ally = line.querySelector('.ally-tag')?.textContent.trim().slice(1, -1);
 
-                if(player.name.indexOf('...') > -1 && this.ogl.db.players[playerIndex]?.name && this.ogl.db.players[playerIndex].name.indexOf(player.name.replace(/\./g, '')) > -1)
-                {
+                if (player.name.indexOf('...') > -1 && this.ogl.db.players[playerIndex]?.name && this.ogl.db.players[playerIndex].name.indexOf(player.name.replace(/\./g, '')) > -1) {
                     player.name = this.ogl.db.players[playerIndex].name;
                     line.querySelector('.playername').textContent = player.name;
                 }
 
-                if(rankPoint)
-                {
+                if (rankPoint) {
                     player.rank = line.querySelector('.position').textContent.trim();
-                    player.total = parseInt(line.querySelector('.score').textContent.replace(/\D/g,''));
-                }
-                else if(rankFleet)
-                {
-                    player.power = parseInt(line.querySelector('.score').textContent.replace(/\D/g,''));
+                    player.total = parseInt(line.querySelector('.score').textContent.replace(/\D/g, ''));
+                } else if (rankFleet) {
+                    player.power = parseInt(line.querySelector('.score').textContent.replace(/\D/g, ''));
                 }
 
-                if(!player.id) return;
+                if (!player.id) return;
                 this.ogl.db.players[playerIndex] = {...this.ogl.db.players[playerIndex], ...player};
 
-                if(this.ogl.db.players?.[playerIndex]?.status)
-                {
+                if (this.ogl.db.players?.[playerIndex]?.status) {
                     let status = Array.from(this.ogl.db.players[playerIndex].status.split(' ')).filter(e => e.startsWith('status_'))[0];
                     line.querySelector('.playername').classList.add(status);
                 }
@@ -8163,8 +8052,7 @@ class CrawlerManager
                 line.querySelector('.playername').classList.remove('status_abbr_honorableTarget');
 
                 // check rank et score
-                if(rankPoint && updateRank)
-                {
+                if (rankPoint && updateRank) {
                     this.ogl.db.players[playerIndex].veryOldRank = this.ogl.db.players[playerIndex].oldRank || this.ogl.db.players[playerIndex].rank;
                     this.ogl.db.players[playerIndex].oldRank = this.ogl.db.players[playerIndex].rank || player.rank;
 
@@ -8175,50 +8063,40 @@ class CrawlerManager
                 player = this.ogl.db.players[playerIndex];
 
                 // display rank & score movements
-                if(rankPoint)
-                {
+                if (rankPoint) {
                     let rankMovement = (player.veryOldRank || 0) - player.rank;
-                    if(!player.veryOldRank)
-                    {
+                    if (!player.veryOldRank) {
                         line.querySelector('.movement').textContent = 'NEW';
                         line.querySelector('.movement').classList.add('ogl_warning');
-                    }
-                    else
-                    {
-                        if(player.veryOldRank != player.rank)
-                        {
+                    } else {
+                        if (player.veryOldRank != player.rank) {
                             let sign = rankMovement > 0 ? '+' : '';
 
                             line.querySelector('.movement').textContent = `(${sign + parseInt(rankMovement)})`;
 
-                            if(rankMovement > 0) line.querySelector('.movement').classList.add('ogl_ok');
-                            else if(rankMovement < 0) line.querySelector('.movement').classList.add('ogl_danger');
-                        }
-                        else line.querySelector('.movement').textContent = '-';
+                            if (rankMovement > 0) line.querySelector('.movement').classList.add('ogl_ok');
+                            else if (rankMovement < 0) line.querySelector('.movement').classList.add('ogl_danger');
+                        } else line.querySelector('.movement').textContent = '-';
                     }
 
                     let diff = (player.total - player.veryOldTotal) || 0;
                     let diffSign = diff > 0 ? '+' : '';
                     line.querySelector('.ogl_scoreDiff') && line.querySelector('.ogl_scoreDiff').remove();
-                    let scoreDiff = line.querySelector('.score').appendChild(Util.createDom('div', {'class':'ogl_scoreDiff'}, diffSign + Util.formatNumber(diff)));
-                    if(diff > 0) scoreDiff.classList.add('ogl_ok');
-                    else if(diff < 0) scoreDiff.classList.add('ogl_danger');
+                    let scoreDiff = line.querySelector('.score').appendChild(Util.createDom('div', {'class': 'ogl_scoreDiff'}, diffSign + Util.formatNumber(diff)));
+                    if (diff > 0) scoreDiff.classList.add('ogl_ok');
+                    else if (diff < 0) scoreDiff.classList.add('ogl_danger');
                     else scoreDiff.classList.add('ogl_none');
                 }
             });
 
-            if(rankPoint && updateRank) this.ogl.db.lastRankUpdate[rankPage] = serverTime.getTime();
+            if (rankPoint && updateRank) this.ogl.db.lastRankUpdate[rankPage] = serverTime.getTime();
 
             // this.ogl.saveAsync();
-        }
-        else if(this.ogl.page == 'galaxy')
-        {
+        } else if (this.ogl.page == 'galaxy') {
             // store spy probes to send
-            if(!this.spyProbeCountDone && document.querySelector('a[onclick*="sendShips"]'))
-            {
+            if (!this.spyProbeCountDone && document.querySelector('a[onclick*="sendShips"]')) {
                 let ships = document.querySelector('a[onclick*="sendShips"]').getAttribute('onclick').match(/\d+/g).map(Number);
-                if(ships[0] == 6 && ships[5] != this.ogl.db.spyProbesCount)
-                {
+                if (ships[0] == 6 && ships[5] != this.ogl.db.spyProbesCount) {
                     this.ogl.db.spyProbesCount = ships[5];
                     this.spyProbeCountDone = true;
                     // this.ogl.saveAsync();
@@ -8226,7 +8104,7 @@ class CrawlerManager
             }
 
             // antispam galaxy security
-            if(this.ogl.galaxyCoords[0] != document.querySelector('#galaxy_input').value || this.ogl.galaxyCoords[1] != document.querySelector('#system_input').value) return;
+            if (this.ogl.galaxyCoords[0] != document.querySelector('#galaxy_input').value || this.ogl.galaxyCoords[1] != document.querySelector('#system_input').value) return;
 
             this.ogl.component.tooltip.close(true);
 
@@ -8234,12 +8112,11 @@ class CrawlerManager
             let ptreActivities = {};
             let selector = document.querySelectorAll('.galaxyTable .ctContentRow');
             let refreshPinnedTarget = false;
-            let currentSystemRaw = parseInt(galaxy)*1000+parseInt(system);
+            let currentSystemRaw = parseInt(galaxy) * 1000 + parseInt(system);
 
-            selector.forEach(line =>
-            {
-                if(!line.querySelector('.position') && !line.querySelector('.cellPosition')) return; // ignore p16 & 17
-                if(line.querySelector('.playername.admin') || line.querySelector('.cellPlayerName.admin')) return; // ignore admins
+            selector.forEach(line => {
+                if (!line.querySelector('.position') && !line.querySelector('.cellPosition')) return; // ignore p16 & 17
+                if (line.querySelector('.playername.admin') || line.querySelector('.cellPlayerName.admin')) return; // ignore admins
 
                 let isOld = false; // old OGL data format
                 let info = this.getCurrentInfo(line);
@@ -8248,31 +8125,25 @@ class CrawlerManager
 
                 let planetIndex = this.ogl.find(this.ogl.db.positions, 'coords', planet.coords)[0];
 
-                if(this.ogl.ptre)
-                {
+                if (this.ogl.ptre) {
                     let oldPositionEntry = this.ogl.db.positions[planetIndex];
 
-                    if(oldPositionEntry || this.ogl.db.checkedSystems.indexOf(currentSystemRaw) > -1)
-                    {
+                    if (oldPositionEntry || this.ogl.db.checkedSystems.indexOf(currentSystemRaw) > -1) {
                         let oldPlayerEntry;
 
-                        if(oldPositionEntry && oldPositionEntry.playerID && oldPositionEntry.playerID > -1)
-                        {
+                        if (oldPositionEntry && oldPositionEntry.playerID && oldPositionEntry.playerID > -1) {
                             let oldPlayerIndex = this.ogl.find(this.ogl.db.players, 'id', oldPositionEntry.playerID)[0];
                             oldPlayerEntry = this.ogl.db.players[oldPlayerIndex];
 
-                            if(oldPlayerEntry && document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned' && this.ogl.db.pinnedList[0] == oldPlayerEntry)
-                            {
+                            if (oldPlayerEntry && document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned' && this.ogl.db.pinnedList[0] == oldPlayerEntry) {
                                 refreshPinnedTarget = true;
                             }
-                        }
-                        else if(this.ogl.db.checkedSystems.indexOf(currentSystemRaw) > -1) oldPlayerEntry = {};
+                        } else if (this.ogl.db.checkedSystems.indexOf(currentSystemRaw) > -1) oldPlayerEntry = {};
 
                         // prepare PTRE positions
-                        if(oldPositionEntry
-                            && (planet.id != oldPositionEntry.id || player.id != oldPositionEntry.playerID || planet.moonID != oldPositionEntry.moonID))
-                        {
-                            if((!oldPositionEntry?.playerID || oldPositionEntry?.playerID == -1) && player.id == -1) return;
+                        if (oldPositionEntry
+                            && (planet.id != oldPositionEntry.id || player.id != oldPositionEntry.playerID || planet.moonID != oldPositionEntry.moonID)) {
+                            if ((!oldPositionEntry?.playerID || oldPositionEntry?.playerID == -1) && player.id == -1) return;
 
                             ptrePosition[planet.coords] = {}
                             ptrePosition[planet.coords].id = planet.id;
@@ -8296,8 +8167,7 @@ class CrawlerManager
                             ptrePosition[planet.coords].old_score = oldPlayerEntry?.total || -1;
                             ptrePosition[planet.coords].old_fleet = oldPlayerEntry?.fleet || -1;
 
-                            if(planet.moonID > -1)
-                            {
+                            if (planet.moonID > -1) {
                                 ptrePosition[planet.coords].moon = {};
                                 ptrePosition[planet.coords].moon.id = planet.moonID;
                             }
@@ -8306,50 +8176,41 @@ class CrawlerManager
                 }
 
                 // save new player data
-                if(player.id)
-                {
+                if (player.id) {
                     let playerEntryID = this.ogl.find(this.ogl.db.players, 'id', player.id)[0] ?? this.ogl.db.players.length;
-                    if(this.ogl.db.players[playerEntryID]?.id == -2) isOld = true;
+                    if (this.ogl.db.players[playerEntryID]?.id == -2) isOld = true;
                     this.ogl.db.players[playerEntryID] = {...this.ogl.db.players[playerEntryID], ...player};
                 }
 
                 planetIndex = planetIndex ?? this.ogl.db.positions.length;
 
                 // unmark empty positions if needed
-                if(this.ogl.db.positions[planetIndex]?.color)
-                {
-                    if((this.ogl.db.positions[planetIndex]?.id != planet.id && !isOld) || planet.id == -1)
-                    {
+                if (this.ogl.db.positions[planetIndex]?.color) {
+                    if ((this.ogl.db.positions[planetIndex]?.id != planet.id && !isOld) || planet.id == -1) {
                         planet.color = false;
                     }
                 }
 
                 // save (or remove) new position data
                 this.ogl.db.positions[planetIndex] = {...this.ogl.db.positions[planetIndex], ...planet}
-                if(planet.id == -1 || player.id == -1)
-                {
+                if (planet.id == -1 || player.id == -1) {
                     delete this.ogl.db.positions[planetIndex];
                     this.ogl.db.positions.splice(planetIndex, 1);
                 }
 
                 // update targets list if needed
-                if(document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'targetList')
-                {
-                    document.querySelectorAll(`.ogl_sideView [data-playerID="${planet.playerID}"]`).forEach(e =>
-                    {
-                        if(player.id != -1)
-                        {
+                if (document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'targetList') {
+                    document.querySelectorAll(`.ogl_sideView [data-playerID="${planet.playerID}"]`).forEach(e => {
+                        if (player.id != -1) {
                             e.querySelectorAll('div')[1].textContent = player.name;
                             e.querySelectorAll('div')[1].className = '';
                             e.querySelectorAll('div')[1].classList.add(player.status);
-                        }
-                        else e.remove();
+                        } else e.remove();
                     });
                 }
 
                 // prepare PTRE activities
-                if(this.ogl.ptre && planet.id > -1 && player.id > -1 && this.ogl.db.pinnedList.indexOf(player.id) > -1)
-                {
+                if (this.ogl.ptre && planet.id > -1 && player.id > -1 && this.ogl.db.pinnedList.indexOf(player.id) > -1) {
                     ptreActivities[planet.coords] = {};
                     ptreActivities[planet.coords].id = planet.id;
                     ptreActivities[planet.coords].player_id = player.id;
@@ -8361,8 +8222,7 @@ class CrawlerManager
                     ptreActivities[planet.coords].position = planet.coords.split(':')[2];
                     ptreActivities[planet.coords].main = this.ogl.db.positions[planetIndex].main || false;
 
-                    if(planet.moonID > -1)
-                    {
+                    if (planet.moonID > -1) {
                         ptreActivities[planet.coords].moon = {};
                         ptreActivities[planet.coords].moon.id = planet.moonID;
                         ptreActivities[planet.coords].moon.activity = planet.moonActivity;
@@ -8375,89 +8235,77 @@ class CrawlerManager
             // this.ogl.saveAsync();
 
             // refresh pinned menu
-            if(document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned') refreshPinnedTarget = true;
+            if (document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned') refreshPinnedTarget = true;
 
             // send activities to PTRE
-            if(Object.keys(ptreActivities).length > 0)
-            {
+            if (Object.keys(ptreActivities).length > 0) {
                 let tmpCoords = [galaxy, system];
 
-                fetch('https://ptre.chez.gg/scripts/oglight_import_player_activity.php?tool=oglight', { method:'POST', body:JSON.stringify(ptreActivities) })
+                fetch('https://ptre.chez.gg/scripts/oglight_import_player_activity.php?tool=oglight', {method: 'POST', body: JSON.stringify(ptreActivities)})
                     .then(response => response.json())
-                    .then(data =>
-                    {
-                        Util.logPtre(data, {galaxy:galaxy, system:system});
+                    .then(data => {
+                        Util.logPtre(data, {galaxy: galaxy, system: system});
 
-                        if(data.code == 1)
-                        {
-                            if(refreshPinnedTarget && this.ogl.component.sidebar)
-                            {
-                                new Promise(resolve =>
-                                {
+                        if (data.code == 1) {
+                            if (refreshPinnedTarget && this.ogl.component.sidebar) {
+                                new Promise(resolve => {
                                     resolve(this.ogl.component.sidebar.displayPinnedTarget());
                                 })
-                                    .then(() =>
-                                    {
-                                        document.querySelectorAll(`.ogl_pinnedContent [data-coords^="${tmpCoords[0]}:${tmpCoords[1]}:"]`).forEach(e =>
-                                        {
-                                            if(!e.querySelector('.ogl_checked')) e.appendChild(Util.createDom('div', {'class':'material-icons ogl_checked tooltipLeft', 'title':data.message}, 'check_circle'));
+                                    .then(() => {
+                                        document.querySelectorAll(`.ogl_pinnedContent [data-coords^="${tmpCoords[0]}:${tmpCoords[1]}:"]`).forEach(e => {
+                                            if (!e.querySelector('.ogl_checked')) e.appendChild(Util.createDom('div', {
+                                                'class': 'material-icons ogl_checked tooltipLeft',
+                                                'title': data.message
+                                            }, 'check_circle'));
                                         });
                                     });
                             }
                         }
                     });
-            }
-            else if(refreshPinnedTarget) this.ogl.component.sidebar?.displayPinnedTarget(); // update position
+            } else if (refreshPinnedTarget) this.ogl.component.sidebar?.displayPinnedTarget(); // update position
 
             // send positions to PTRE
-            if(Object.keys(ptrePosition).length > 0)
-            {
-                fetch('https://ptre.chez.gg/scripts/api_galaxy_import_infos.php?tool=oglight', { method:'POST', body:JSON.stringify(ptrePosition) })
+            if (Object.keys(ptrePosition).length > 0) {
+                fetch('https://ptre.chez.gg/scripts/api_galaxy_import_infos.php?tool=oglight', {method: 'POST', body: JSON.stringify(ptrePosition)})
                     .then(response => response.json())
-                    .then(data =>
-                    {
-                        Util.logPtre(data, {galaxy:galaxy, system:system});
+                    .then(data => {
+                        Util.logPtre(data, {galaxy: galaxy, system: system});
 
-                        if(data.code != 1) console.log("Can't send data to PTRE");
-                        else
-                        {
+                        if (data.code != 1) console.log("Can't send data to PTRE");
+                        else {
                             console.log('PTRE : ', currentSystemRaw, ptrePosition)
-                            if(document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned' && this.ogl.db.pinnedList[0] == player.id) this.ogl.component.sidebar?.displayPinnedTarget();
+                            if (document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned' && this.ogl.db.pinnedList[0] == player.id) this.ogl.component.sidebar?.displayPinnedTarget();
                         }
                     });
             }
         }
 
-        this.ogl.performances.push(['Crawler',performance.now()]);
+        this.ogl.performances.push(['Crawler', performance.now()]);
     }
 
-    getCurrentInfo(line)
-    {
+    getCurrentInfo(line) {
         let player = {};
         let planet = {};
 
         // update player data
-        player.id = line.querySelector('.cellPlayerName').textContent.trim().length == 0 ? - 1 : line.querySelector('.cellPlayerName [rel^="player"]')?.getAttribute('rel').replace('player', '') || this.ogl.account.id;
+        player.id = line.querySelector('.cellPlayerName').textContent.trim().length == 0 ? -1 : line.querySelector('.cellPlayerName [rel^="player"]')?.getAttribute('rel').replace('player', '') || this.ogl.account.id;
         player.name = line.querySelector('.cellPlayerName [rel^="player"]')?.childNodes[0].textContent.trim() || line.querySelector('.cellPlayerName .ownPlayerRow')?.textContent.trim();
         player.status = Array.from(line.querySelector('.cellPlayerName span[class*="status_"]')?.classList || []).filter(e => e.startsWith('status_'))[0];
         player.lastUpdate = serverTime.getTime();
         player.lastStatusUpdate = serverTime.getTime();
 
-        if(player.status == 'status_abbr_honorableTarget') player.status = 'status_abbr_active';
+        if (player.status == 'status_abbr_honorableTarget') player.status = 'status_abbr_active';
 
         let status = line.querySelector('.cellPlayerName pre')?.textContent.trim().replace('(', '').replace(')', '').replace(/ /g, '').replace('ph', '').replace('A', '').replace('o', '').replace('f', '').replace('d', '').replace(',', '') || '';
-        if(player.id == -1) status = -1;
+        if (player.id == -1) status = -1;
 
         player.statusTags = status;
 
-        let tooltip = document.querySelector('#player'+player.id);
-        if(tooltip)
-        {
+        let tooltip = document.querySelector('#player' + player.id);
+        if (tooltip) {
             player.name = tooltip.querySelector('h1 span').textContent;
             player.rank = tooltip.querySelector('.rank a')?.textContent || -1;
-        }
-        else if(player.id > -1)
-        {
+        } else if (player.id > -1) {
             player.rank = this.ogl.account.rank;
         }
 
@@ -8477,14 +8325,13 @@ class CrawlerManager
         return [player, planet];
     }
 
-    buildStalkWindow(playerID)
-    {
+    buildStalkWindow(playerID) {
         let playerIndex = this.ogl.find(this.ogl.db.players, 'id', playerID)[0];
         let player = this.ogl.db.players[playerIndex];
 
-        let content = Util.createDom('div', {'class':'galaxyTooltip'});
+        let content = Util.createDom('div', {'class': 'galaxyTooltip'});
         content.innerHTML =
-            `<h1><span>${player.name}</span><a href="https://${window.location.host}/game/index.php?page=highscore&site=${Math.max(1, Math.ceil(player.rank / 100))}&category=1&searchRelId=${player.id}" data-rank="${player.rank == -1 ? '(b)' : player.rank}" class="ogl_ranking">${player.rank == -1 ? '(b)' : '#'+player.rank}</a></h1>
+            `<h1><span>${player.name}</span><a href="https://${window.location.host}/game/index.php?page=highscore&site=${Math.max(1, Math.ceil(player.rank / 100))}&category=1&searchRelId=${player.id}" data-rank="${player.rank == -1 ? '(b)' : player.rank}" class="ogl_ranking">${player.rank == -1 ? '(b)' : '#' + player.rank}</a></h1>
         <div class="ogl_actions"></div>
         <div class="ogl_stalkActions"></div>
         <div class="ogl_colorAll"></div>
@@ -8501,40 +8348,35 @@ class CrawlerManager
 
         let actions = content.querySelector('.ogl_stalkActions');
 
-        let write = actions.appendChild(Util.createDom('div', {'class':'ogl_button material-icons', 'data-playerid':player.id}, 'edit'));
-        if(document.querySelector('#chatBar'))
-        {
+        let write = actions.appendChild(Util.createDom('div', {'class': 'ogl_button material-icons', 'data-playerid': player.id}, 'edit'));
+        if (document.querySelector('#chatBar')) {
             write.classList.add('sendMail');
             write.classList.add('js_openChat');
-        }
-        else write.addEventListener('click', () => window.location.href = `https://${window.location.host}/game/index.php?page=chat&playerId=${player.id}`);
+        } else write.addEventListener('click', () => window.location.href = `https://${window.location.host}/game/index.php?page=chat&playerId=${player.id}`);
 
-        let buddy = actions.appendChild(Util.createDom('adiv', {'class':'ogl_button material-icons'}, 'person_add_alt_1'));
+        let buddy = actions.appendChild(Util.createDom('adiv', {'class': 'ogl_button material-icons'}, 'person_add_alt_1'));
         buddy.addEventListener('click', () => window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=buddies&action=7&id=${player.id}&ajax=1`);
 
-        let ignore = actions.appendChild(Util.createDom('adiv', {'class':'ogl_button material-icons'}, 'block'));
+        let ignore = actions.appendChild(Util.createDom('adiv', {'class': 'ogl_button material-icons'}, 'block'));
         ignore.addEventListener('click', () => window.location.href = `https://${window.location.host}/game/index.php?page=ignorelist&action=1&id=${player.id}`);
 
-        let mmorpgstats = actions.appendChild(Util.createDom('adiv', {'class':'ogl_button material-icons'}, 'leaderboard'));
-        mmorpgstats.addEventListener('click', () =>
-        {
+        let mmorpgstats = actions.appendChild(Util.createDom('adiv', {'class': 'ogl_button material-icons'}, 'leaderboard'));
+        mmorpgstats.addEventListener('click', () => {
             let lang = ['fr', 'de', 'en', 'es', 'pl', 'it', 'ru', 'ar', 'mx', 'tr', 'fi', 'tw', 'gr', 'br', 'nl',
                 'hr', 'sk', 'cz', 'ro', 'us', 'pt', 'dk', 'no', 'se', 'si', 'hu', 'jp', 'ba'].indexOf(this.ogl.universe.lang);
 
-            let link = `https://www.mmorpg-stat.eu/0_fiche_joueur.php?pays=${lang}&ftr=${player.id.replace(/\D/g,'')}.dat&univers=_${this.ogl.universe.number}`;
+            let link = `https://www.mmorpg-stat.eu/0_fiche_joueur.php?pays=${lang}&ftr=${player.id.replace(/\D/g, '')}.dat&univers=_${this.ogl.universe.number}`;
             window.open(link, '_blank');
         });
 
-        let pin = actions.appendChild(Util.createDom('div', {'class':'ogl_button material-icons'}, 'push_pin'));
-        pin.addEventListener('click', () =>
-        {
-            this.ogl.db.pinnedList.forEach((e, index) =>
-            {
-                if(e && e == player.id) this.ogl.db.pinnedList.splice(index, 1);
+        let pin = actions.appendChild(Util.createDom('div', {'class': 'ogl_button material-icons'}, 'push_pin'));
+        pin.addEventListener('click', () => {
+            this.ogl.db.pinnedList.forEach((e, index) => {
+                if (e && e == player.id) this.ogl.db.pinnedList.splice(index, 1);
             });
 
             this.ogl.db.pinnedList.unshift(player.id);
-            if(this.ogl.db.pinnedList.length > this.ogl.maxPinnedTargets) this.ogl.db.pinnedList.length = this.ogl.maxPinnedTargets;
+            if (this.ogl.db.pinnedList.length > this.ogl.maxPinnedTargets) this.ogl.db.pinnedList.length = this.ogl.maxPinnedTargets;
 
             // this.ogl.saveAsync();
 
@@ -8549,47 +8391,41 @@ class CrawlerManager
         let multi = 1;
         let isMulti = false;
 
-        this.ogl.find(this.ogl.db.positions, 'playerID', player.id, true).forEach(planetIndex =>
-        {
+        this.ogl.find(this.ogl.db.positions, 'playerID', player.id, true).forEach(planetIndex => {
             let planet = this.ogl.db.positions[planetIndex];
             let splitted = planet.coords.split(':');
 
-            let item = Util.createDom('div', {'data-coords':planet.coords});
+            let item = Util.createDom('div', {'data-coords': planet.coords});
             let coordsDiv = item.appendChild(Util.createDom('span', {}, planet.coords));
 
-            coordsDiv.addEventListener('click', () =>
-            {
+            coordsDiv.addEventListener('click', () => {
                 this.ogl.component.tooltip.close(true);
                 this.ogl.component.galaxy.goToPosition(splitted[0], splitted[1], splitted[2]);
             });
 
-            if(this.ogl.page == 'galaxy' && document.querySelector('#galaxy_input').value == splitted[0] && document.querySelector('#system_input').value == splitted[1])
-            {
+            if (this.ogl.page == 'galaxy' && document.querySelector('#galaxy_input').value == splitted[0] && document.querySelector('#system_input').value == splitted[1]) {
                 coordsDiv.classList.add('ogl_currentSystem');
             }
 
-            if(planet.main) item.appendChild(Util.createDom('div', {'class':'material-icons ogl_mainPlanet'}, 'star'));
+            if (planet.main) item.appendChild(Util.createDom('div', {'class': 'material-icons ogl_mainPlanet'}, 'star'));
 
-            let mSpy = item.appendChild(Util.createDom('div', {'class':'ogl_moonIcon material-icons', 'data-type':3}, 'brightness_2'));
+            let mSpy = item.appendChild(Util.createDom('div', {'class': 'ogl_moonIcon material-icons', 'data-type': 3}, 'brightness_2'));
             mSpy.addEventListener('click', () => this.ogl.component.fleet.sendSpyProbe([splitted[0], splitted[1], splitted[2], 3], this.ogl.db.spyProbesCount, mSpy, true));
-            if(serverTime.getTime() - planet.lastMoonSpy < 60 * 60 * 1000) mSpy.classList.add('ogl_done');
+            if (serverTime.getTime() - planet.lastMoonSpy < 60 * 60 * 1000) mSpy.classList.add('ogl_done');
 
-            let pSpy = item.appendChild(Util.createDom('div', {'class':'ogl_planetIcon material-icons', 'data-type':1}, 'language'));
+            let pSpy = item.appendChild(Util.createDom('div', {'class': 'ogl_planetIcon material-icons', 'data-type': 1}, 'language'));
             pSpy.addEventListener('click', () => this.ogl.component.fleet.sendSpyProbe([splitted[0], splitted[1], splitted[2], 1], this.ogl.db.spyProbesCount, pSpy, true));
-            if(serverTime.getTime() - planet.lastSpy < 60 * 60 * 1000) pSpy.classList.add('ogl_done');
+            if (serverTime.getTime() - planet.lastSpy < 60 * 60 * 1000) pSpy.classList.add('ogl_done');
 
-            if(planet.moonID > 0) mSpy.classList.add('ogl_active');
+            if (planet.moonID > 0) mSpy.classList.add('ogl_active');
             planet.color ? item.setAttribute('data-color', planet.color) : item.removeAttribute('data-color');
 
             content.querySelector('.ogl_stalkPlanets').appendChild(item);
 
-            if(rawStart == planet.rawCoords.slice(0, -3))
-            {
+            if (rawStart == planet.rawCoords.slice(0, -3)) {
                 item.setAttribute('data-multi', multi);
                 isMulti = true;
-            }
-            else if(isMulti)
-            {
+            } else if (isMulti) {
                 multi++;
                 isMulti = false;
             }
@@ -8604,13 +8440,11 @@ class CrawlerManager
         return content;
     }
 
-    getPlanetProduction()
-    {
+    getPlanetProduction() {
         return;
         let currentCoords = this.ogl.current.coords.join(':');
 
-        ['metal', 'crystal', 'deut'].forEach((res, index) =>
-        {
+        ['metal', 'crystal', 'deut'].forEach((res, index) => {
             let data = resourcesBar.resources[res.replace('deut', 'deuterium')].tooltip;
             //let currentRes = Math.floor(resourcesBar.resources[res.replace('deut', 'deuterium')].amount);
             let prod = data.replace(/\./g, '').match(/\d+/g)[2];
@@ -8619,8 +8453,7 @@ class CrawlerManager
             this.ogl.db.me.planets[currentCoords].production = this.ogl.db.me.planets[currentCoords].production || [];
             this.ogl.db.me.planets[currentCoords].storage = this.ogl.db.me.planets[currentCoords].storage || [];
 
-            if(data.indexOf('overmark') == -1)
-            {
+            if (data.indexOf('overmark') == -1) {
                 this.ogl.db.me.planets[currentCoords].production[index] = (prod / 3600).toFixed(2);
             }
 
@@ -8632,27 +8465,22 @@ class CrawlerManager
         // this.ogl.saveAsync();
     }
 
-    checkPlayerPtre(playerID, callback)
-    {
-        if(this.ogl.ptre)
-        {
-            Util.getJSON(`https://ptre.chez.gg/scripts/api_galaxy_get_infos.php?tool=oglight&team_key=${this.ogl.ptre}&player_id=${playerID}`, ptreData =>
-            {
-                Util.logPtre(ptreData, {playerID:playerID});
+    checkPlayerPtre(playerID, callback) {
+        if (this.ogl.ptre) {
+            Util.getJSON(`https://ptre.chez.gg/scripts/api_galaxy_get_infos.php?tool=oglight&team_key=${this.ogl.ptre}&player_id=${playerID}`, ptreData => {
+                Util.logPtre(ptreData, {playerID: playerID});
 
-                if(ptreData.code == 1)
-                {
+                if (ptreData.code == 1) {
                     let playerEntryID = this.ogl.find(this.ogl.db.players, 'id', playerID)[0] ?? this.ogl.db.players.length;
                     this.ogl.db.players[playerEntryID] = this.ogl.db.players[playerEntryID] || {};
                     this.ogl.db.players[playerEntryID].lastPTRECheck = serverTime.getTime();
 
-                    ptreData.galaxy_array.forEach(entry =>
-                    {
+                    ptreData.galaxy_array.forEach(entry => {
                         let planet = {};
                         planet.id = entry.id;
                         planet.playerID = entry.player_id;
                         planet.coords = entry.coords;
-                        planet.rawCoords =  entry.coords.split(':').map(x => x.padStart(3, '0')).join('');
+                        planet.rawCoords = entry.coords.split(':').map(x => x.padStart(3, '0')).join('');
                         planet.moonID = entry.moon?.id ?? -1;
                         planet.lastUpdate = entry.timestamp_ig;
                         planet.activity = false;
@@ -8662,8 +8490,7 @@ class CrawlerManager
 
                         this.ogl.db.positions[planetEntryID] = this.ogl.db.positions[planetEntryID] || {};
 
-                        if(!this.ogl.db.positions[planetEntryID].lastUpdate || this.ogl.db.positions[planetEntryID].lastUpdate < planet.lastUpdate)
-                        {
+                        if (!this.ogl.db.positions[planetEntryID].lastUpdate || this.ogl.db.positions[planetEntryID].lastUpdate < planet.lastUpdate) {
                             this.ogl.db.positions[planetEntryID] = {...this.ogl.db.positions[planetEntryID], ...planet};
                         }
                     });
@@ -8671,23 +8498,20 @@ class CrawlerManager
                     // this.ogl.saveAsync();
                 }
 
-                if(callback) callback(playerID);
-                if(document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned' && this.ogl.db.pinnedList[0] == playerID) this.ogl.component.sidebar?.displayPinnedTarget();
+                if (callback) callback(playerID);
+                if (document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned' && this.ogl.db.pinnedList[0] == playerID) this.ogl.component.sidebar?.displayPinnedTarget();
             });
         }
     }
 
-    checkPlayerApi(playerID, callback, forced)
-    {
-        if(!playerID || playerID <= 0) return;
+    checkPlayerApi(playerID, callback, forced) {
+        if (!playerID || playerID <= 0) return;
 
         let lastAPICheck = this.ogl.db.players[this.ogl.find(this.ogl.db.players, 'id', playerID)[0]]?.lastAPICheck || 0;
         let lastPTRECheck = this.ogl.db.players[this.ogl.find(this.ogl.db.players, 'id', playerID)[0]]?.lastPTRECheck || 0;
 
-        if(serverTime.getTime() - lastAPICheck > 3 * 60 * 60 * 1000)
-        {
-            Util.getXML(`https://${window.location.host}/api/playerData.xml?id=${playerID}`, result =>
-            {
+        if (serverTime.getTime() - lastAPICheck > 3 * 60 * 60 * 1000) {
+            Util.getXML(`https://${window.location.host}/api/playerData.xml?id=${playerID}`, result => {
                 let playerEntryID = this.ogl.find(this.ogl.db.players, 'id', playerID)[0] ?? this.ogl.db.players.length;
 
                 let player = {};
@@ -8704,18 +8528,16 @@ class CrawlerManager
                 player.lastAPIUpdate = parseInt(result.querySelector('playerData').getAttribute('timestamp')) * 1000;
                 player.name = result.querySelector('playerData').getAttribute('name');
 
-                if(this.ogl.page == 'highscore') player.rank = document.querySelector(`#position${playerID} .position`)?.textContent.trim();
+                if (this.ogl.page == 'highscore') player.rank = document.querySelector(`#position${playerID} .position`)?.textContent.trim();
 
-                if(this.ogl.db.players[playerEntryID]?.name && this.ogl.db.players[playerEntryID].name.indexOf('...') == -1)
-                {
+                if (this.ogl.db.players[playerEntryID]?.name && this.ogl.db.players[playerEntryID].name.indexOf('...') == -1) {
                     player.name = this.ogl.db.players[playerEntryID].name;
                 }
 
                 this.ogl.db.players[playerEntryID] = {...this.ogl.db.players[playerEntryID], ...player};
 
                 // update player positions
-                result.querySelectorAll('planet').forEach((apiPlanet, index) =>
-                {
+                result.querySelectorAll('planet').forEach((apiPlanet, index) => {
                     let planet = {};
                     planet.id = apiPlanet.getAttribute('id');
                     planet.playerID = playerID;
@@ -8732,81 +8554,66 @@ class CrawlerManager
 
                     this.ogl.db.positions[planetEntryID] = this.ogl.db.positions[planetEntryID] || {};
 
-                    if(!this.ogl.db.positions[planetEntryID].lastUpdate || this.ogl.db.positions[planetEntryID].lastUpdate < planet.lastUpdate)
-                    {
+                    if (!this.ogl.db.positions[planetEntryID].lastUpdate || this.ogl.db.positions[planetEntryID].lastUpdate < planet.lastUpdate) {
                         this.ogl.db.positions[planetEntryID] = {...this.ogl.db.positions[planetEntryID], ...planet};
                     }
 
-                    if(planet.main) this.ogl.db.positions[planetEntryID].main = true;
+                    if (planet.main) this.ogl.db.positions[planetEntryID].main = true;
                     else this.ogl.db.positions[planetEntryID].main = false;
                 });
 
                 // this.ogl.saveAsync();
 
-                if(this.ogl.ptre) this.checkPlayerPtre(playerID, callback);
-                else if(callback) callback(playerID, callback);
+                if (this.ogl.ptre) this.checkPlayerPtre(playerID, callback);
+                else if (callback) callback(playerID, callback);
             });
-        }
-        else if(this.ogl.ptre && (forced || serverTime.getTime() - lastPTRECheck > 10 * 60 * 1000))
-        {
+        } else if (this.ogl.ptre && (forced || serverTime.getTime() - lastPTRECheck > 10 * 60 * 1000)) {
             this.checkPlayerPtre(playerID, callback);
-        }
-        else
-        {
-            if(callback) callback(playerID, callback);
+        } else {
+            if (callback) callback(playerID, callback);
         }
     }
 }
 
-class HighscoreManager
-{
-    constructor(ogl)
-    {
+class HighscoreManager {
+    constructor(ogl) {
         this.ogl = ogl;
-        if(this.ogl.page == 'highscore') this.init();
+        if (this.ogl.page == 'highscore') this.init();
         this.ogl.observeMutation(() => this.init(), 'highscore');
     }
 
-    init()
-    {
-        if(!document.querySelector('.playername')) return;
+    init() {
+        if (!document.querySelector('.playername')) return;
 
-        document.querySelectorAll('#ranks tbody tr').forEach(line =>
-        {
+        document.querySelectorAll('#ranks tbody tr').forEach(line => {
             line.querySelector('.playername').classList.add('tooltipRight');
             line.querySelector('.playername').classList.add('tooltipClose');
             line.querySelector('.playername').setAttribute('data-title', 'loading...');
 
-            line.querySelector('.playername').addEventListener('mouseenter', e =>
-            {
+            line.querySelector('.playername').addEventListener('mouseenter', e => {
                 let id = line.getAttribute('id').replace('position', '');
-                if(e.target?.classList.contains('ogl_highlight')) return;
+                if (e.target?.classList.contains('ogl_highlight')) return;
 
-                this.ogl.component.crawler.checkPlayerApi(id, () =>
-                {
+                this.ogl.component.crawler.checkPlayerApi(id, () => {
                     this.ogl.component.tooltip.update(e.target, this.ogl.component.crawler.buildStalkWindow(id));
                 });
             });
         });
 
-        this.ogl.performances.push(['Highscore',performance.now()]);
+        this.ogl.performances.push(['Highscore', performance.now()]);
     }
 }
 
-class GalaxyManager
-{
-    constructor(ogl)
-    {
+class GalaxyManager {
+    constructor(ogl) {
         this.ogl = ogl;
         //if(this.ogl.page == 'galaxy') this.init();
         this.ogl.observeMutation(() => this.init(), 'galaxy');
 
-        if(this.ogl.page == 'galaxy')
-        {
+        if (this.ogl.page == 'galaxy') {
             document.querySelector('#galaxyLoading').setAttribute('data-currentPosition', `${galaxy}:${system}`);
 
-            let updateTargets = (g, s) =>
-            {
+            let updateTargets = (g, s) => {
                 document.querySelectorAll('.ogl_stalkPlanets.ogl_scrollable > div.ogl_currentSystem').forEach(item => item.classList.remove('ogl_currentSystem'));
                 document.querySelectorAll(`.ogl_stalkPlanets.ogl_scrollable > div[data-minicoords="${g}:${s}"]`).forEach(item => item.classList.add('ogl_currentSystem'));
             }
@@ -8844,43 +8651,39 @@ class GalaxyManager
                 updateTargets(g, s);
             }*/
 
-            loadContentNew = (g, s) =>
-            {
+            loadContentNew = (g, s) => {
                 this.ogl.galaxyLoaded = false;
 
-                if(!canSwitchGalaxy && notEnoughDeuteriumMessage)
-                {
+                if (!canSwitchGalaxy && notEnoughDeuteriumMessage) {
                     fadeBox(notEnoughDeuteriumMessage, true);
                     return;
                 }
 
-                if(this.xhr) this.xhr.abort();
+                if (this.xhr) this.xhr.abort();
                 $("#galaxyLoading").show();
                 document.querySelector('#galaxyLoading').setAttribute('data-currentPosition', `${g}:${s}`);
 
-                if(0 === galaxy.length || !$.isNumeric(+galaxy)) g = 1;
-                if(0 === system.length || !$.isNumeric(+system)) s = 1;
+                if (0 === galaxy.length || !$.isNumeric(+galaxy)) g = 1;
+                if (0 === system.length || !$.isNumeric(+system)) s = 1;
 
                 $("#galaxy_input").val(g);
                 $("#system_input").val(s);
 
                 let phalanxSystemLink = $('#galaxyHeader .phalanxlink.btn_system_action');
 
-                if(phalanxSystemLink.length) phalanxSystemLink.attr('href', phalanxSystemLink.attr('href').replace(/(galaxy=)\d+/, "$1" + galaxy).replace(/(system=)\d+/, "$1" + system));
+                if (phalanxSystemLink.length) phalanxSystemLink.attr('href', phalanxSystemLink.attr('href').replace(/(galaxy=)\d+/, "$1" + galaxy).replace(/(system=)\d+/, "$1" + system));
 
                 this.xhr = $.post(galaxyContentLink, {
-                    galaxy:g,
-                    system:s
+                    galaxy: g,
+                    system: s
                 }, renderContentGalaxy);
 
                 updateTargets(g, s);
             }
         }
 
-        this.goToPosition = (g, s, p) =>
-        {
-            if(this.ogl.page == 'galaxy')
-            {
+        this.goToPosition = (g, s, p) => {
+            if (this.ogl.page == 'galaxy') {
                 this.ogl.component.tooltip.container.textContent = '';
                 this.ogl.component.tooltip.close(true);
 
@@ -8888,36 +8691,31 @@ class GalaxyManager
                 system = s;
 
                 loadContentNew(g, s);
-            }
-            else
-            {
+            } else {
                 Util.redirect(`https://${window.location.host}/game/index.php?page=ingame&component=galaxy&galaxy=${g}&system=${s}&position=${p}`, this.ogl);
             }
         }
 
-        this.ogl.performances.push(['Galaxy',performance.now()]);
+        this.ogl.performances.push(['Galaxy', performance.now()]);
     }
 
-    init()
-    {
-        document.querySelectorAll('.galaxyTable .ctContentRow').forEach(line =>
-        {
+    init() {
+        document.querySelectorAll('.galaxyTable .ctContentRow').forEach(line => {
             line.removeAttribute('data-color');
             line.querySelector('.cellPlayerName').classList.remove('tooltipRel');
             line.querySelector('.cellDebris').classList.remove('ogl_active');
 
-            if(!line.querySelector('.cellPosition')) return; // ignore p16 & 17
-            if(line.querySelector('.cellPlayerName.admin')) return; // ignore admins
+            if (!line.querySelector('.cellPosition')) return; // ignore p16 & 17
+            if (line.querySelector('.cellPlayerName.admin')) return; // ignore admins
 
             let id;
-            if(line.querySelector('.ownPlayerRow')) id = this.ogl.account.id;
+            if (line.querySelector('.ownPlayerRow')) id = this.ogl.account.id;
             else id = line.querySelector('.cellPlayerName [rel^="player"]')?.getAttribute('rel').replace('player', '');
 
-            if(id)
-            {
+            if (id) {
                 let position = line.querySelector('.cellPosition').textContent;
 
-                if(position >= 10) line.querySelector('.cellPlayerName > span[class*="status_"]').classList.add('tooltipRightTop');
+                if (position >= 10) line.querySelector('.cellPlayerName > span[class*="status_"]').classList.add('tooltipRightTop');
                 else line.querySelector('.cellPlayerName > span[class*="status_"]').classList.add('tooltipRight');
 
                 line.querySelector('.cellPlayerName > span[class*="status_"]').classList.add('ogl_noPointer');
@@ -8928,46 +8726,41 @@ class GalaxyManager
 
                 let player = this.ogl.db.players[this.ogl.find(this.ogl.db.players, 'id', id)[0]];
 
-                if(!player) return;
-                let a = Util.createDom('a', {'class':'float_right', 'href':`https://${window.location.host}/game/index.php?page=highscore&site=${Math.max(1, Math.ceil(player.rank / 100))}&category=1&searchRelId=${player.id}`}, `${player.rank == -1 ? '(b)' : '#'+player.rank}`);
+                if (!player) return;
+                let a = Util.createDom('a', {
+                    'class': 'float_right',
+                    'href': `https://${window.location.host}/game/index.php?page=highscore&site=${Math.max(1, Math.ceil(player.rank / 100))}&category=1&searchRelId=${player.id}`
+                }, `${player.rank == -1 ? '(b)' : '#' + player.rank}`);
                 line.querySelector('.cellPlayerName').appendChild(a);
 
-                line.querySelector('.cellPlayerName > span[class*="status_"]').addEventListener('mouseenter', e =>
-                {
-                    if(e.target.classList.contains('ogl_highlight')) return;
+                line.querySelector('.cellPlayerName > span[class*="status_"]').addEventListener('mouseenter', e => {
+                    if (e.target.classList.contains('ogl_highlight')) return;
 
-                    this.ogl.component.crawler.checkPlayerApi(id, () =>
-                    {
+                    this.ogl.component.crawler.checkPlayerApi(id, () => {
                         this.ogl.component.tooltip.update(e.target, this.ogl.component.crawler.buildStalkWindow(id));
                     });
                 });
 
                 // pin target
-                line.querySelector('.cellPlayerName > span[class*="status_"]').addEventListener('click', () =>
-                {
-                    this.ogl.db.pinnedList.forEach((e, index) =>
-                    {
-                        if(e && e == player.id) this.ogl.db.pinnedList.splice(index, 1);
+                line.querySelector('.cellPlayerName > span[class*="status_"]').addEventListener('click', () => {
+                    this.ogl.db.pinnedList.forEach((e, index) => {
+                        if (e && e == player.id) this.ogl.db.pinnedList.splice(index, 1);
                     });
 
                     this.ogl.db.pinnedList.unshift(player.id);
-                    if(this.ogl.db.pinnedList.length > this.ogl.maxPinnedTargets) this.ogl.db.pinnedList.length = this.ogl.maxPinnedTargets;
+                    if (this.ogl.db.pinnedList.length > this.ogl.maxPinnedTargets) this.ogl.db.pinnedList.length = this.ogl.maxPinnedTargets;
 
                     // this.ogl.saveAsync();
 
-                    new Promise(resolve =>
-                    {
+                    new Promise(resolve => {
                         resolve(this.ogl.component.crawler.checkPlayerApi(this.ogl.db.pinnedList[0]));
                     })
-                        .then(() =>
-                        {
+                        .then(() => {
                             this.ogl.component.sidebar.displayPinnedTarget();
                         })
-                        .then(() =>
-                        {
-                            document.querySelectorAll(`.ogl_pinnedContent [data-coords^="${galaxy}:${system}:"]`).forEach(e =>
-                            {
-                                if(!e.querySelector('.ogl_checked')) e.appendChild(Util.createDom('div', {'class':'material-icons ogl_checked'}, 'check_circle'));
+                        .then(() => {
+                            document.querySelectorAll(`.ogl_pinnedContent [data-coords^="${galaxy}:${system}:"]`).forEach(e => {
+                                if (!e.querySelector('.ogl_checked')) e.appendChild(Util.createDom('div', {'class': 'material-icons ogl_checked'}, 'check_circle'));
                             });
                         });
                 });
@@ -8975,37 +8768,33 @@ class GalaxyManager
                 let planetID = line.querySelector('[data-planet-id]').getAttribute('data-planet-id');
                 let index = this.ogl.find(this.ogl.db.positions, 'id', planetID, true);
                 line.setAttribute('data-color', this.ogl.db.positions[index[0]]?.color);
-                let button = line.querySelector('.cellPlanetName').appendChild(Util.createDom('div', {'class':'ogl_colorButton tooltipClose', 'data-color':this.ogl.db.positions[index[0]]?.color}));
-                button.addEventListener('click', event =>
-                {
-                    let content = Util.createDom('div', {'class':'ogl_colorAll ogl_tooltipColor'});
+                let button = line.querySelector('.cellPlanetName').appendChild(Util.createDom('div', {'class': 'ogl_colorButton tooltipClose', 'data-color': this.ogl.db.positions[index[0]]?.color}));
+                button.addEventListener('click', event => {
+                    let content = Util.createDom('div', {'class': 'ogl_colorAll ogl_tooltipColor'});
                     this.ogl.component.color.addColorUI(button, content, index, event);
                     this.ogl.component.tooltip.open(button, false, content);
                 });
             }
 
-            if(line.querySelector('.microdebris'))
-            {
+            if (line.querySelector('.microdebris')) {
                 let element = line.querySelector('.microdebris');
                 let id = '#' + element.getAttribute('rel');
 
                 let total = 0;
-                document.querySelector(id).querySelectorAll('.debris-content').forEach(resources =>
-                {
+                document.querySelector(id).querySelectorAll('.debris-content').forEach(resources => {
                     let value = Util.formatFromUnits(resources.innerText.replace(/(\D*)/, ''));
                     element.innerHTML += Util.formatToUnits(parseInt(value), 1) + '<br>';
                     total += parseInt(value);
                 });
 
-                if(total >= this.ogl.db.options.rval) element.closest('.cellDebris').classList.add('ogl_active');
+                if (total >= this.ogl.db.options.rval) element.closest('.cellDebris').classList.add('ogl_active');
             }
 
-            document.querySelectorAll('.expeditionDebrisSlotBox:not(.ogl_debrisReady)').forEach(element =>
-            {
+            document.querySelectorAll('.expeditionDebrisSlotBox:not(.ogl_debrisReady)').forEach(element => {
                 element.classList.add('ogl_debrisReady');
 
                 let content = element.querySelectorAll('.ListLinks li');
-                if(!content[0]) content = document.querySelectorAll('#debris16 .ListLinks li');
+                if (!content[0]) content = document.querySelectorAll('#debris16 .ListLinks li');
 
                 let scouts = content[3];
                 let action = content[4];
@@ -9017,7 +8806,7 @@ class GalaxyManager
                     ];
 
                 element.innerHTML = `
-                    <img src="https://gf1.geo.gfsrv.net/cdnc5/fa3e396b8af2ae31e28ef3b44eca91.gif">
+                    <img src="https://gf1.geo.gfsrv.net/cdnc5/fa3e396b8af2ae31e28ef3b44eca91.gif" alt="Image">
                     <div>
                         <div class="ogl_metal">${res[0]}</div>
                         <div class="ogl_crystal">${res[1]}</div>
@@ -9031,25 +8820,22 @@ class GalaxyManager
             });
         });
 
-        if(system != 499) this.ogl.component.keyboard.sent = false;
+        if (system != 499) this.ogl.component.keyboard.sent = false;
     }
 }
 
-class MenuManager
-{
-    constructor(ogl)
-    {
+class MenuManager {
+    constructor(ogl) {
         this.ogl = ogl;
         this.init();
     }
 
-    init()
-    {
+    init() {
         document.querySelector('#countColonies .ogl_menuOptions')?.remove();
         document.querySelector('#countColonies .ogl_panel')?.remove();
 
-        this.mainDom = document.querySelector('#countColonies').appendChild(Util.createDom('div', {'class':'ogl_menuOptions'}));
-        this.subDom = document.querySelector('#countColonies').appendChild(Util.createDom('div', {'class':'ogl_panel'}));
+        this.mainDom = document.querySelector('#countColonies').appendChild(Util.createDom('div', {'class': 'ogl_menuOptions'}));
+        this.subDom = document.querySelector('#countColonies').appendChild(Util.createDom('div', {'class': 'ogl_panel'}));
 
         // main buttons
         this.addOptions();
@@ -9065,32 +8851,33 @@ class MenuManager
 
         this.checkImportExport();
 
-        this.ogl.performances.push(['Menu',performance.now()]);
+        this.ogl.performances.push(['Menu', performance.now()]);
     }
 
-    addOptions()
-    {
-        let button = this.mainDom.appendChild(Util.createDom('div', {'class':'material-icons ogl_manageData ogl_button tooltipUp', 'data-title': this.ogl.component.lang.getText('oglConfig')}, 'settings'));
-        button.addEventListener('click', () =>
-        {
+    addOptions() {
+        let button = this.mainDom.appendChild(Util.createDom('div', {
+            'class': 'material-icons ogl_manageData ogl_button tooltipUp',
+            'data-title': this.ogl.component.lang.getText('oglConfig')
+        }, 'settings'));
+        button.addEventListener('click', () => {
             this.ogl.component.popup.load();
 
-            let globalContainer = Util.createDom('div', {'class':'ogl_globalConfig'});
+            let globalContainer = Util.createDom('div', {'class': 'ogl_globalConfig'});
             let sideContainer = globalContainer.appendChild(Util.createDom('div'));
-            let container = globalContainer.appendChild(Util.createDom('div', {'class':'ogl_config'}));
+            let container = globalContainer.appendChild(Util.createDom('div', {'class': 'ogl_config'}));
 
-            sideContainer.appendChild(Util.createDom('h1', {'class':'ogl_scriptTitle'}, `OGLight <span>(${this.ogl.version == 'beta' ? `${this.ogl.version}-${hash}` : this.ogl.version})</span>`));
+            sideContainer.appendChild(Util.createDom('h1', {'class': 'ogl_scriptTitle'}, `OGLight <span>(${this.ogl.version == 'beta' ? `${this.ogl.version}-${hash}` : this.ogl.version})</span>`));
             sideContainer.appendChild(Util.createDom('hr'));
             sideContainer.appendChild(Util.createDom('p', {}, this.ogl.component.lang.getText('kofi')));
             sideContainer.appendChild(Util.createDom('div', {}, "<a class='ogl_kofi' href='https://ko-fi.com/rodrigocorreia' target='_blank'>Buy me a coffee</a>"));
 
             let rval = container.appendChild(Util.createDom('div', {}, '<span>Resources Value (RVal)</span>'));
-            let rvalInput = rval.appendChild(Util.createDom('input', {'type':'text', 'class':'ogl_input'}));
+            let rvalInput = rval.appendChild(Util.createDom('input', {'type': 'text', 'class': 'ogl_input'}));
             rvalInput.value = this.ogl.db.options.rval;
 
             let ptre = container.appendChild(Util.createDom('div', {}, '<span><a href="https://ptre.chez.gg/" target="_blank">PTRE</a> Teamkey</span>'));
-            let ptreInput = ptre.appendChild(Util.createDom('input', {'type':'password', 'placeholder':'TM-XXXX-XXXX-XXXX-XXXX'}));
-            if(this.ogl.ptre) ptreInput.value = this.ogl.ptre;
+            let ptreInput = ptre.appendChild(Util.createDom('input', {'type': 'password', 'placeholder': 'TM-XXXX-XXXX-XXXX-XXXX'}));
+            if (this.ogl.ptre) ptreInput.value = this.ogl.ptre;
 
             ptreInput.addEventListener('focus', () => ptreInput.setAttribute('type', 'text'));
             ptreInput.addEventListener('blur', () => ptreInput.setAttribute('type', 'password'));
@@ -9101,94 +8888,84 @@ class MenuManager
             container.appendChild(Util.createDom('h2', {}, 'Interface'));
 
             let minifyPictures = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('minifyPictures')}</span>`));
-            let minifyToggle = minifyPictures.appendChild(Util.createDom('div', {'class':'ogl_confToggle'}));
-            if(localStorage.getItem('ogl-minipics')) minifyToggle.classList.add('ogl_active');
+            let minifyToggle = minifyPictures.appendChild(Util.createDom('div', {'class': 'ogl_confToggle'}));
+            if (localStorage.getItem('ogl-minipics')) minifyToggle.classList.add('ogl_active');
 
-            minifyToggle.addEventListener('click', () =>
-            {
-                if(localStorage.getItem('ogl-minipics'))
-                {
+            minifyToggle.addEventListener('click', () => {
+                if (localStorage.getItem('ogl-minipics')) {
                     localStorage.removeItem('ogl-minipics');
                     minifyToggle.classList.remove('ogl_active');
-                }
-                else
-                {
+                } else {
                     localStorage.setItem('ogl-minipics', true);
                     minifyToggle.classList.add('ogl_active');
                 }
             });
 
             let timezoneMode = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('timezoneMode')}</span>`));
-            timezoneMode.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'timezoneMode'}));
+            timezoneMode.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'timezoneMode'}));
 
             let timers = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('displayTimers')}</span>`));
-            timers.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'timers'}));
+            timers.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'timers'}));
 
             let fleetDetailsName = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('fleetDetailsName')}</span>`));
-            fleetDetailsName.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'fleetDetailsName'}));
+            fleetDetailsName.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'fleetDetailsName'}));
 
             let rightMenuTooltips = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('rightMenuTooltips')}</span>`));
-            rightMenuTooltips.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'rightMenuTooltips'}));
+            rightMenuTooltips.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'rightMenuTooltips'}));
 
             let tooltipDelay = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('tooltipDelay')}</span>`));
-            let tooltipDelayInput = tooltipDelay.appendChild(Util.createDom('input', {'type':'number', 'min':'0', 'max':'2000'}));
+            let tooltipDelayInput = tooltipDelay.appendChild(Util.createDom('input', {'type': 'number', 'min': '0', 'max': '2000'}));
             tooltipDelayInput.value = this.ogl.db.options.tooltipDelay;
 
             container.appendChild(Util.createDom('h2', {}, 'Attacks & stats'));
 
             let stats = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('rentaStats')}</span>`));
-            stats.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'renta'}));
+            stats.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'renta'}));
 
             let ignoreConsumption = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('excludeConso')}</span>`));
-            ignoreConsumption.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'ignoreConsumption'}));
+            ignoreConsumption.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'ignoreConsumption'}));
 
             let spytable = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('spiesTable')}</span>`));
-            spytable.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'spytable'}));
+            spytable.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'spytable'}));
 
             let autoclean = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('autoClean')}</span>`));
-            autoclean.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'autoclean'}));
+            autoclean.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'autoclean'}));
 
             let ignoreExpeShips = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('ignoreExpeShips')}</span>`));
-            ignoreExpeShips.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'ignoreExpeShips'}));
+            ignoreExpeShips.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'ignoreExpeShips'}));
 
             let bigShip = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('bigShip')}</span>`));
-            bigShip.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'bigShip'}));
+            bigShip.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'bigShip'}));
 
             let ignoreVacation = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('ignoreVacation')}</span>`));
-            ignoreVacation.appendChild(Util.createDom('div', {'class':'ogl_confToggle ogl_active', 'data-conf':'ignoreVacation'}));
+            ignoreVacation.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'ignoreVacation'}));
 
             container.appendChild(Util.createDom('h2', {}, 'Data'));
 
             let data;
 
-            let dataDiv = container.appendChild(Util.createDom('div', {'class':'ogl_manageData'}));
+            let dataDiv = container.appendChild(Util.createDom('div', {'class': 'ogl_manageData'}));
 
-            let resetButton = dataDiv.appendChild(Util.createDom('a', {'class':'ogl_button tooltip', 'title':'Reset all your data'}, 'RESET ALL'));
-            resetButton.addEventListener('click', () =>
-            {
-                if(confirm('Do you really want to reset your data ?'))
-                {
+            let resetButton = dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button tooltip', 'title': 'Reset all your data'}, 'RESET ALL'));
+            resetButton.addEventListener('click', () => {
+                if (confirm('Do you really want to reset your data ?')) {
                     this.ogl.save({});
                     document.location.reload();
                 }
             });
 
-            dataDiv.appendChild(Util.createDom('a', {'class':'ogl_button tooltip', 'data-title':'Reset only your stats'}, 'RESET STATS'))
-                .addEventListener('click', () =>
-                {
-                    if(confirm('Do you really want to reset your stats ?'))
-                    {
+            dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button tooltip', 'data-title': 'Reset only your stats'}, 'RESET STATS'))
+                .addEventListener('click', () => {
+                    if (confirm('Do you really want to reset your stats ?')) {
                         this.ogl.db.stats = {};
                         this.ogl.save();
                         document.location.reload();
                     }
                 });
 
-            dataDiv.appendChild(Util.createDom('a', {'class':'ogl_button tooltip', 'title':'Reset only your targets'}, 'RESET TARGETS'))
-                .addEventListener('click', () =>
-                {
-                    if(confirm('Do you really want to reset your targets list ?'))
-                    {
+            dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button tooltip', 'title': 'Reset only your targets'}, 'RESET TARGETS'))
+                .addEventListener('click', () => {
+                    if (confirm('Do you really want to reset your targets list ?')) {
                         this.ogl.db.players = [];
                         this.ogl.db.positions = [];
                         this.ogl.db.pinnedList = [];
@@ -9198,63 +8975,59 @@ class MenuManager
                     }
                 });
 
-            dataDiv.appendChild(Util.createDom('label', {'class':'ogl_button tooltip', 'for':'ogl_import', 'title':'Import data'}, 'IMPORT'));
-            let importButton = dataDiv.appendChild(Util.createDom('input', {'id':'ogl_import', 'class':'ogl_hidden', 'type':'file'}));
-            importButton.addEventListener('change', () =>
-            {
+            dataDiv.appendChild(Util.createDom('label', {'class': 'ogl_button tooltip', 'for': 'ogl_import', 'title': 'Import data'}, 'IMPORT'));
+            let importButton = dataDiv.appendChild(Util.createDom('input', {'id': 'ogl_import', 'class': 'ogl_hidden', 'type': 'file'}));
+            importButton.addEventListener('change', () => {
                 let file = importButton.files[0];
 
                 let reader = new FileReader();
-                reader.onload = () =>
-                {
-                    try { JSON.parse(reader.result); }
-                    catch (e) { return false; }
+                reader.onload = () => {
+                    try {
+                        JSON.parse(reader.result);
+                    } catch (e) {
+                        return false;
+                    }
                     data = reader.result;
 
                     let parsed = JSON.parse(reader.result);
 
-                    if(parsed.dataFormat >= 4)
-                    {
+                    if (parsed.dataFormat >= 4) {
                         this.ogl.save(parsed);
                         document.location.reload();
-                    }
-                    else alert(`Wrong data format`);
+                    } else alert(`Wrong data format`);
                 };
                 reader.readAsText(file);
             });
 
-            let exportButton = dataDiv.appendChild(Util.createDom('a', {'class':'ogl_button', 'download':`ogl_${this.ogl.universe.name}_${this.ogl.universe.lang}_${serverTime.getTime()}`}, 'EXPORT'));
+            let exportButton = dataDiv.appendChild(Util.createDom('a', {
+                'class': 'ogl_button',
+                'download': `ogl_${this.ogl.universe.name}_${this.ogl.universe.lang}_${serverTime.getTime()}`
+            }, 'EXPORT'));
             exportButton.href = URL.createObjectURL(new Blob([JSON.stringify(this.ogl.db)], {type: 'application/json'}));
 
-            let saveButton = dataDiv.appendChild(Util.createDom('a', {'class':'ogl_button'}, 'SAVE'));
-            saveButton.addEventListener('click', () =>
-            {
+            let saveButton = dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button'}, 'SAVE'));
+            saveButton.addEventListener('click', () => {
                 this.ogl.db.options.rval = Util.formatFromUnits(rvalInput.value || '0');
                 this.ogl.db.options.tooltipDelay = parseInt(tooltipDelayInput.value || '0');
                 this.ogl.save();
 
-                if(ptreInput.value && ptreInput.value.replace(/-/g, '').length == 18 && ptreInput.value.indexOf('TM') == 0)
-                {
+                if (ptreInput.value && ptreInput.value.replace(/-/g, '').length == 18 && ptreInput.value.indexOf('TM') == 0) {
                     localStorage.setItem('ogl-ptreTK', ptreInput.value);
                     document.location.reload();
-                }
-                else
-                {
+                } else {
                     localStorage.removeItem('ogl-ptreTK');
 
-                    if(ptreInput.value) fadeBox('Error, wrong PTRE teamkey format', true);
+                    if (ptreInput.value) fadeBox('Error, wrong PTRE teamkey format', true);
                     else document.location.reload();
                 }
             });
 
-            container.querySelectorAll('.ogl_confToggle[data-conf]').forEach(button =>
-            {
+            container.querySelectorAll('.ogl_confToggle[data-conf]').forEach(button => {
                 let id = button.getAttribute('data-conf');
 
-                if(this.ogl.db.options.togglesOff.indexOf(id) > -1) button.classList.remove('ogl_active');
+                if (this.ogl.db.options.togglesOff.indexOf(id) > -1) button.classList.remove('ogl_active');
 
-                button.addEventListener('click', () =>
-                {
+                button.addEventListener('click', () => {
                     let index = this.ogl.db.options.togglesOff.indexOf(id);
                     index > -1 ? this.ogl.db.options.togglesOff.splice(index, 1) : this.ogl.db.options.togglesOff.push(id);
                     button.classList.toggle('ogl_active');
@@ -9263,17 +9036,16 @@ class MenuManager
         });
     }
 
-    addShips()
-    {
-        let button = this.mainDom.appendChild(Util.createDom('div', {'class':'ogl_shipPicker ogl_button tooltipLeft tooltipClick tooltipClose', 'data-title':'loading...'}, this.ogl.component.lang.getText('abbr'+this.ogl.db.options.defaultShip)));
-        button.addEventListener('click', () =>
-        {
-            let cargoChoice = Util.createDom('div', {'id':'ogl_defaultShipPicker', 'class':'ogl_shipList'});
-            this.ogl.component.fleet.defaultShipsList.forEach(shipID =>
-            {
-                let cargoType = cargoChoice.appendChild(Util.createDom('div', {'class':'ogl_shipIcon ogl_'+shipID, 'title': this.ogl.component.lang.getText('ship'+shipID)}));
-                cargoType.addEventListener('click', () =>
-                {
+    addShips() {
+        let button = this.mainDom.appendChild(Util.createDom('div', {
+            'class': 'ogl_shipPicker ogl_button tooltipLeft tooltipClick tooltipClose',
+            'data-title': 'loading...'
+        }, this.ogl.component.lang.getText('abbr' + this.ogl.db.options.defaultShip)));
+        button.addEventListener('click', () => {
+            let cargoChoice = Util.createDom('div', {'id': 'ogl_defaultShipPicker', 'class': 'ogl_shipList'});
+            this.ogl.component.fleet.defaultShipsList.forEach(shipID => {
+                let cargoType = cargoChoice.appendChild(Util.createDom('div', {'class': 'ogl_shipIcon ogl_' + shipID, 'title': this.ogl.component.lang.getText('ship' + shipID)}));
+                cargoType.addEventListener('click', () => {
                     this.ogl.db.options.defaultShip = shipID;
                     this.ogl.save();
                     document.location.reload();
@@ -9284,12 +9056,13 @@ class MenuManager
         });
     }
 
-    addMissions()
-    {
+    addMissions() {
         let mission = this.ogl.db.options.defaultMission;
-        this.mainDom.appendChild(Util.createDom('div', {'class':`material-icons ogl_missionPicker${this.ogl.db.options.defaultMission} ogl_button tooltipUp`, 'data-title': this.ogl.component.lang.getText('mission'+this.ogl.db.options.defaultMission)}, this.ogl.db.options.defaultMission == 4 ? 'keyboard_tab' : 'swap_horiz'))
-            .addEventListener('click', () =>
-            {
+        this.mainDom.appendChild(Util.createDom('div', {
+            'class': `material-icons ogl_missionPicker${this.ogl.db.options.defaultMission} ogl_button tooltipUp`,
+            'data-title': this.ogl.component.lang.getText('mission' + this.ogl.db.options.defaultMission)
+        }, this.ogl.db.options.defaultMission == 4 ? 'keyboard_tab' : 'swap_horiz'))
+            .addEventListener('click', () => {
                 this.ogl.db.options.defaultMission = this.ogl.db.options.defaultMission == 4 ? 3 : 4;
                 this.ogl.save();
 
@@ -9297,28 +9070,20 @@ class MenuManager
             });
     }
 
-    addHarvest()
-    {
-        let button = this.mainDom.appendChild(Util.createDom('div', {'class':'material-icons ogl_harvest ogl_button tooltipUp', 'data-title': 'Enviar Todos os Recursos Para...'}, 'all_inclusive'));
-        let linkedButton = Util.createDom('div', {'class':'ogl_linkedHarvest ogl_button'}, this.ogl.current.type == 'moon' ? this.ogl.component.lang.getText('linkedPlanets') : this.ogl.component.lang.getText('linkedMoons'));
+    addHarvest() {
+        let button = this.mainDom.appendChild(Util.createDom('div', {'class': 'material-icons ogl_harvest ogl_button tooltipUp', 'data-title': 'Enviar Todos os Recursos Para...'}, 'all_inclusive'));
+        let linkedButton = Util.createDom('div', {'class': 'ogl_linkedHarvest ogl_button'}, this.ogl.current.type == 'moon' ? this.ogl.component.lang.getText('linkedPlanets') : this.ogl.component.lang.getText('linkedMoons'));
 
-        button.addEventListener('click', () =>
-        {
-            if(this.ogl.page == 'fleetdispatch' && (this.ogl.mode == 1 || this.ogl.mode == 4))
-            {
+        button.addEventListener('click', () => {
+            if (this.ogl.page == 'fleetdispatch' && (this.ogl.mode == 1 || this.ogl.mode == 4)) {
                 Util.redirect(redirectOverviewLink, this.ogl);
-            }
-            else
-            {
+            } else {
                 (document.querySelector('#myPlanets') || document.querySelector('#myWorlds')).classList.toggle('ogl_shortcuts');
                 button.classList.toggle('ogl_active');
 
-                document.querySelectorAll('.smallplanet > a').forEach(planet =>
-                {
-                    if(planet.closest('.ogl_shortcuts'))
-                    {
-                        planet.addEventListener('click', event =>
-                        {
+                document.querySelectorAll('.smallplanet > a').forEach(planet => {
+                    if (planet.closest('.ogl_shortcuts')) {
+                        planet.addEventListener('click', event => {
                             event.preventDefault();
                             this.ogl.db.collectSource = [...this.ogl.current.coords, ...[this.ogl.current.type == 'planet' ? '1' : '3']];
                             this.ogl.db.collectDestination = planet.closest('.smallplanet').querySelector('.planet-koords').textContent.slice(1, -1).split(':');
@@ -9334,22 +9099,17 @@ class MenuManager
             }
         });
 
-        if(this.ogl.page == 'fleetdispatch' && (this.ogl.mode == 1 || this.ogl.mode == 4))
-        {
+        if (this.ogl.page == 'fleetdispatch' && (this.ogl.mode == 1 || this.ogl.mode == 4)) {
             button.classList.add('ogl_active');
         }
 
         document.querySelector('#countColonies').parentNode.insertBefore(linkedButton, document.querySelector('#planetList'));
-        linkedButton.addEventListener('click', () =>
-        {
-            if(this.ogl.current.smallplanet.querySelector('.moonlink'))
-            {
+        linkedButton.addEventListener('click', () => {
+            if (this.ogl.current.smallplanet.querySelector('.moonlink')) {
                 this.ogl.db.collectSource = [...this.ogl.current.coords, ...[this.ogl.current.type == 'planet' ? '1' : '3']];
                 this.ogl.save();
                 Util.redirect(`https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&ogl_mode=4&type=${this.ogl.current.type == 'planet' ? '3' : '1'}&mission=${this.ogl.db.options.defaultMission}`, this.ogl);
-            }
-            else
-            {
+            } else {
                 this.ogl.db.collectSource = [...this.ogl.next.smallplanetWithMoon.querySelector('.planet-koords').textContent.slice(1, -1).split(':'), ...[this.ogl.current.type == 'planet' ? '3' : '1']];
                 this.ogl.save();
                 let cp = this.ogl.current.type == 'planet' ? new URL(this.ogl.next.smallplanetWithMoon.querySelector('a.planetlink').href).searchParams.get('cp') : new URL(this.ogl.next.smallplanetWithMoon.querySelector('a.moonlink').href).searchParams.get('cp');
@@ -9359,33 +9119,29 @@ class MenuManager
         });
     }
 
-    addSubEco()
-    {
-        let button = this.subDom.appendChild(Util.createDom('div', {'class':'material-icons tooltip ogl_button', 'title':this.ogl.component.lang.getText('economyView')}, 'account_balance'));
+    addSubEco() {
+        let button = this.subDom.appendChild(Util.createDom('div', {'class': 'material-icons tooltip ogl_button', 'title': this.ogl.component.lang.getText('economyView')}, 'account_balance'));
 
-        document.querySelectorAll('.planetlink, .moonlink').forEach(element =>
-        {
+        document.querySelectorAll('.planetlink, .moonlink').forEach(element => {
             let coords = element.parentNode.querySelector('.planet-koords').textContent.slice(1, -1);
-            if(element.classList.contains('moonlink')) coords += ':M';
+            if (element.classList.contains('moonlink')) coords += ':M';
 
-            let container = element.appendChild(Util.createDom('div', {'class':'ogl_stock'}));
+            let container = element.appendChild(Util.createDom('div', {'class': 'ogl_stock'}));
 
             let deltaTime = Math.floor((serverTime.getTime() - this.ogl.db.me.planets[coords]?.production?.[3] || 0) / 1000);
             deltaTime = 0;
 
-            ['metal', 'crystal', 'deut'].forEach((res, index) =>
-            {
+            ['metal', 'crystal', 'deut'].forEach((res, index) => {
                 let oldValue = this.ogl.db.me.planets[coords]?.resources?.[res] || 0;
                 let storage = this.ogl.db.me.planets?.[coords]?.storage?.[res];
 
                 let prodSinceLastUpdate = (this.ogl.db.me.planets[coords]?.production?.[index] || 0) * deltaTime;
                 let newValue = Math.floor(oldValue + prodSinceLastUpdate);
-                let item = container.appendChild(Util.createDom('div', {'class':`ogl_${res}`}));
+                let item = container.appendChild(Util.createDom('div', {'class': `ogl_${res}`}));
 
-                if(!element.classList.contains('moonlink') && storage)
-                {
-                    if(oldValue < storage && newValue >= storage) newValue = storage;
-                    if(newValue >= storage) item.classList.add('ogl_full');
+                if (!element.classList.contains('moonlink') && storage) {
+                    if (oldValue < storage && newValue >= storage) newValue = storage;
+                    if (newValue >= storage) item.classList.add('ogl_full');
                 }
 
                 item.textContent = Util.formatToUnits(newValue);
@@ -9393,77 +9149,69 @@ class MenuManager
             });
         });
 
-        button.addEventListener('click', () =>
-        {
-            if((document.querySelector('#myPlanets') || document.querySelector('#myWorlds')).getAttribute('data-panel'))
-            {
+        button.addEventListener('click', () => {
+            if ((document.querySelector('#myPlanets') || document.querySelector('#myWorlds')).getAttribute('data-panel')) {
                 (document.querySelector('#myPlanets') || document.querySelector('#myWorlds')).removeAttribute('data-panel');
                 this.ogl.db.menuView = false;
                 // this.ogl.saveAsync();
-            }
-            else
-            {
+            } else {
                 (document.querySelector('#myPlanets') || document.querySelector('#myWorlds')).setAttribute('data-panel', 'resources');
                 this.ogl.db.menuView = 'resources';
                 // this.ogl.saveAsync();
             }
         });
 
-        if(this.ogl.db.menuView == 'resources') (document.querySelector('#myPlanets') || document.querySelector('#myWorlds')).setAttribute('data-panel', 'resources');
+        if (this.ogl.db.menuView == 'resources') (document.querySelector('#myPlanets') || document.querySelector('#myWorlds')).setAttribute('data-panel', 'resources');
     }
 
-    addSubProd()
-    {
-        let button = this.subDom.appendChild(Util.createDom('div', {'class':'tooltip ogl_button', 'title':this.ogl.component.lang.getText('productionView')}, 'ø'));
-        button.addEventListener('click', () =>
-        {
+    addSubProd() {
+        let button = this.subDom.appendChild(Util.createDom('div', {'class': 'tooltip ogl_button', 'title': this.ogl.component.lang.getText('productionView')}, 'ø'));
+        button.addEventListener('click', () => {
             this.ogl.component.popup.load();
 
-            let container = Util.createDom('div', {'class':'ogl_mineContainer'});
-            let sum = [0,0,0];
-            let sumProd = [0,0,0];
+            let container = Util.createDom('div', {'class': 'ogl_mineContainer'});
+            let sum = [0, 0, 0];
+            let sumProd = [0, 0, 0];
             let count = 0;
 
-            container.appendChild(Util.createDom('span', {'class':'ogl_header'}, '&nbsp;'));
-            container.appendChild(Util.createDom('span', {'class':'ogl_header'}, '&nbsp;'));
-            container.appendChild(Util.createDom('span', {'class':'ogl_header'}, '&nbsp;'));
-            container.appendChild(Util.createDom('span', {'class':'ogl_header'}, '&nbsp;'));
+            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, '&nbsp;'));
+            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, '&nbsp;'));
+            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, '&nbsp;'));
+            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, '&nbsp;'));
 
-            let headerMetal = container.appendChild(Util.createDom('b', {'class':'ogl_metal ogl_header'}));
-            let headerCrystal = container.appendChild(Util.createDom('b', {'class':'ogl_crystal ogl_header'}));
-            let headerDeut = container.appendChild(Util.createDom('b', {'class':'ogl_deut ogl_header'}));
+            let headerMetal = container.appendChild(Util.createDom('b', {'class': 'ogl_metal ogl_header'}));
+            let headerCrystal = container.appendChild(Util.createDom('b', {'class': 'ogl_crystal ogl_header'}));
+            let headerDeut = container.appendChild(Util.createDom('b', {'class': 'ogl_deut ogl_header'}));
 
-            document.querySelectorAll('.smallplanet').forEach(planet =>
-            {
+            document.querySelectorAll('.smallplanet').forEach(planet => {
                 let name = planet.querySelector('.planet-name').textContent;
                 let coords = planet.querySelector('.planet-koords').textContent.slice(1, -1);
                 let upgrading = planet.querySelector('.constructionIcon');
 
-                if(this.ogl.db.me.planets[coords])
-                {
+                if (this.ogl.db.me.planets[coords]) {
                     let fieldUsed = this.ogl.db.me.planets[coords].fieldUsed || 0;
                     let fieldMax = this.ogl.db.me.planets[coords].fieldMax || 0;
 
                     let newLine = container.appendChild(Util.createDom('span', {}, `[${coords}]`));
-                    if(planet.getAttribute('data-multi')) newLine.setAttribute('data-multi', planet.getAttribute('data-multi'));
+                    if (planet.getAttribute('data-multi')) newLine.setAttribute('data-multi', planet.getAttribute('data-multi'));
                     container.appendChild(Util.createDom('i', {}, name));
-                    container.appendChild(Util.createDom('i', {}, `${fieldUsed || '?'}/${fieldMax || '?'} (<strong>${fieldMax-fieldUsed}</strong>)`));
+                    container.appendChild(Util.createDom('i', {}, `${fieldUsed || '?'}/${fieldMax || '?'} (<strong>${fieldMax - fieldUsed}</strong>)`));
 
                     let temperature = container.appendChild(Util.createDom('i', {}, (this.ogl.db.me.planets[coords].temperature || '?') + '°C'));
 
-                    if(this.ogl.db.me.planets[coords].temperature >= 150) temperature.style.color = "#af644d"; // too hot
-                    else if(this.ogl.db.me.planets[coords].temperature >= 50) temperature.style.color = "#af9e4d"; // hot
-                    else if(this.ogl.db.me.planets[coords].temperature >= 0) temperature.style.color = "#4daf67"; // normal
-                    else if(this.ogl.db.me.planets[coords].temperature >= -100) temperature.style.color = "#4dafa6"; // cold
+                    if (this.ogl.db.me.planets[coords].temperature >= 150) temperature.style.color = "#af644d"; // too hot
+                    else if (this.ogl.db.me.planets[coords].temperature >= 50) temperature.style.color = "#af9e4d"; // hot
+                    else if (this.ogl.db.me.planets[coords].temperature >= 0) temperature.style.color = "#4daf67"; // normal
+                    else if (this.ogl.db.me.planets[coords].temperature >= -100) temperature.style.color = "#4dafa6"; // cold
                     else temperature.style.color = "#4d79af"; // too cold
 
                     let metalLevel = (upgrading && this.ogl.db.me.planets[coords].upgrade?.[0] == 1) ? `(${this.ogl.db.me.planets[coords].upgrade?.[1]})` : (this.ogl.db.me.planets[coords]?.techs?.[1] || '?');
                     let crystalLevel = (upgrading && this.ogl.db.me.planets[coords].upgrade?.[0] == 2) ? `(${this.ogl.db.me.planets[coords].upgrade?.[1]})` : (this.ogl.db.me.planets[coords]?.techs?.[2] || '?');
                     let deutLevel = (upgrading && this.ogl.db.me.planets[coords].upgrade?.[0] == 3) ? `(${this.ogl.db.me.planets[coords].upgrade?.[1]})` : (this.ogl.db.me.planets[coords]?.techs?.[3] || '?');
 
-                    container.appendChild(Util.createDom('b', {'class':'ogl_metal'}, metalLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[0] || 0) * 60 * 60 * 24))}</div>`));
-                    container.appendChild(Util.createDom('b', {'class':'ogl_crystal'}, crystalLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[1] || 0) * 60 * 60 * 24))}</div>`));
-                    container.appendChild(Util.createDom('b', {'class':'ogl_deut'}, deutLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[2] || 0) * 60 * 60 * 24))}</div>`));
+                    container.appendChild(Util.createDom('b', {'class': 'ogl_metal'}, metalLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[0] || 0) * 60 * 60 * 24))}</div>`));
+                    container.appendChild(Util.createDom('b', {'class': 'ogl_crystal'}, crystalLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[1] || 0) * 60 * 60 * 24))}</div>`));
+                    container.appendChild(Util.createDom('b', {'class': 'ogl_deut'}, deutLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[2] || 0) * 60 * 60 * 24))}</div>`));
 
                     sum = [sum[0] + parseInt(this.ogl.db.me.planets[coords]?.techs?.[1] || 0), sum[1] + parseInt(this.ogl.db.me.planets[coords]?.techs?.[2] || 0), sum[2] + parseInt(this.ogl.db.me.planets[coords]?.techs?.[3] || 0)];
                     sumProd = [sumProd[0] + (this.ogl.db.me.planets[coords]?.production?.[0] || 0) * 60 * 60 * 24, sumProd[1] + (this.ogl.db.me.planets[coords]?.production?.[1] || 0) * 60 * 60 * 24, sumProd[2] + (this.ogl.db.me.planets[coords]?.production?.[2] || 0) * 60 * 60 * 24];
@@ -9475,143 +9223,118 @@ class MenuManager
             headerCrystal.innerHTML = 'ø ' + (sum[1] / count).toFixed(1) + `<div>+${Util.formatToUnits(Math.round(sumProd[1]))}</div>`;
             headerDeut.innerHTML = 'ø ' + (sum[2] / count).toFixed(1) + `<div>+${Util.formatToUnits(Math.round(sumProd[2]))}</div>`;
 
-            let shareButton = Util.createDom('div', {'class':'ogl_button'}, '<i class="material-icons">file_download</i>Download (.jpg)');
-            shareButton.addEventListener('click', () =>
-            {
+            let shareButton = Util.createDom('div', {'class': 'ogl_button'}, '<i class="material-icons">file_download</i>Download (.jpg)');
+            shareButton.addEventListener('click', () => {
                 shareButton.textContent = 'loading...';
                 shareButton.classList.add('ogl_disabled');
                 Util.takeScreenshot(container, shareButton, `ogl_${this.ogl.universe.name}_${this.ogl.universe.lang}_empire_${serverTime.getTime()}`);
             });
 
-            this.ogl.component.popup.open(container, () =>
-            {
+            this.ogl.component.popup.open(container, () => {
                 this.ogl.component.popup.content.appendChild(shareButton);
             });
         });
     }
 
-    addSubPins()
-    {
-        let button = this.subDom.appendChild(Util.createDom('div', {'class':'material-icons tooltip ogl_button', 'title':this.ogl.component.lang.getText('pinnedView')}, 'push_pin'));
+    addSubPins() {
+        let button = this.subDom.appendChild(Util.createDom('div', {'class': 'material-icons tooltip ogl_button', 'title': this.ogl.component.lang.getText('pinnedView')}, 'push_pin'));
         button.addEventListener('click', () => this.ogl.component.sidebar?.displayPinnedList());
     }
 
-    addSubTargets()
-    {
-        let button = this.subDom.appendChild(Util.createDom('div', {'class':'material-icons tooltip ogl_button', 'title':this.ogl.component.lang.getText('targetView')}, 'gps_fixed'));
+    addSubTargets() {
+        let button = this.subDom.appendChild(Util.createDom('div', {'class': 'material-icons tooltip ogl_button', 'title': this.ogl.component.lang.getText('targetView')}, 'gps_fixed'));
         button.addEventListener('click', () => this.ogl.component.sidebar?.displayTargetList());
     }
 
-    checkImportExport()
-    {
-        if(this.ogl.db.nextImportExport < Date.now())
-        {
+    checkImportExport() {
+        if (this.ogl.db.nextImportExport < Date.now()) {
             document.querySelector('.menubutton[href*=traderOverview]').classList.add('ogl_active');
         }
 
-        window.addEventListener('beforeunload', () =>
-        {
+        window.addEventListener('beforeunload', () => {
             let textTarget = document.querySelector('.bargain_text');
             let button = document.querySelector('.import_bargain.hidden');
 
-            if(textTarget && button)
-            {
+            if (textTarget && button) {
                 let today = new Date(serverTime.getTime());
                 let tomorow = new Date(serverTime.getTime() + 86400000);
 
-                if(textTarget.textContent.match(/\d+/g))
-                {
+                if (textTarget.textContent.match(/\d+/g)) {
                     this.ogl.db.nextImportExport = new Date(today.getFullYear(), today.getMonth(), today.getDate(), textTarget.textContent.match(/\d+/g)[0], 0, 0).getTime();
-                }
-                else
-                {
+                } else {
                     this.ogl.db.nextImportExport = new Date(tomorow.getFullYear(), tomorow.getMonth(), tomorow.getDate(), 8, 0, 0).getTime();
                 }
 
                 this.ogl.save();
-            }
-            else if(textTarget && textTarget.textContent == '')
-            {
+            } else if (textTarget && textTarget.textContent == '') {
                 this.ogl.db.nextImportExport = serverTime.getTime();
                 this.ogl.save();
             }
         });
     }
-}class ColorManager
-{
-    constructor(ogl)
-    {
+}
+
+class ColorManager {
+    constructor(ogl) {
         this.ogl = ogl;
         this.colors = ['red', 'halfred', 'yellow', 'halfyellow', 'green', 'halfgreen', 'blue', 'halfblue', 'violet', 'halfviolet', 'gray', 'none'];
     }
 
-    addColorUI(sender, parent, planetIDs, clickEvent, callback)
-    {
-        let container = parent.appendChild(Util.createDom('div', {'class':'ogl_colors'}));
-        this.colors.forEach(color =>
-        {
-            let button = container.appendChild(Util.createDom('div', {'data-color':color}));
-            button.addEventListener('click', () =>
-            {
-                planetIDs.forEach(planetID =>
-                {
+    addColorUI(sender, parent, planetIDs, clickEvent, callback) {
+        let container = parent.appendChild(Util.createDom('div', {'class': 'ogl_colors'}));
+        this.colors.forEach(color => {
+            let button = container.appendChild(Util.createDom('div', {'data-color': color}));
+            button.addEventListener('click', () => {
+                planetIDs.forEach(planetID => {
                     this.ogl.db.positions[planetID].colorID = this.ogl.db.positions[planetID].playerID;
-                    if(planetIDs.length == 1 && this.ogl.db.positions[planetID].color == color) color = false;
+                    if (planetIDs.length == 1 && this.ogl.db.positions[planetID].color == color) color = false;
                     this.ogl.db.positions[planetID].color = color;
                     this.ogl.db.lastColorUsed = color;
 
-                    if(document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'targetList')
-                    {
+                    if (document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'targetList') {
                         let target = document.querySelector(`.ogl_sideView [data-planetID="${this.ogl.db.positions[planetID].id}"]`);
-                        if(target)
-                        {
+                        if (target) {
                             target.setAttribute('data-color', color);
-                            if(color == 'none' || color == false) target.remove();
-                        }
-                        else if(!target && color != 'none' && color != false)
-                        {
+                            if (color == 'none' || color == false) target.remove();
+                        } else if (!target && color != 'none' && color != false) {
                             this.ogl.component.sidebar?.displayTargetList();
                         }
                     }
                 });
 
-                if(sender)
-                {
+                if (sender) {
                     sender.setAttribute('data-color', color);
-                    if(sender.closest('.row')) sender.closest('.row').setAttribute('data-color', color);
-                    if(sender.closest('.galaxyRow')) sender.closest('.galaxyRow').setAttribute('data-color', color);
-                    if(sender.closest('.ogl_spyTable')) sender.closest('[data-coords]').setAttribute('data-color', color);
+                    if (sender.closest('.row')) sender.closest('.row').setAttribute('data-color', color);
+                    if (sender.closest('.galaxyRow')) sender.closest('.galaxyRow').setAttribute('data-color', color);
+                    if (sender.closest('.ogl_spyTable')) sender.closest('[data-coords]').setAttribute('data-color', color);
                 }
 
-                if(callback) callback(color);
+                if (callback) callback(color);
 
                 setTimeout(() => this.ogl.component.tooltip.close(true), 100);
                 // this.ogl.saveAsync();
 
-                if(document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned') this.ogl.component.sidebar?.displayPinnedTarget();
+                if (document.querySelector('.ogl_sideView.ogl_active') && this.ogl.db.sidebarView == 'pinned') this.ogl.component.sidebar?.displayPinnedTarget();
 
-                if(planetIDs.length > 1) submitForm();
+                if (planetIDs.length > 1) submitForm();
             });
 
-            if(color == 'none') color = false;
+            if (color == 'none') color = false;
 
-            if(clickEvent && clickEvent.shiftKey && color == this.ogl.db.lastColorUsed)
-            {
+            if (clickEvent && clickEvent.shiftKey && color == this.ogl.db.lastColorUsed) {
                 button.click();
             }
         });
     }
 }
 
-class TooltipManager
-{
-    constructor(ogl)
-    {
+class TooltipManager {
+    constructor(ogl) {
         this.ogl = ogl;
         this.ogl.tooltipList = this.ogl.tooltipList || {};
         this.ogl.tmpTooltip = this.ogl.tmpTooltip || {};
-        this.dom = document.body.appendChild(Util.createDom('div', {'class':'ogl_tooltip tpd-tooltip'}));
-        this.cross = this.dom.appendChild(Util.createDom('div', {'class':'ogl_close material-icons ogl_hidden'}, 'clear'));
+        this.dom = document.body.appendChild(Util.createDom('div', {'class': 'ogl_tooltip tpd-tooltip'}));
+        this.cross = this.dom.appendChild(Util.createDom('div', {'class': 'ogl_close material-icons ogl_hidden'}, 'clear'));
         this.container = this.dom.appendChild(Util.createDom('div', {}));
 
         this.openDelay = this.ogl.db.options.tooltipDelay;
@@ -9621,22 +9344,18 @@ class TooltipManager
         this.openTimer;
         this.updateTimer;
 
-        document.addEventListener('click', e =>
-        {
-            if(!this.dom.classList.contains('ogl_active') && !this.dom.classList.contains('ogl_highlight')) return;
-            if(e.target != this.dom && !e.target.closest('.ogl_tooltip'))
-            {
+        document.addEventListener('click', e => {
+            if (!this.dom.classList.contains('ogl_active') && !this.dom.classList.contains('ogl_highlight')) return;
+            if (e.target != this.dom && !e.target.closest('.ogl_tooltip')) {
                 this.lastSender = false;
                 this.close(true);
             }
         });
 
-        this.dom.addEventListener('mouseout', e =>
-        {
+        this.dom.addEventListener('mouseout', e => {
             let target = e.toElement || e.relatedTarget || e.target;
 
-            if(!this.dom.contains(target) && target != this.lastSender && this.cross.classList.contains('ogl_hidden') && !target.classList.contains('ogl_highlight'))
-            {
+            if (!this.dom.contains(target) && target != this.lastSender && this.cross.classList.contains('ogl_hidden') && !target.classList.contains('ogl_highlight')) {
                 this.timer = setTimeout(e => this.close(), this.tooltipDelay);
             }
         });
@@ -9644,93 +9363,75 @@ class TooltipManager
         this.cross.addEventListener('click', () => this.close());
         this.ogl.observeMutation(() => this.initTooltip(), 'tooltip');
 
-        this.ogl.performances.push(['Tooltip',performance.now()]);
+        this.ogl.performances.push(['Tooltip', performance.now()]);
     }
 
-    initTooltip()
-    {
+    initTooltip() {
         let senderList = document.querySelectorAll(`[class*="tooltip"]:not(.ogl_tooltipReady)`);
 
-        senderList.forEach((sender, index) =>
-        {
-            setTimeout(() =>
-            {
-                if(sender.classList.contains('ogl_tooltipReady') || !this.ogl.component.tooltip || sender.closest('.ogl_tooltipReady')) return;
-                if(!sender.classList.contains('tooltipRel') && !sender.getAttribute('title') && !sender.getAttribute('data-title'));
+        senderList.forEach((sender, index) => {
+            setTimeout(() => {
+                if (sender.classList.contains('ogl_tooltipReady') || !this.ogl.component.tooltip || sender.closest('.ogl_tooltipReady')) return;
+                if (!sender.classList.contains('tooltipRel') && !sender.getAttribute('title') && !sender.getAttribute('data-title')) ;
 
                 sender.classList.add('ogl_tooltipReady');
 
-                if(sender.parentNode && sender.parentNode.closest('.ogl_tooltipReady')) return;
-                if(this.ogl.db.options.togglesOff.indexOf('rightMenuTooltips') == -1 && (sender.classList.contains('planetlink') || sender.classList.contains('moonlink')))
-                {
+                if (sender.parentNode && sender.parentNode.closest('.ogl_tooltipReady')) return;
+                if (this.ogl.db.options.togglesOff.indexOf('rightMenuTooltips') == -1 && (sender.classList.contains('planetlink') || sender.classList.contains('moonlink'))) {
                     sender.removeAttribute('title');
                     return;
                 }
 
-                if(sender.getAttribute('title') && !sender.getAttribute('data-title'))
-                {
+                if (sender.getAttribute('title') && !sender.getAttribute('data-title')) {
                     sender.setAttribute('data-title', sender.getAttribute('title'));
-                    if(!sender.classList.contains('icon_apikey')) sender.removeAttribute('title');
+                    if (!sender.classList.contains('icon_apikey')) sender.removeAttribute('title');
                 }
 
                 let tooltipID;
 
-                if(sender.classList.contains('icon_apikey') || sender.classList.contains('show_fleet_apikey'))
-                {
+                if (sender.classList.contains('icon_apikey') || sender.classList.contains('show_fleet_apikey')) {
                     sender.classList.add('tooltipClick');
                 }
 
-                if(sender.classList.contains('tooltipRel'))
-                {
-                    let id = '#' + sender.getAttribute('rel');
-                    tooltipID = id;
+                if (sender.classList.contains('tooltipRel')) {
+                    tooltipID = '#' + sender.getAttribute('rel');
                 }
 
-                if(sender.classList.contains('tooltipClick'))
-                {
-                    sender.addEventListener('click', e =>
-                    {
-                        if(e.target != sender) this.close();
+                if (sender.classList.contains('tooltipClick')) {
+                    sender.addEventListener('click', e => {
+                        if (e.target != sender) this.close();
                         this.lastSender = sender;
                         this.open(sender, tooltipID);
                     });
 
-                    sender.addEventListener('mouseenter', e =>
-                    {
+                    sender.addEventListener('mouseenter', e => {
                         clearTimeout(this.openTimer);
                         clearTimeout(this.updateTimer);
                     });
-                }
-                else
-                {
-                    sender.addEventListener('mouseenter', e =>
-                    {
+                } else {
+                    sender.addEventListener('mouseenter', e => {
                         clearTimeout(this.openTimer);
 
-                        if(e.target != sender) this.close();
-                        if(this.ogl.component.tooltip.dom.contains(sender)) return;
-                        if(sender == this.lastSender && (sender.getAttribute('data-title') == 'loading...' || this.dom.classList.contains('.ogl_active'))) return;
+                        if (e.target != sender) this.close();
+                        if (this.ogl.component.tooltip.dom.contains(sender)) return;
+                        if (sender == this.lastSender && (sender.getAttribute('data-title') == 'loading...' || this.dom.classList.contains('.ogl_active'))) return;
 
                         this.lastSender = sender;
 
-                        if(sender.getAttribute('data-title') == 'loading...')
-                        {
+                        if (sender.getAttribute('data-title') == 'loading...') {
                             this.open(sender, tooltipID);
-                        }
-                        else
-                        {
+                        } else {
                             this.openTimer = setTimeout(() => this.open(sender, tooltipID), this.openDelay);
                         }
                     });
 
-                    sender.addEventListener('mouseout', e =>
-                    {
-                        if(sender.contains(e.toElement) || (sender.classList.contains('tooltipClose') && this.dom.classList.contains('.ogl_active'))) return;
+                    sender.addEventListener('mouseout', e => {
+                        if (sender.contains(e.toElement) || (sender.classList.contains('tooltipClose') && this.dom.classList.contains('.ogl_active'))) return;
 
                         clearTimeout(this.openTimer);
                         clearTimeout(this.updateTimer);
 
-                        if(!this.cross.classList.contains('ogl_hidden')) return;
+                        if (!this.cross.classList.contains('ogl_hidden')) return;
 
                         this.closeTimer = setTimeout(e => this.close(), this.closeDelay);
                     });
@@ -9742,15 +9443,14 @@ class TooltipManager
         });
     }
 
-    rebuildTooltip(sender)
-    {
+    rebuildTooltip(sender) {
         let rect = sender.getBoundingClientRect();
         let win = sender.ownerDocument.defaultView;
 
         this.position =
             {
-                x:rect.left + win.pageXOffset,
-                y:rect.top + win.pageYOffset
+                x: rect.left + win.pageXOffset,
+                y: rect.top + win.pageYOffset
             };
 
         this.dom.style.top = 0 + 'px';
@@ -9759,47 +9459,35 @@ class TooltipManager
 
         let tooltipWidth = this.dom.offsetWidth + 3;
 
-        if(sender.classList.contains('tooltipClose') || sender.classList.contains('tooltipCustom') || sender.classList.contains('tooltipRel'))
-        {
+        if (sender.classList.contains('tooltipClose') || sender.classList.contains('tooltipCustom') || sender.classList.contains('tooltipRel')) {
             this.cross.classList.remove('ogl_hidden');
             this.dom.classList.remove('ogl_noPointer');
-        }
-        else
-        {
+        } else {
             this.cross.classList.add('ogl_hidden');
             this.dom.classList.add('ogl_noPointer');
         }
 
-        if(sender.classList.contains('tooltipLeft'))
-        {
+        if (sender.classList.contains('tooltipLeft')) {
             this.dom.classList.add('ogl_left');
             this.position.x -= this.dom.offsetWidth + 5;
             this.position.y -= this.dom.offsetHeight / 2;
             this.position.y += rect.height / 2;
-        }
-        else if(sender.classList.contains('tooltipRight'))
-        {
+        } else if (sender.classList.contains('tooltipRight')) {
             this.dom.classList.add('ogl_right');
             this.position.x += rect.width + 5;
             this.position.y -= this.dom.offsetHeight / 2;
             this.position.y += rect.height / 2;
-        }
-        else if(sender.classList.contains('tooltipRightTop'))
-        {
+        } else if (sender.classList.contains('tooltipRightTop')) {
             this.dom.classList.add('ogl_rightTop');
             this.position.x += rect.width;
             this.position.y -= this.dom.offsetHeight - 20;
             this.position.y += rect.height / 2;
-        }
-        else if(sender.classList.contains('tooltipBottom'))
-        {
+        } else if (sender.classList.contains('tooltipBottom')) {
             this.dom.classList.add('ogl_bottom');
             this.position.x -= this.dom.offsetWidth / 2;
             this.position.x += rect.width / 2;
             this.position.y += rect.height;
-        }
-        else
-        {
+        } else {
             this.position.x -= this.dom.offsetWidth / 2;
             this.position.x += rect.width / 2;
             this.position.y -= this.dom.offsetHeight;
@@ -9816,32 +9504,28 @@ class TooltipManager
         this.dom.style.left = this.position.x + 'px';
         this.dom.style.width = tooltipWidth + 'px';
 
-        setTimeout(() =>
-        {
-            if(this.container.textContent.trim() != '' || this.container.innerHTML != '') this.dom.classList.add('ogl_active');
+        setTimeout(() => {
+            if (this.container.textContent.trim() != '' || this.container.innerHTML != '') this.dom.classList.add('ogl_active');
         }, 10);
     }
 
-    open(sender, tooltipID, data)
-    {
+    open(sender, tooltipID, data) {
         clearTimeout(this.closeTimer);
-        if(sender != this.lastSender) this.close();
-        else if(sender.classList.contains('ogl_highlight')) return;
+        if (sender != this.lastSender) this.close();
+        else if (sender.classList.contains('ogl_highlight')) return;
 
         let content;
         this.container.textContent = '';
 
         //if(tooltipID) content = this.ogl.tooltipList[tooltipID] || this.ogl.tmpTooltip[tooltipID];
-        if(tooltipID) content = document.querySelector(`${tooltipID}`).outerHTML;
-        else if(data) content = data;
-        else
-        {
+        if (tooltipID) content = document.querySelector(`${tooltipID}`).outerHTML;
+        else if (data) content = data;
+        else {
             content = sender.getAttribute('title') || sender.getAttribute('data-title');
-            if(content) sender.setAttribute('data-title', content);
+            if (content) sender.setAttribute('data-title', content);
         }
 
-        if(!content)
-        {
+        if (!content) {
             this.close();
             return;
         }
@@ -9849,103 +9533,91 @@ class TooltipManager
         document.querySelectorAll('.ogl_highlight').forEach(e => e.classList.remove('ogl_highlight'));
         sender.classList.add('ogl_highlight');
 
-        if(typeof content == 'object' && content.style && content.style.display == 'none') content.style.display = 'block';
+        if (typeof content == 'object' && content.style && content.style.display == 'none') content.style.display = 'block';
         typeof content == 'object' ? this.container.appendChild(content) : this.container.innerHTML = content;
 
-        if(this.container.textContent.indexOf('|') > -1) this.container.innerHTML = this.container.innerHTML.replace(/\|/g, '<div class="splitLine"></div>');
+        if (this.container.textContent.indexOf('|') > -1) this.container.innerHTML = this.container.innerHTML.replace(/\|/g, '<div class="splitLine"></div>');
 
         // remove right menu tooltip on fleet 2
-        if(sender.closest('.ogl_shortcuts') && (sender.classList.contains('planetlink') || sender.classList.contains('moonlink'))) return;
+        if (sender.closest('.ogl_shortcuts') && (sender.classList.contains('planetlink') || sender.classList.contains('moonlink'))) return;
 
         sender.removeAttribute('title');
 
-        if(this.updateBeforeDisplay(sender)) return;
+        if (this.updateBeforeDisplay(sender)) return;
         this.dom.className = 'ogl_tooltip tpd-tooltip';
         this.dom.style.width = 'auto';
 
         this.rebuildTooltip(sender);
     }
 
-    update(sender, newData)
-    {
+    update(sender, newData) {
         let excludedClasses = ['ogl_capacityContainer', 'ogl_resourceSaver'];
 
         let delay = sender.getAttribute('data-title') == 'loading...' ? 0 : this.openDelay + this.updateDelay;
-        if(sender.className.trim().split(' ').filter(e => excludedClasses.includes(e)).length > 0) delay = 0;
+        if (sender.className.trim().split(' ').filter(e => excludedClasses.includes(e)).length > 0) delay = 0;
 
         clearTimeout(this.openTimer);
         clearTimeout(this.updateTimer);
 
-        this.updateTimer = setTimeout(() =>
-        {
-            if(sender != this.lastSender) return;
+        this.updateTimer = setTimeout(() => {
+            if (sender != this.lastSender) return;
 
             this.container.textContent = '';
 
-            if(!newData) return;
+            if (!newData) return;
 
             typeof newData == 'object' ? this.container.appendChild(newData) : this.container.innerHTML = newData;
             this.rebuildTooltip(sender);
         }, delay);
     }
 
-    close(forced)
-    {
+    close(forced) {
         clearTimeout(this.closeTimer);
 
         let ignore = false;
 
-        document.querySelectorAll(':hover').forEach(element =>
-        {
-            if(element.classList.contains('ogl_tooltip')) ignore = true;
-            if(element.classList.contains('ogl_highlight')) ignore = true;
-            if(element.classList.contains('ogl_close')) ignore = false;
+        document.querySelectorAll(':hover').forEach(element => {
+            if (element.classList.contains('ogl_tooltip')) ignore = true;
+            if (element.classList.contains('ogl_highlight')) ignore = true;
+            if (element.classList.contains('ogl_close')) ignore = false;
         });
 
-        if(!ignore || forced)
-        {
+        if (!ignore || forced) {
             document.querySelectorAll('.ogl_highlight').forEach(e => e.classList.remove('ogl_highlight'));
             this.dom.classList.remove('ogl_active');
             this.lastSender = false;
         }
     }
 
-    updateBeforeDisplay(sender)
-    {
-        if(this.container.querySelector('.fleetinfo'))
-        {
-            if(sender.closest('.allianceAttack'))
-            {
+    updateBeforeDisplay(sender) {
+        if (this.container.querySelector('.fleetinfo')) {
+            if (sender.closest('.allianceAttack')) {
                 this.container.querySelector('.fleetinfo').classList.add('ogl_ignored');
                 return;
             }
 
-            this.container.querySelectorAll('.fleetinfo tr').forEach(line =>
-            {
-                if(line.textContent.trim() == '') line.classList.add('ogl_hidden');
-                else if(!line.querySelector('td')) line.classList.add('ogl_full');
-                else
-                {
+            this.container.querySelectorAll('.fleetinfo tr').forEach(line => {
+                if (line.textContent.trim() == '') line.classList.add('ogl_hidden');
+                else if (!line.querySelector('td')) line.classList.add('ogl_full');
+                else {
                     let name = line.querySelector('td').textContent.replace(':', '');
                     let id = (Object.entries(this.ogl.db.ships).find(e => e[1].name == name) || [false])[0];
-                    if(!id) id = Util.findObjectByValue(this.ogl.db.loca, line.querySelector('td').textContent.replace(':', '')) || -1
-                    if(id && line.querySelector('.value'))
-                    {
-                        line.classList.add('ogl_'+id);
+                    if (!id) id = Util.findObjectByValue(this.ogl.db.loca, line.querySelector('td').textContent.replace(':', '')) || -1
+                    if (id && line.querySelector('.value')) {
+                        line.classList.add('ogl_' + id);
                         line.querySelector('td').textContent = '';
-                        line.querySelector('td').className = 'ogl_shipIcon ogl_'+id;
+                        line.querySelector('td').className = 'ogl_shipIcon ogl_' + id;
 
                         line.title = line.querySelector('.value').textContent;
 
                         if (id > 0) {
-                            line.title = line.title + ' '+ this.ogl.component.lang.getText('ship'+id);
+                            line.title = line.title + ' ' + this.ogl.component.lang.getText('ship' + id);
                         }
 
                         line.querySelector('.value').textContent = Util.formatToUnits(line.querySelector('.value').textContent);
 
-                        if(this.ogl.db.options.togglesOff.indexOf('fleetDetailsName') == -1)
-                        {
-                            line.appendChild(Util.createDom('div', {'class':'fleetDetailsName'}, name));
+                        if (this.ogl.db.options.togglesOff.indexOf('fleetDetailsName') == -1) {
+                            line.appendChild(Util.createDom('div', {'class': 'fleetDetailsName'}, name));
                             line.classList.add('ogl_activeNames');
                         }
                     }
@@ -9957,59 +9629,50 @@ class TooltipManager
             this.container.querySelector('.ogl_full').remove();
         }
 
-        if(sender.classList.contains('moonlink'))
-        {
+        if (sender.classList.contains('moonlink')) {
             sender.classList.add('tooltipRight');
             sender.classList.remove('tooltipLeft');
 
-            if(this.ogl.db.options.togglesOff.indexOf('rightMenuTooltips') == -1)
-            {
+            if (this.ogl.db.options.togglesOff.indexOf('rightMenuTooltips') == -1) {
                 return true;
             }
-        }
-        else if(sender.classList.contains('planetlink'))
-        {
+        } else if (sender.classList.contains('planetlink')) {
             sender.classList.remove('tooltipRight');
             sender.classList.add('tooltipLeft');
             //this.position.x += sender.closest('[data-panel="stock"]') ? 80 : 45;
 
             //this.container.querySelectorAll('a').forEach(e => e.remove());
 
-            if(this.ogl.db.options.togglesOff.indexOf('rightMenuTooltips') == -1)
-            {
+            if (this.ogl.db.options.togglesOff.indexOf('rightMenuTooltips') == -1) {
                 return true;
             }
         }
 
-        if(sender.closest('#top') || sender.closest('#box'))
-        {
+        if (sender.closest('#top') || sender.closest('#box')) {
             sender.classList.add('tooltipBottom');
             sender.classList.remove('tooltip');
         }
     }
 }
 
-class FleetManager
-{
-    constructor(ogl)
-    {
+class FleetManager {
+    constructor(ogl) {
         this.ogl = ogl;
         this.spyReady = true;
 
         // add "shortcut" icons
-        document.querySelectorAll('.smallplanet > a.planetlink, .smallplanet > a.moonlink').forEach(link =>
-        {
-            if(link.classList.contains('planetlink')) link.parentNode.setAttribute('data-coords', link.querySelector('.planet-koords').textContent.slice(1, -1));
-            if(!link.querySelector('.ogl_shortcut')) link.appendChild(Util.createDom('div', {'class':'material-icons ogl_shortcut'}, 'flag'));
+        document.querySelectorAll('.smallplanet > a.planetlink, .smallplanet > a.moonlink').forEach(link => {
+            if (link.classList.contains('planetlink')) link.parentNode.setAttribute('data-coords', link.querySelector('.planet-koords').textContent.slice(1, -1));
+            if (!link.querySelector('.ogl_shortcut')) link.appendChild(Util.createDom('div', {'class': 'material-icons ogl_shortcut'}, 'flag'));
         });
 
-        this.shipsList = [202,203,204,205,206,207,208,209,210,211,213,214,215,217,218,219];
-        this.defaultShipsList = [202,203,219,210];
+        this.shipsList = [202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
+        this.defaultShipsList = [202, 203, 219, 210];
 
         this.checkFleetMovement();
 
-        if(this.ogl.page == 'fleetdispatch' || this.ogl.page == 'shipyard') this.updateShipsTooltip();
-        if(this.ogl.page != 'fleetdispatch') return;
+        if (this.ogl.page == 'fleetdispatch' || this.ogl.page == 'shipyard') this.updateShipsTooltip();
+        if (this.ogl.page != 'fleetdispatch') return;
 
         // language names
         this.ogl.db.loca.metal = loca.LOCA_ALL_METAL;
@@ -10031,44 +9694,36 @@ class FleetManager
         this.resourceKeys = ['metal', 'crystal', 'deut', 'food'];
 
         // wait for fleetDispatcher to be ready
-        if(fleetDispatcher && !fleetDispatcher.fetchTargetPlayerDataTimeout)
-        {
+        if (fleetDispatcher && !fleetDispatcher.fetchTargetPlayerDataTimeout) {
             this.ogl.component.popup.load(true);
 
             // force shipsData fetch
-            if(!unsafeWindow.shipsData || !fleetDispatcher?.fleetHelper?.shipsData)
-            {
+            if (!unsafeWindow.shipsData || !fleetDispatcher?.fleetHelper?.shipsData) {
                 let params = {};
                 fleetDispatcher.appendShipParams(params);
                 fleetDispatcher.appendTargetParams(params);
                 fleetDispatcher.appendTokenParams(params);
                 params.union = fleetDispatcher.union;
 
-                $.post(fleetDispatcher.checkTargetUrl, params, response =>
-                {
+                $.post(fleetDispatcher.checkTargetUrl, params, response => {
                     let data = JSON.parse(response);
                     fleetDispatcher.fleetHelper.shipsData = data.shipsData;
                     fleetDispatcher.updateToken(data.newAjaxToken);
                     this.init();
                 });
-            }
-            else this.init();
-        }
-        else setTimeout(() => this.ogl.component.fleet = new FleetManager(this.ogl), 30);
+            } else this.init();
+        } else setTimeout(() => this.ogl.component.fleet = new FleetManager(this.ogl), 30);
 
         // replace default fleet movement (page movement)
     }
 
-    init()
-    {
+    init() {
         this.ogl.component.popup.close();
 
-        fleetDispatcher.refreshDataAfterAjax = function (data)
-        {
+        fleetDispatcher.refreshDataAfterAjax = function (data) {
             this.setOrders(data.orders);
 
-            if(!fleetDispatcher.isInitialized)
-            {
+            if (!fleetDispatcher.isInitialized) {
                 fleetDispatcher.isInitialized = true;
                 return;
             }
@@ -10087,10 +9742,8 @@ class FleetManager
 
         fleetDispatcher.apiTechData.forEach(tech => this.ogl.db.me.techs[tech[0]] = tech[1]);
 
-        this.shipsList.forEach(shipID =>
-        {
-            if(fleetDispatcher.fleetHelper.shipsData?.[shipID])
-            {
+        this.shipsList.forEach(shipID => {
+            if (fleetDispatcher.fleetHelper.shipsData?.[shipID]) {
                 this.ogl.db.ships[shipID] = {};
                 this.ogl.db.ships[shipID].name = fleetDispatcher.fleetHelper.shipsData[shipID].name;
                 this.ogl.db.ships[shipID].capacity = fleetDispatcher.fleetHelper.shipsData[shipID].cargoCapacity;
@@ -10101,8 +9754,7 @@ class FleetManager
         this.initialDeutOnPlanet = fleetDispatcher.deuteriumOnPlanet;
 
         // update "[resource]OnPlanet" fleetDispatcher variables
-        this.resourceOnKeys.forEach((resourceOnKey, index) =>
-        {
+        this.resourceOnKeys.forEach((resourceOnKey, index) => {
             fleetDispatcher[resourceOnKey] = Math.max(0, this.ogl.current[this.resourceKeys[index]] - this.ogl.db.options.resSaver[index]) || 0;
         });
 
@@ -10111,12 +9763,10 @@ class FleetManager
         this.updatePlanetList();
         this.updatePrevNextLink();
 
-        if(fleetDispatcher.shipsOnPlanet.length == 0) return;
+        if (fleetDispatcher.shipsOnPlanet.length == 0) return;
 
-        if(!fleetDispatcher.fleetHelper?.getShipData)
-        {
-            fleetDispatcher.fleetHelper.getShipData = shipID =>
-            {
+        if (!fleetDispatcher.fleetHelper?.getShipData) {
+            fleetDispatcher.fleetHelper.getShipData = shipID => {
                 return shipsData[shipID];
             }
         }
@@ -10132,43 +9782,34 @@ class FleetManager
         this.resourcesSaving();
 
         // select max resources ignoring resource saving
-        fleetDispatcher.selectForcedMaxAll = () =>
-        {
+        fleetDispatcher.selectForcedMaxAll = () => {
             // ignore resSaver variables
-            this.resourceOnKeys.forEach((resourceOnKey, index) =>
-            {
+            this.resourceOnKeys.forEach((resourceOnKey, index) => {
                 fleetDispatcher[resourceOnKey] = Math.max(0, this.ogl.current[this.resourceKeys[index]]);
             });
 
             fleetDispatcher.selectMaxAll();
             fleetDispatcher.refresh();
 
-            this.resourceOnKeys.forEach((resourceOnKey, index) =>
-            {
+            this.resourceOnKeys.forEach((resourceOnKey, index) => {
                 fleetDispatcher[resourceOnKey] = Math.max(0, this.ogl.current[this.resourceKeys[index]] - this.ogl.db.options.resSaver[index]);
             });
         }
 
-        document.querySelector('#loadAllResources').addEventListener('click', event =>
-        {
-            if(event.shiftKey)
-            {
+        document.querySelector('#loadAllResources').addEventListener('click', event => {
+            if (event.shiftKey) {
                 event.preventDefault();
                 setTimeout(() => fleetDispatcher.selectForcedMaxAll());
             }
         });
 
-        for(let i=0; i<3; i++)
-        {
-            document.querySelector('#'+this.selectKeys[i]).addEventListener('click', event =>
-            {
+        for (let i = 0; i < 3; i++) {
+            document.querySelector('#' + this.selectKeys[i]).addEventListener('click', event => {
                 fleetDispatcher[this.cargoKeys[i]] = 0;
-                if(event.shiftKey)
-                {
+                if (event.shiftKey) {
                     event.preventDefault();
 
-                    setTimeout(() =>
-                    {
+                    setTimeout(() => {
                         fleetDispatcher[this.resourceOnKeys[i]] = Math.max(0, this.ogl.current[this.resourceOnKeys[i]]);
 
                         fleetDispatcher[this.selectKeys[i]]();
@@ -10180,9 +9821,8 @@ class FleetManager
             });
         }
 
-        let unload = document.querySelector('#loadAllResources').parentNode.appendChild(Util.createDom('div', {'class':'ogl_unloadAllResources'}, '0'));
-        unload.addEventListener('click', () =>
-        {
+        let unload = document.querySelector('#loadAllResources').parentNode.appendChild(Util.createDom('div', {'class': 'ogl_unloadAllResources'}, '0'));
+        unload.addEventListener('click', () => {
             fleetDispatcher.cargoMetal = 0;
             fleetDispatcher.cargoCrystal = 0;
             fleetDispatcher.cargoDeuterium = 0;
@@ -10190,13 +9830,11 @@ class FleetManager
             fleetDispatcher.refresh();
         });
 
-        this.overWriteFleetDispatcher('selectShip', (shipID, amount) =>
-        {
+        this.overWriteFleetDispatcher('selectShip', (shipID, amount) => {
             document.querySelector(`[data-technology="${shipID}"]`).classList.remove('ogl_notEnoughShips')
             let available = fleetDispatcher.shipsOnPlanet.find(e => e.id == this.ogl.db.options.defaultShip)?.number || 0;
 
-            if(amount > available)
-            {
+            if (amount > available) {
                 document.querySelector(`[data-technology="${shipID}"]`).classList.add('ogl_notEnoughShips');
                 setTimeout(() => document.querySelector(`[data-technology="${shipID}"]`).classList.remove('ogl_notEnoughShips'), 3000);
             }
@@ -10204,10 +9842,8 @@ class FleetManager
 
             this.cargoMax = fleetDispatcher.getCargoCapacity();
             this.cargoList = [fleetDispatcher.cargoMetal, fleetDispatcher.cargoCrystal, fleetDispatcher.cargoDeuterium];
-        }, shipID =>
-        {
-            if(this.cargoMax <= fleetDispatcher.getCargoCapacity() && this.cargoList.reduce((a, b) => a+b) > 0)
-            {
+        }, shipID => {
+            if (this.cargoMax <= fleetDispatcher.getCargoCapacity() && this.cargoList.reduce((a, b) => a + b) > 0) {
                 fleetDispatcher.cargoMetal = this.cargoList[0];
                 fleetDispatcher.cargoCrystal = this.cargoList[1];
                 fleetDispatcher.cargoDeuterium = this.cargoList[2];
@@ -10216,17 +9852,14 @@ class FleetManager
             setTimeout(() => document.querySelector(`[data-technology="${shipID}"] input`)?.dispatchEvent(new Event('change')), 10);
         });
 
-        if(this.ogl.mode == 1 || this.ogl.mode == 4) this.collectResources();
+        if (this.ogl.mode == 1 || this.ogl.mode == 4) this.collectResources();
 
-        if(this.ogl.mode == 3)
-        {
+        if (this.ogl.mode == 3) {
             let cumul = [0, 0, 0];
             let destination = `${fleetDispatcher.targetPlanet.galaxy}:${fleetDispatcher.targetPlanet.system}:${fleetDispatcher.targetPlanet.position}`;
 
-            this.ogl.db.lockedList.forEach(key =>
-            {
-                if(this.ogl.db.lock[destination][key])
-                {
+            this.ogl.db.lockedList.forEach(key => {
+                if (this.ogl.db.lock[destination][key]) {
                     cumul[0] += this.ogl.db.lock[destination][key].metal;
                     cumul[1] += this.ogl.db.lock[destination][key].crystal;
                     cumul[2] += this.ogl.db.lock[destination][key].deut;
@@ -10244,28 +9877,22 @@ class FleetManager
 
             fleetDispatcher.refresh();
 
-            this.overWriteFleetDispatcher('submitFleet2', () =>
-            {
-                this.ogl.db.lockedList.forEach(key =>
-                {
-                    if(this.ogl.db.lock[destination][key])
-                    {
-                        if(cumul[0] > 0)
-                        {
+            this.overWriteFleetDispatcher('submitFleet2', () => {
+                this.ogl.db.lockedList.forEach(key => {
+                    if (this.ogl.db.lock[destination][key]) {
+                        if (cumul[0] > 0) {
                             let metalSent = Math.max(this.ogl.db.lock[destination][key].metal - fleetDispatcher.cargoMetal, 0);
                             cumul[0] -= metalSent;
                             this.ogl.db.lock[destination][key].metal = metalSent;
                         }
 
-                        if(cumul[1] > 0)
-                        {
+                        if (cumul[1] > 0) {
                             let crystalSent = Math.max(this.ogl.db.lock[destination][key].crystal - fleetDispatcher.cargoCrystal, 0);
                             cumul[1] -= crystalSent;
                             this.ogl.db.lock[destination][key].crystal = crystalSent;
                         }
 
-                        if(cumul[2] > 0)
-                        {
+                        if (cumul[2] > 0) {
                             let deutSent = Math.max(this.ogl.db.lock[destination][key].deut - fleetDispatcher.cargoDeuterium, 0);
                             cumul[2] -= deutSent;
                             this.ogl.db.lock[destination][key].deut = deutSent;
@@ -10279,29 +9906,25 @@ class FleetManager
             });
         }
 
-        this.overWriteFleetDispatcher('setTargetPlanet', false, () =>
-        {
+        this.overWriteFleetDispatcher('setTargetPlanet', false, () => {
             // preselect default mission
-            if(fleetDispatcher.union)
-            {
+            if (fleetDispatcher.union) {
                 fleetDispatcher.mission = 2;
                 fleetDispatcher.refresh();
 
                 // update ACS data
                 let acsArrivalTime = (Object.values(fleetDispatcher.unions).find(a => a.id == fleetDispatcher.union)?.time || 0) * 1000;
-                if(acsArrivalTime)
-                {
+                if (acsArrivalTime) {
                     document.querySelector('.ogl_acsInfo') && document.querySelector('.ogl_acsInfo').remove();
-                    let li = Util.createDom('li', {'class':'ogl_acsInfo'}, 'acs:');
+                    let li = Util.createDom('li', {'class': 'ogl_acsInfo'}, 'acs:');
                     document.querySelector('#fleetBriefingPart1').prepend(li);
 
-                    let span = li.appendChild(Util.createDom('span', {'class':'value'}));
+                    let span = li.appendChild(Util.createDom('span', {'class': 'value'}));
                     let spanOffset = span.appendChild(Util.createDom('span'));
-                    let count = span.appendChild(Util.createDom('span', {'class':'ogl_warning'}));
+                    let count = span.appendChild(Util.createDom('span', {'class': 'ogl_warning'}));
 
-                    this.acsInterval = setInterval(() =>
-                    {
-                        if(!fleetDispatcher.getDuration()) return;
+                    this.acsInterval = setInterval(() => {
+                        if (!fleetDispatcher.getDuration()) return;
                         let newTime = serverTime.getTime() + fleetDispatcher.getDuration() * 1000;
                         let acsTime = acsArrivalTime;
                         let tl = acsTime - serverTime.getTime();
@@ -10309,22 +9932,18 @@ class FleetManager
                         let delta = newTime - acsTime;
                         let offset = tl3 - delta;
 
-                        if(delta > 0)
-                        {
-                            spanOffset.textContent = `+${new Date(delta).toISOString().slice(11,19)}`;
+                        if (delta > 0) {
+                            spanOffset.textContent = `+${new Date(delta).toISOString().slice(11, 19)}`;
                             spanOffset.classList.add('ogl_danger');
-                        }
-                        else
-                        {
+                        } else {
                             spanOffset.textContent = '+00:00:00';
                             spanOffset.classList.remove('ogl_danger');
                         }
 
-                        if(delta < tl3) count.textContent = `${new Date(offset).toISOString().slice(11,19)}`;
+                        if (delta < tl3) count.textContent = `${new Date(offset).toISOString().slice(11, 19)}`;
                         else count.textContent = 'too late';
 
-                        if(!fleetDispatcher.union)
-                        {
+                        if (!fleetDispatcher.union) {
                             clearInterval(this.acsInterval);
                             document.querySelector('.ogl_acsInfo') && document.querySelector('.ogl_acsInfo').remove();
                         }
@@ -10333,20 +9952,17 @@ class FleetManager
                 }
             }
 
-            if(!fleetDispatcher.mission)
-            {
+            if (!fleetDispatcher.mission) {
                 fleetDispatcher.mission = this.ogl.db.options.defaultMission;
                 fleetDispatcher.refresh();
             }
             this.updatePlanetList();
         });
 
-        this.overWriteFleetDispatcher('trySubmitFleet1', false, () =>
-        {
+        this.overWriteFleetDispatcher('trySubmitFleet1', false, () => {
             this.conso = fleetDispatcher.getConsumption();
 
-            if(this.ogl.mode == 1 || this.ogl.mode == 4)
-            {
+            if (this.ogl.mode == 1 || this.ogl.mode == 4) {
                 fleetDispatcher.resetCargo();
                 fleetDispatcher.cargoDeuterium = Math.min(fleetDispatcher.getDeuteriumOnPlanetWithoutConsumption(), fleetDispatcher.getFreeCargoSpace());
                 fleetDispatcher.cargoCrystal = Math.min(fleetDispatcher.crystalOnPlanet, fleetDispatcher.getFreeCargoSpace());
@@ -10355,52 +9971,39 @@ class FleetManager
             }
         });
 
-        this.overWriteFleetDispatcher('switchToPage', () =>
-        {
-            if(this.ogl.mode == 3) this.tmpCargo = [fleetDispatcher.metal, fleetDispatcher.crystal, fleetDispatcher.deut];
-        }, () =>
-        {
+        this.overWriteFleetDispatcher('switchToPage', () => {
+            if (this.ogl.mode == 3) this.tmpCargo = [fleetDispatcher.metal, fleetDispatcher.crystal, fleetDispatcher.deut];
+        }, () => {
             // change right menu planets actions (links -> destinations shortcuts)
-            if(fleetDispatcher.currentPage == 'fleet2')
-            {
+            if (fleetDispatcher.currentPage == 'fleet2') {
                 (document.querySelector('#myPlanets') || document.querySelector('#myWorlds')).classList.add('ogl_shortcuts');
 
-                if(this.ogl.mode == 3)
-                {
+                if (this.ogl.mode == 3) {
                     fleetDispatcher.metal = [this.tmpCargo[0], this.tmpCargo[1], this.tmpCargo[2]];
                 }
-            }
-            else
-            {
+            } else {
                 (document.querySelector('#myPlanets') || document.querySelector('#myWorlds')).classList.remove('ogl_shortcuts');
             }
         });
 
-        this.overWriteFleetDispatcher('trySubmitFleet2', () =>
-            {
+        this.overWriteFleetDispatcher('trySubmitFleet2', () => {
                 this.tmpDeutOnPlanet = fleetDispatcher.deuteriumOnPlanet;
                 fleetDispatcher.deuteriumOnPlanet = this.initialDeutOnPlanet;
             },
-            () =>
-            {
+            () => {
                 fleetDispatcher.deuteriumOnPlanet = this.tmpDeutOnPlanet;
             });
 
-        this.overWriteFleetDispatcher('submitFleet2', () =>
-        {
+        this.overWriteFleetDispatcher('submitFleet2', () => {
             this.fleetSent = true;
             let coords = this.ogl.current.coords.join(':');
-            if(this.ogl.current.type == 'moon') coords += ':M';
+            if (this.ogl.current.type == 'moon') coords += ':M';
 
             // update blind target
-            if(this.targetSelected)
-            {
-                if(this.ogl.db.options.nextTargets[0] && !this.ogl.db.options.nextTargets[1])
-                {
+            if (this.targetSelected) {
+                if (this.ogl.db.options.nextTargets[0] && !this.ogl.db.options.nextTargets[1]) {
                     this.ogl.db.options.nextTargets[0] = 0;
-                }
-                else
-                {
+                } else {
                     this.ogl.db.options.nextTargets[0] = this.ogl.db.options.nextTargets[1];
                 }
 
@@ -10427,14 +10030,13 @@ class FleetManager
             this.ogl.db.lastFleet.expeditionTime = fleetDispatcher.expeditionTime;
 
             // add consumption to stats
-            this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || { idList:[], expe:{}, raid:{}, expeOccurences:{}, raidOccurences:0, consumption:0 };
+            this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
             this.ogl.db.stats[midnight].consumption = (this.ogl.db.stats?.[midnight]?.consumption || 0) - fleetDispatcher.getConsumption();
             this.ogl.db.stats.total = this.ogl.db.stats.total || {};
             this.ogl.db.stats.total.consumption = (this.ogl.db.stats?.total?.consumption || 0) - fleetDispatcher.getConsumption();
 
             // redirect to messages page when using the spies table
-            if(this.ogl.mode == 2)
-            {
+            if (this.ogl.mode == 2) {
                 localStorage.setItem('ogl-redirect', `https://${window.location.host}/game/index.php?page=messages`);
             }
 
@@ -10442,20 +10044,17 @@ class FleetManager
         });
 
         // add mission's name as tooltip
-        document.querySelectorAll('#fleet2 ul#missions a').forEach(e =>
-        {
+        document.querySelectorAll('#fleet2 ul#missions a').forEach(e => {
             e.classList.add('tooltip');
             e.setAttribute('title', e.querySelector('span').textContent);
         });
     }
 
     // add a callback before and/or after a fleetdispatcher function
-    overWriteFleetDispatcher(functionName, beforeCallback, afterCallback)
-    {
+    overWriteFleetDispatcher(functionName, beforeCallback, afterCallback) {
         let old = fleetDispatcher[functionName];
 
-        fleetDispatcher[functionName] = function(param, param2)
-        {
+        fleetDispatcher[functionName] = function (param, param2) {
             beforeCallback && beforeCallback(param, param2);
             old.call(fleetDispatcher, param, param2);
             afterCallback && afterCallback(param, param2);
@@ -10463,133 +10062,111 @@ class FleetManager
     }
 
     // replace the default "enter" key action on fleetdispatch
-    overWriteEnterKey()
-    {
+    overWriteEnterKey() {
         let btn = document.querySelector('#continueToFleet2');
-        let newBtn = Util.createDom('div', {'class':'ogl_fleetBtn'}, btn.innerHTML);
+        let newBtn = Util.createDom('div', {'class': 'ogl_fleetBtn'}, btn.innerHTML);
         btn.parentNode.replaceChild(newBtn, btn);
 
-        newBtn.addEventListener('click', event =>
-        {
+        newBtn.addEventListener('click', event => {
             this.nextPageAction(event, true);
         });
 
         this.fleet1Pressed = false;
         this.fleet2Pressed = false;
 
-        document.querySelector('#fleetdispatchcomponent').addEventListener('keypress', event => { if((event.keyCode || event.which) == 13) event.preventDefault();return false; });
-        window.addEventListener('keyup', () => { this.fleet1Pressed = false; this.fleet2Pressed = false; });
-        window.addEventListener('keydown', event =>
-        {
+        document.querySelector('#fleetdispatchcomponent').addEventListener('keypress', event => {
+            if ((event.keyCode || event.which) == 13) event.preventDefault();
+            return false;
+        });
+        window.addEventListener('keyup', () => {
+            this.fleet1Pressed = false;
+            this.fleet2Pressed = false;
+        });
+        window.addEventListener('keydown', event => {
             let keycode = event.keyCode ? event.keyCode : event.which;
 
-            if(keycode == 13)
-            {
+            if (keycode == 13) {
                 event.preventDefault();
 
-                if(((!document.querySelector('.ui-dialog') || document.querySelector('.ui-dialog').style.display == 'none')
-                    && !document.querySelector('.chat_box_textarea:focus') && (!document.querySelector('.ogl_overlay.ogl_active'))))
-                {
+                if (((!document.querySelector('.ui-dialog') || document.querySelector('.ui-dialog').style.display == 'none')
+                    && !document.querySelector('.chat_box_textarea:focus') && (!document.querySelector('.ogl_overlay.ogl_active')))) {
                     this.nextPageAction(event);
-                }
-                else if(document.querySelector('.ui-dialog').style.display != 'none' && document.querySelector('.ui-dialog a.ok'))
-                {
+                } else if (document.querySelector('.ui-dialog').style.display != 'none' && document.querySelector('.ui-dialog a.ok')) {
                     document.querySelector('.ui-dialog a.ok').click();
                 }
             }
         });
     }
 
-    async nextPageAction(event, noKeyCheck)
-    {
-        if(navigator.userAgentData && navigator.userAgentData.mobile) noKeyCheck = true;
+    async nextPageAction(event, noKeyCheck) {
+        if (navigator.userAgentData && navigator.userAgentData.mobile) noKeyCheck = true;
 
         //if(!noKeyCheck && document.querySelector('.ogl_capacityContainer.ogl_highlight')) return;
-        if(document.querySelector('.ajax_loading').style.display != 'none') return;
-        if(this.fleetSent && fleetDispatcher.targetPlanet.position != 16) return;
+        if (document.querySelector('.ajax_loading').style.display != 'none') return;
+        if (this.fleetSent && fleetDispatcher.targetPlanet.position != 16) return;
 
         //if(fleetDispatcher.currentPage == 'fleet1' && !this.fleet1Pressed && !fleetDispatcher.fetchTargetPlayerDataTimeout)
-        if(fleetDispatcher.currentPage == 'fleet1' && !this.fleet1Pressed)
-        {
-            if(!noKeyCheck && !event.shiftKey) this.fleet1Pressed = true;
+        if (fleetDispatcher.currentPage == 'fleet1' && !this.fleet1Pressed) {
+            if (!noKeyCheck && !event.shiftKey) this.fleet1Pressed = true;
 
-            if(!this.ogl.db.options.nextTargets?.[0] && !this.ogl.db.options.nextTargets?.[1] && this.targetSelected) return;
+            if (!this.ogl.db.options.nextTargets?.[0] && !this.ogl.db.options.nextTargets?.[1] && this.targetSelected) return;
 
             let differentPosition = false;
 
-            ['galaxy', 'system', 'position', 'type'].forEach(key =>
-            {
-                if(fleetDispatcher.currentPlanet[key] != fleetDispatcher.targetPlanet[key]) differentPosition = true;
+            ['galaxy', 'system', 'position', 'type'].forEach(key => {
+                if (fleetDispatcher.currentPlanet[key] != fleetDispatcher.targetPlanet[key]) differentPosition = true;
             });
 
-            if(event.shiftKey)
-            {
-                if(!this.ogl.db.options.nextTargets[0] && !this.ogl.db.options.nextTargets[1]) return;
+            if (event.shiftKey) {
+                if (!this.ogl.db.options.nextTargets[0] && !this.ogl.db.options.nextTargets[1]) return;
                 document.querySelector('.ogl_keyList [data-trigger="T"]') && document.querySelector('.ogl_keyList [data-trigger="T"]').click();
                 this.updatePlanetList();
-            }
-            else
-            {
-                if(!differentPosition && (fleetDispatcher.shipsToSend.length == 0 || this.ogl.mode == 4))
-                {
+            } else {
+                if (!differentPosition && (fleetDispatcher.shipsToSend.length == 0 || this.ogl.mode == 4)) {
                     fleetDispatcher.targetPlanet.type = fleetDispatcher.targetPlanet.type == 3 ? 1 : 3;
                     this.updatePlanetList();
                 }
             }
 
-            if(fleetDispatcher.shipsToSend.length == 0)
-            {
+            if (fleetDispatcher.shipsToSend.length == 0) {
                 let required = this.calcRequiredShips(this.ogl.db.options.defaultShip);
                 fleetDispatcher.selectShip(this.ogl.db.options.defaultShip, required);
 
-                if(!fleetDispatcher.mission && !differentPosition)
-                {
+                if (!fleetDispatcher.mission && !differentPosition) {
                     fleetDispatcher.mission = this.ogl.db.options.defaultMission;
 
-                    if(!fleetDispatcher.cargoMetal && !fleetDispatcher.cargoCrystal && !fleetDispatcher.cargoDeuterium)
-                    {
+                    if (!fleetDispatcher.cargoMetal && !fleetDispatcher.cargoCrystal && !fleetDispatcher.cargoDeuterium) {
                         fleetDispatcher.selectMaxAll();
                     }
                 }
 
                 fleetDispatcher.refresh();
-            }
-            else
-            {
+            } else {
                 await new Promise((resolve, reject) => setTimeout(() => resolve(), 250));
                 fleetDispatcher.trySubmitFleet1();
             }
-        }
-        else if(fleetDispatcher.currentPage == 'fleet2' && !this.fleet2Pressed)
-        {
-            if(!noKeyCheck) this.fleet2Pressed = true;
+        } else if (fleetDispatcher.currentPage == 'fleet2' && !this.fleet2Pressed) {
+            if (!noKeyCheck) this.fleet2Pressed = true;
 
             let differentPosition = false;
             fleetDispatcher.speedPercent = this.sliderSpeed.querySelector('.ogl_active').getAttribute('data-step');
 
-            ['galaxy', 'system', 'position', 'type'].forEach(key =>
-            {
-                if(fleetDispatcher.currentPlanet[key] != fleetDispatcher.targetPlanet[key]) differentPosition = true;
+            ['galaxy', 'system', 'position', 'type'].forEach(key => {
+                if (fleetDispatcher.currentPlanet[key] != fleetDispatcher.targetPlanet[key]) differentPosition = true;
             });
 
-            if(!differentPosition)
-            {
+            if (!differentPosition) {
                 fleetDispatcher.targetPlanet.type = fleetDispatcher.targetPlanet.type == 3 ? 1 : 3;
                 this.updatePlanetList();
                 fleetDispatcher.updateTarget();
-            }
-            else
-            {
-                await new Promise((resolve, reject) => setTimeout(() =>
-                {
-                    if(fleetDispatcher.targetPlanet.position == 16)
-                    {
+            } else {
+                await new Promise((resolve, reject) => setTimeout(() => {
+                    if (fleetDispatcher.targetPlanet.position == 16) {
                         this.fleet2Pressed = false;
                         this.fleetSent = false;
                     }
 
-                    if(!this.fleetSent)
-                    {
+                    if (!this.fleetSent) {
                         resolve();
                         fleetDispatcher.trySubmitFleet2();
                     }
@@ -10598,15 +10175,12 @@ class FleetManager
         }
     }
 
-    updateShipsTooltip()
-    {
-        document.querySelectorAll('.technology').forEach(ship =>
-        {
+    updateShipsTooltip() {
+        document.querySelectorAll('.technology').forEach(ship => {
             let shipID = ship.getAttribute('data-technology');
             let shipData = this.ogl.db.ships[shipID];
 
-            if(shipData)
-            {
+            if (shipData) {
                 let amount = parseInt(ship.querySelector('.amount').getAttribute('data-value'));
 
                 ship.title = `
@@ -10624,14 +10198,12 @@ class FleetManager
         });
     }
 
-    updatePrevNextLink()
-    {
-        if(this.ogl.mode != 1 && this.ogl.mode != 4) return;
+    updatePrevNextLink() {
+        if (this.ogl.mode != 1 && this.ogl.mode != 4) return;
 
         let onMoon = this.ogl.db.collectSource[3] == 3 ? true : false;
 
-        if(this.ogl.mode == 1)
-        {
+        if (this.ogl.mode == 1) {
             let next = !onMoon ? this.ogl.next.smallplanet : this.ogl.next.smallplanetWithMoon;
             let nextCoords = `${next.querySelector('.planet-koords').textContent.slice(1, -1)}:${this.ogl.current.type == 'moon' ? 3 : 1}`;
 
@@ -10640,68 +10212,54 @@ class FleetManager
 
             let destinationCoords = this.ogl.db.collectDestination.join(':');
 
-            if(nextCoords == destinationCoords) // next
+            if (nextCoords == destinationCoords) // next
             {
-                if(!onMoon)
-                {
+                if (!onMoon) {
                     this.ogl.next.smallplanet = this.ogl.next.smallplanet.nextElementSibling || document.querySelectorAll('.smallplanet')[0];
-                }
-                else
-                {
-                    if(document.querySelector('.moonlink') && document.querySelectorAll('.moonlink').length > 1)
-                    {
+                } else {
+                    if (document.querySelector('.moonlink') && document.querySelectorAll('.moonlink').length > 1) {
                         do this.ogl.next.smallplanetWithMoon = this.ogl.next.smallplanetWithMoon.nextElementSibling || document.querySelectorAll('.moonlink')[0].parentNode;
-                        while(!this.ogl.next.smallplanetWithMoon.querySelector('.moonlink'));
+                        while (!this.ogl.next.smallplanetWithMoon.querySelector('.moonlink'));
                     }
                 }
-            }
-            else if(prevCoords == destinationCoords) // prev
+            } else if (prevCoords == destinationCoords) // prev
             {
-                if(!onMoon)
-                {
+                if (!onMoon) {
                     this.ogl.prev.smallplanet = this.ogl.prev.smallplanet.previousElementSibling || document.querySelectorAll('.smallplanet')[document.querySelectorAll('.smallplanet').length - 1];
-                }
-                else
-                {
-                    if(document.querySelector('.moonlink') && document.querySelectorAll('.moonlink').length > 1)
-                    {
+                } else {
+                    if (document.querySelector('.moonlink') && document.querySelectorAll('.moonlink').length > 1) {
                         do this.ogl.prev.smallplanetWithMoon = this.ogl.prev.smallplanetWithMoon.previousElementSibling || document.querySelectorAll('.moonlink')[document.querySelectorAll('.moonlink').length - 1].parentNode;
-                        while(!this.ogl.prev.smallplanetWithMoon.querySelector('.moonlink'));
+                        while (!this.ogl.prev.smallplanetWithMoon.querySelector('.moonlink'));
                     }
                 }
             }
         }
 
-        if(this.ogl.mode == 1) // chosen destination
+        if (this.ogl.mode == 1) // chosen destination
         {
             let next = !onMoon ? this.ogl.next.smallplanet : this.ogl.next.smallplanetWithMoon;
-            if(next)
-            {
+            if (next) {
                 let nextCoords = next.querySelector('.planet-koords').textContent.slice(1, -1).split(':');
                 let id = !onMoon ? new URL(next.querySelector('a.planetlink').href).searchParams.get('cp') : new URL(next.querySelector('a.moonlink').href).searchParams.get('cp');
                 this.ogl.nextLink = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&ogl_mode=1&cp=${id}&galaxy=${this.ogl.db.collectDestination[0]}&system=${this.ogl.db.collectDestination[1]}&position=${this.ogl.db.collectDestination[2]}&type=${this.ogl.db.collectDestination[3]}&mission=${this.ogl.db.options.defaultMission}`;
 
-                if(this.ogl.db.collectSource[0] == nextCoords[0] && this.ogl.db.collectSource[1] == nextCoords[1] && this.ogl.db.collectSource[2] == nextCoords[2])
-                {
+                if (this.ogl.db.collectSource[0] == nextCoords[0] && this.ogl.db.collectSource[1] == nextCoords[1] && this.ogl.db.collectSource[2] == nextCoords[2]) {
                     this.ogl.nextLink = `https://${window.location.host}/game/index.php?page=ingame&component=overview`;
                 }
             }
 
             let prev = !onMoon ? this.ogl.prev.smallplanet : this.ogl.prev.smallplanetWithMoon;
-            if(prev)
-            {
+            if (prev) {
                 let id = !onMoon ? new URL(prev.querySelector('a.planetlink').href).searchParams.get('cp') : new URL(prev.querySelector('a.moonlink').href).searchParams.get('cp');
                 this.ogl.prevLink = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&ogl_mode=1&cp=${id}&galaxy=${this.ogl.db.collectDestination[0]}&system=${this.ogl.db.collectDestination[1]}&position=${this.ogl.db.collectDestination[2]}&type=${this.ogl.db.collectDestination[3]}&mission=${this.ogl.db.options.defaultMission}`;
             }
-        }
-        else if(this.ogl.mode == 4) // linked planet/moon
+        } else if (this.ogl.mode == 4) // linked planet/moon
         {
             let nextCoords = this.ogl.next.smallplanetWithMoon.querySelector('.planet-koords').textContent.slice(1, -1).split(':');
             let nextCp = this.ogl.current.type == 'planet' ? new URL(this.ogl.next.smallplanetWithMoon.querySelector('a.planetlink').href).searchParams.get('cp') : new URL(this.ogl.next.smallplanetWithMoon.querySelector('a.moonlink').href).searchParams.get('cp');
             this.ogl.nextLink = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&ogl_mode=4&cp=${nextCp}&type=${this.ogl.current.type == 'planet' ? '3' : '1'}&mission=${this.ogl.db.options.defaultMission}`;
 
-            if(this.ogl.db.collectSource[0] == nextCoords[0] && this.ogl.db.collectSource[1] == nextCoords[1] && this.ogl.db.collectSource[2] == nextCoords[2])
-            {
+            if (this.ogl.db.collectSource[0] == nextCoords[0] && this.ogl.db.collectSource[1] == nextCoords[1] && this.ogl.db.collectSource[2] == nextCoords[2]) {
                 this.ogl.nextLink = `https://${window.location.host}/game/index.php?page=ingame&component=overview`;
             }
 
@@ -10713,42 +10271,37 @@ class FleetManager
     }
 
     // update rightmenu to display fleet's target
-    updatePlanetList()
-    {
+    updatePlanetList() {
         let targetCoords = `${fleetDispatcher.targetPlanet.galaxy}:${fleetDispatcher.targetPlanet.system}:${fleetDispatcher.targetPlanet.position}`;
         let type = fleetDispatcher.targetPlanet.type;
 
         document.querySelectorAll('.smallplanet a.ogl_active').forEach(e => e.classList.remove('ogl_active'));
         let target = document.querySelector(`.smallplanet[data-coords="${targetCoords}"]`);
 
-        if(target && type == 1)
-        {
+        if (target && type == 1) {
             document.querySelector(`.smallplanet[data-coords="${targetCoords}"] .planetlink`)?.classList.add('ogl_active');
-        }
-        else if(target && type == 3)
-        {
+        } else if (target && type == 3) {
             document.querySelector(`.smallplanet[data-coords="${targetCoords}"] .moonlink`)?.classList.add('ogl_active');
         }
     }
 
     // resources to keep on planet
-    resourcesSaving()
-    {
-        document.querySelectorAll('#fleet2 #resources .res_wrap .resourceIcon').forEach(resource =>
-        {
+    resourcesSaving() {
+        document.querySelectorAll('#fleet2 #resources .res_wrap .resourceIcon').forEach(resource => {
             // set index according to this.resourceKeys order (metal, crystal, deut, food)
             let index = 0;
-            this.resourceKeys.forEach((res, ind) => { if(resource.classList.contains(res.replace('deut', 'deuterium'))) index = ind; });
+            this.resourceKeys.forEach((res, ind) => {
+                if (resource.classList.contains(res.replace('deut', 'deuterium'))) index = ind;
+            });
 
             resource = resource.parentNode;
 
-            let deltaResources = resource.querySelector('.res').appendChild(Util.createDom('div', {'class':'ogl_delta material-icons'}, 'fiber_smart_record'));
-            deltaResources.addEventListener('click', () =>
-            {
+            let deltaResources = resource.querySelector('.res').appendChild(Util.createDom('div', {'class': 'ogl_delta material-icons'}, 'fiber_smart_record'));
+            deltaResources.addEventListener('click', () => {
                 let resourceValue = Util.formatFromUnits(resource.querySelector('input').value) || 0;
                 let currentMax = fleetDispatcher[this.resourceOnKeys[index]];
 
-                if(index == 2) currentMax -= fleetDispatcher.getConsumption();
+                if (index == 2) currentMax -= fleetDispatcher.getConsumption();
 
                 fleetDispatcher[this.cargoKeys[index]] = Math.min(currentMax, Math.max(0, currentMax - resourceValue));
                 resource.querySelector('input').value = fleetDispatcher[this.cargoKeys[index]];
@@ -10756,21 +10309,21 @@ class FleetManager
                 setTimeout(() => document.querySelector('#sendFleet').focus(), 100);
             });
 
-            let edit = resource.querySelector('.res').appendChild(Util.createDom('div', {'class':'ogl_resourceSaver material-icons tooltip ogl_input', 'title':`${this.resourceNames[index]} ${this.ogl.component.lang.getText('keepOnPlanet')}`}, 'play_for_work'));
-            edit.addEventListener('click', () =>
-            {
+            let edit = resource.querySelector('.res').appendChild(Util.createDom('div', {
+                'class': 'ogl_resourceSaver material-icons tooltip ogl_input',
+                'title': `${this.resourceNames[index]} ${this.ogl.component.lang.getText('keepOnPlanet')}`
+            }, 'play_for_work'));
+            edit.addEventListener('click', () => {
                 this.ogl.component.tooltip.close(true);
                 edit.classList.add('tooltipClose');
                 this.ogl.component.tooltip.lastSender = edit;
 
-                let content = Util.createDom('div', {'class':'ogl_preloadResources'}, `<h2>${this.resourceNames[index]} ${this.ogl.component.lang.getText('keepOnPlanet')}</h2>`);
-                content.appendChild(Util.createDom('div', {'class':`ogl_shipIcon ogl_${this.resourceKeys[index]}`}));
+                let content = Util.createDom('div', {'class': 'ogl_preloadResources'}, `<h2>${this.resourceNames[index]} ${this.ogl.component.lang.getText('keepOnPlanet')}</h2>`);
+                content.appendChild(Util.createDom('div', {'class': `ogl_shipIcon ogl_${this.resourceKeys[index]}`}));
 
-                let input = content.appendChild(Util.createDom('input', {'type':'text', 'class':'ogl_input'}, '0'));
-                input.addEventListener('keydown', e =>
-                {
-                    if(e.keyCode === 13)
-                    {
+                let input = content.appendChild(Util.createDom('input', {'type': 'text', 'class': 'ogl_input'}, '0'));
+                input.addEventListener('keydown', e => {
+                    if (e.keyCode === 13) {
                         this.fleet2Pressed = true;
                         content.querySelector('button').click();
                     }
@@ -10778,23 +10331,19 @@ class FleetManager
 
                 setTimeout(() => input.focus(), 100);
 
-                content.appendChild(Util.createDom('button', {'class':'ogl_button ogl_fullGrid'}, 'OK'))
-                    .addEventListener('click', () =>
-                    {
-                        this.ogl.db.options.resSaver[index] = parseInt(input.value?.replace(/\D/g,'') || 0);
+                content.appendChild(Util.createDom('button', {'class': 'ogl_button ogl_fullGrid'}, 'OK'))
+                    .addEventListener('click', () => {
+                        this.ogl.db.options.resSaver[index] = parseInt(input.value?.replace(/\D/g, '') || 0);
                         fleetDispatcher[this.resourceOnKeys[index]] = Math.max(0, this.ogl.current[this.resourceKeys[index]] - this.ogl.db.options.resSaver[index]);
                         this.totalOnPlanet = fleetDispatcher.metalOnPlanet + fleetDispatcher.crystalOnPlanet + fleetDispatcher.deuteriumOnPlanet + fleetDispatcher.foodOnPlanet || this.ogl.current.metal + this.ogl.current.crystal + this.ogl.current.deut + this.ogl.current.food || 0;
                         fleetDispatcher.refresh();
                         this.ogl.component.tooltip.close(true);
 
-                        if(this.ogl.db.options.resSaver[index])
-                        {
+                        if (this.ogl.db.options.resSaver[index]) {
                             edit.classList.remove('material-icons');
                             edit.classList.add('ogl_active');
                             edit.textContent = '-' + Util.formatToUnits(this.ogl.db.options.resSaver[index], 0);
-                        }
-                        else
-                        {
+                        } else {
                             edit.classList.add('material-icons');
                             edit.classList.remove('ogl_active');
                             edit.textContent = 'play_for_work';
@@ -10809,8 +10358,7 @@ class FleetManager
 
             edit.addEventListener('mouseover', () => edit.classList.remove('tooltipClose'));
 
-            if(this.ogl.db.options.resSaver[index])
-            {
+            if (this.ogl.db.options.resSaver[index]) {
                 edit.classList.remove('material-icons');
                 edit.classList.add('ogl_active');
                 edit.textContent = '-' + Util.formatToUnits(this.ogl.db.options.resSaver[index], 0);
@@ -10821,14 +10369,10 @@ class FleetManager
     }
 
     // right menu planets are destination shortcut on fleet2
-    planetsAreDestinations()
-    {
-        document.querySelectorAll('.smallplanet > a.planetlink, .smallplanet > a.moonlink').forEach(link =>
-        {
-            link.addEventListener('click', event =>
-            {
-                if(fleetDispatcher.currentPage == 'fleet2')
-                {
+    planetsAreDestinations() {
+        document.querySelectorAll('.smallplanet > a.planetlink, .smallplanet > a.moonlink').forEach(link => {
+            link.addEventListener('click', event => {
+                if (fleetDispatcher.currentPage == 'fleet2') {
                     event.preventDefault();
 
                     document.querySelector('.smallplanet a.ogl_active') && document.querySelector('.smallplanet a.ogl_active').classList.remove('ogl_active');
@@ -10849,26 +10393,22 @@ class FleetManager
     }
 
     // replace the default speed selector
-    replaceSpeedSelector()
-    {
-        this.sliderSpeed = Util.createDom('div', {'class':'ogl_fleetSpeed'});
-        if(this.ogl.account.class == 2) this.sliderSpeed.classList.add('ogl_big');
+    replaceSpeedSelector() {
+        this.sliderSpeed = Util.createDom('div', {'class': 'ogl_fleetSpeed'});
+        if (this.ogl.account.class == 2) this.sliderSpeed.classList.add('ogl_big');
         document.querySelector('#fleetboxbriefingandresources form').insertBefore(this.sliderSpeed, document.querySelector('#fleet2 div#mission'));
 
         let steps = this.ogl.account.class == 2 ? .5 : 1;
 
-        for(let i=steps; i<=10; i+=steps)
-        {
-            let step = this.sliderSpeed.appendChild(Util.createDom('div', {'data-step':i}, i*10));
-            if(fleetDispatcher.speedPercent == i) step.classList.add('ogl_active');
+        for (let i = steps; i <= 10; i += steps) {
+            let step = this.sliderSpeed.appendChild(Util.createDom('div', {'data-step': i}, i * 10));
+            if (fleetDispatcher.speedPercent == i) step.classList.add('ogl_active');
         }
 
-        this.sliderSpeed.addEventListener('click', event =>
-        {
-            if(!event.target.getAttribute('data-step')) return;
+        this.sliderSpeed.addEventListener('click', event => {
+            if (!event.target.getAttribute('data-step')) return;
 
-            if(fleetDispatcher.cargoDeuterium + this.conso >= fleetDispatcher.deuteriumOnPlanet)
-            {
+            if (fleetDispatcher.cargoDeuterium + this.conso >= fleetDispatcher.deuteriumOnPlanet) {
                 fleetDispatcher.speedPercent = event.target.getAttribute('data-step');
                 fleetDispatcher.cargoDeuterium = 0;
                 fleetDispatcher.selectMaxDeuterium();
@@ -10884,36 +10424,30 @@ class FleetManager
             setTimeout(() => document.querySelector('#sendFleet').focus(), 100);
         });
 
-        this.sliderSpeed.addEventListener('mouseover', event =>
-        {
-            if(!event.target.getAttribute('data-step')) return;
+        this.sliderSpeed.addEventListener('mouseover', event => {
+            if (!event.target.getAttribute('data-step')) return;
             fleetDispatcher.speedPercent = event.target.getAttribute('data-step');
             fleetDispatcher.refresh();
         });
 
-        this.sliderSpeed.addEventListener('mouseout', event =>
-        {
+        this.sliderSpeed.addEventListener('mouseout', event => {
             fleetDispatcher.speedPercent = this.sliderSpeed.querySelector('.ogl_active').getAttribute('data-step');
             fleetDispatcher.refresh();
         });
     }
 
-    updateSpeedPercent()
-    {
+    updateSpeedPercent() {
         this.sliderSpeed.querySelectorAll('div').forEach(e => e.classList.remove('ogl_active'));
         this.sliderSpeed.querySelector(`[data-step="${fleetDispatcher.speedPercent}"]`).classList.add('ogl_active');
     }
 
     // add required ship indicator to move all the resources
-    addRequired()
-    {
-        this.defaultShipsList.forEach(shipID =>
-        {
+    addRequired() {
+        this.defaultShipsList.forEach(shipID => {
             let tech = document.querySelector(`#fleet1 .technology[data-technology="${shipID}"]`);
             let required = this.calcRequiredShips(shipID);
-            tech.querySelector('.icon').appendChild(Util.createDom('div', {'class':'ogl_required'}, Util.formatNumber(required)))
-                .addEventListener('click', e =>
-                {
+            tech.querySelector('.icon').appendChild(Util.createDom('div', {'class': 'ogl_required'}, Util.formatNumber(required)))
+                .addEventListener('click', e => {
                     e.stopPropagation();
                     fleetDispatcher.selectShip(shipID, required);
                     fleetDispatcher.refresh();
@@ -10922,19 +10456,16 @@ class FleetManager
     }
 
     // reverse the ship selection
-    addReverse()
-    {
+    addReverse() {
         fleetDispatcher.totalFret = 0;
 
-        fleetDispatcher.shipsOnPlanet.forEach(ship =>
-        {
+        fleetDispatcher.shipsOnPlanet.forEach(ship => {
             fleetDispatcher.totalFret += ship.baseCargoCapacity * ship.number;
 
             let tech = document.querySelector(`#fleet1 .technology[data-technology="${ship.id}"`);
             tech.querySelector('input').classList.add('ogl_input');
-            tech.querySelector('.icon').appendChild(Util.createDom('div', {'class':'ogl_delta material-icons'}, 'fiber_smart_record'))
-                .addEventListener('click', e =>
-                {
+            tech.querySelector('.icon').appendChild(Util.createDom('div', {'class': 'ogl_delta material-icons'}, 'fiber_smart_record'))
+                .addEventListener('click', e => {
                     e.stopPropagation();
                     let delta = fleetDispatcher.shipsOnPlanet.find(e => e.id == ship.id)?.number - (fleetDispatcher.findShip(ship.id)?.number || 0);
                     fleetDispatcher.selectShip(ship.id, delta);
@@ -10944,53 +10475,48 @@ class FleetManager
     }
 
     // cargo capacity indicator & preload resources
-    addCapacity()
-    {
-        let container = document.querySelector('#fleet1 .allornonewrap').appendChild(Util.createDom('div', {'class':'ogl_capacityContainer tooltip', 'title':this.ogl.component.lang.getText('capacityPicker')}));
-        let dom = container.appendChild(Util.createDom('div', {'class':'ogl_capacityInfo'}));
-        let required = dom.appendChild(Util.createDom('div', {'class':'ogl_capacityRequired'}, this.ogl.component.lang.getText('required') + ' ' + Util.formatNumber(this.totalOnPlanet)));
+    addCapacity() {
+        let container = document.querySelector('#fleet1 .allornonewrap').appendChild(Util.createDom('div', {
+            'class': 'ogl_capacityContainer tooltip',
+            'title': this.ogl.component.lang.getText('capacityPicker')
+        }));
+        let dom = container.appendChild(Util.createDom('div', {'class': 'ogl_capacityInfo'}));
+        let required = dom.appendChild(Util.createDom('div', {'class': 'ogl_capacityRequired'}, this.ogl.component.lang.getText('required') + ' ' + Util.formatNumber(this.totalOnPlanet)));
 
         let capacityValues = dom.appendChild(Util.createDom('p'));
-        let current = dom.appendChild(Util.createDom('div', {'class':'ogl_capacityCurrent'}));
-        container.appendChild(Util.createDom('i', {'class':'material-icons'}, 'launch'));
+        let current = dom.appendChild(Util.createDom('div', {'class': 'ogl_capacityCurrent'}));
+        container.appendChild(Util.createDom('i', {'class': 'material-icons'}, 'launch'));
         required.appendChild(Util.createDom('div'));
         required.style.width = Math.min(this.totalOnPlanet / fleetDispatcher.totalFret * 100, 100) + '%';
-        if(this.totalOnPlanet > fleetDispatcher.totalFret) bar.classList.add('ogl_active');
+        if (this.totalOnPlanet > fleetDispatcher.totalFret) bar.classList.add('ogl_active');
 
-        this.overWriteFleetDispatcher('resetCargo', false, () =>
-        {
+        this.overWriteFleetDispatcher('resetCargo', false, () => {
             let domWidth = fleetDispatcher.getCargoCapacity() / fleetDispatcher.totalFret * 100;
             current.style.width = domWidth + '%';
             capacityValues.innerHTML = `<span class="float_right"><b>${Util.formatNumber(fleetDispatcher.getCargoCapacity())}</b> / <b>${Util.formatNumber(fleetDispatcher.totalFret)}</b></span>`;
         });
 
-        container.addEventListener('mouseout', () =>
-        {
+        container.addEventListener('mouseout', () => {
             container.classList.remove('tooltipClose');
         });
 
-        container.addEventListener('click', () =>
-        {
+        container.addEventListener('click', () => {
             this.ogl.component.tooltip.close(true);
             container.classList.add('tooltipClose');
             this.ogl.component.tooltip.lastSender = container;
 
-            let content = Util.createDom('div', {'class':'ogl_preloadResources'}, `<h2>${this.ogl.component.lang.getText('capacityPicker')}</h2>`);
+            let content = Util.createDom('div', {'class': 'ogl_preloadResources'}, `<h2>${this.ogl.component.lang.getText('capacityPicker')}</h2>`);
             let inputList = {};
-            ['metal', 'crystal', 'deut'].forEach(res =>
-            {
-                let icon = content.appendChild(Util.createDom('div', {'class':`ogl_shipIcon ogl_${res} material-icons`}, 'double_arrow'));
-                icon.addEventListener('click', () =>
-                {
+            ['metal', 'crystal', 'deut'].forEach(res => {
+                let icon = content.appendChild(Util.createDom('div', {'class': `ogl_shipIcon ogl_${res} material-icons`}, 'double_arrow'));
+                icon.addEventListener('click', () => {
                     let attr = res == 'metal' ? 'metalOnPlanet' : res == 'crystal' ? 'crystalOnPlanet' : 'deuteriumOnPlanet';
                     inputList[res].value = fleetDispatcher[attr];
                 });
 
-                inputList[res] = content.appendChild(Util.createDom('input', {'type':'text', 'class':'ogl_input'}, '0'));
-                inputList[res].addEventListener('keydown', e =>
-                {
-                    if(e.keyCode === 13)
-                    {
+                inputList[res] = content.appendChild(Util.createDom('input', {'type': 'text', 'class': 'ogl_input'}, '0'));
+                inputList[res].addEventListener('keydown', e => {
+                    if (e.keyCode === 13) {
                         this.fleet1Pressed = true;
                         content.querySelectorAll('button')[1].click();
                     }
@@ -11000,9 +10526,8 @@ class FleetManager
 
             let actions = content.appendChild(Util.createDom('div'));
 
-            actions.appendChild(Util.createDom('button', {'class':'ogl_button'}, 'Max.'))
-                .addEventListener('click', () =>
-                {
+            actions.appendChild(Util.createDom('button', {'class': 'ogl_button'}, 'Max.'))
+                .addEventListener('click', () => {
                     inputList.metal.value = fleetDispatcher.metalOnPlanet;
                     inputList.crystal.value = fleetDispatcher.crystalOnPlanet;
                     inputList.deut.value = fleetDispatcher.deuteriumOnPlanet;
@@ -11010,23 +10535,21 @@ class FleetManager
                     fleetDispatcher.refresh();
                 });
 
-            actions.appendChild(Util.createDom('button', {'class':'ogl_button'}, 'OK'))
-                .addEventListener('click', () =>
-                {
+            actions.appendChild(Util.createDom('button', {'class': 'ogl_button'}, 'OK'))
+                .addEventListener('click', () => {
                     fleetDispatcher.cargoMetal = 0;
                     fleetDispatcher.cargoCrystal = 0;
                     fleetDispatcher.cargoDeuterium = 0;
                     fleetDispatcher.refresh();
 
-                    let total = parseInt(inputList.metal.value?.replace(/\D/g,'') || 0) + parseInt(inputList.crystal.value?.replace(/\D/g,'') || 0)  + parseInt(inputList.deut.value?.replace(/\D/g,'') || 0);
+                    let total = parseInt(inputList.metal.value?.replace(/\D/g, '') || 0) + parseInt(inputList.crystal.value?.replace(/\D/g, '') || 0) + parseInt(inputList.deut.value?.replace(/\D/g, '') || 0);
                     let required = this.calcRequiredShips(this.ogl.db.options.defaultShip, total);
 
-                    (async() =>
-                    {
+                    (async () => {
                         await fleetDispatcher.selectShip(this.ogl.db.options.defaultShip, required);
-                        fleetDispatcher.cargoMetal = Math.min(parseInt(inputList.metal.value?.replace(/\D/g,'') || 0), fleetDispatcher.metalOnPlanet, fleetDispatcher.getFreeCargoSpace());
-                        fleetDispatcher.cargoCrystal = Math.min(parseInt(inputList.crystal.value?.replace(/\D/g,'') || 0), fleetDispatcher.crystalOnPlanet, fleetDispatcher.getFreeCargoSpace());
-                        fleetDispatcher.cargoDeuterium = Math.min(parseInt(inputList.deut.value?.replace(/\D/g,'') || 0), fleetDispatcher.deuteriumOnPlanet, fleetDispatcher.getFreeCargoSpace());
+                        fleetDispatcher.cargoMetal = Math.min(parseInt(inputList.metal.value?.replace(/\D/g, '') || 0), fleetDispatcher.metalOnPlanet, fleetDispatcher.getFreeCargoSpace());
+                        fleetDispatcher.cargoCrystal = Math.min(parseInt(inputList.crystal.value?.replace(/\D/g, '') || 0), fleetDispatcher.crystalOnPlanet, fleetDispatcher.getFreeCargoSpace());
+                        fleetDispatcher.cargoDeuterium = Math.min(parseInt(inputList.deut.value?.replace(/\D/g, '') || 0), fleetDispatcher.deuteriumOnPlanet, fleetDispatcher.getFreeCargoSpace());
                         fleetDispatcher.refresh();
 
                         this.ogl.component.tooltip.close(true);
@@ -11040,13 +10563,11 @@ class FleetManager
     }
 
     // collect resources when the harvest button has been clicked
-    collectResources()
-    {
+    collectResources() {
         let required = this.calcRequiredShips(this.ogl.db.options.defaultShip);
         fleetDispatcher.selectShip(this.ogl.db.options.defaultShip, required);
 
-        if(this.ogl.mode == 4)
-        {
+        if (this.ogl.mode == 4) {
             fleetDispatcher.targetPlanet.type = fleetDispatcher.targetPlanet.type == 3 ? 1 : 3;
         }
 
@@ -11055,20 +10576,17 @@ class FleetManager
         this.overWriteFleetDispatcher('submitFleet2', () => localStorage.setItem('ogl-redirect', this.ogl.nextLink));
     }
 
-    checkFleetMovement()
-    {
-        if(this.ogl.page == 'movement')
-        {
-            document.querySelectorAll('.fleetDetails').forEach(line =>
-            {
+    checkFleetMovement() {
+        if (this.ogl.page == 'movement') {
+            document.querySelectorAll('.fleetDetails').forEach(line => {
                 let onBack = line.getAttribute('data-return-flight');
                 let missionType = line.getAttribute('data-mission-type');
 
                 // header
-                let header = Util.createDom('div', {'class':'ogl_topLine'});
+                let header = Util.createDom('div', {'class': 'ogl_topLine'});
 
                 let smallMission = header.appendChild(Util.createDom('div'));
-                smallMission.appendChild(Util.createDom('div', {'class':'ogl_shipIcon ogl_mission'+missionType}));
+                smallMission.appendChild(Util.createDom('div', {'class': 'ogl_shipIcon ogl_mission' + missionType}));
 
                 let leftTime = header.appendChild(Util.createDom('div'));
                 leftTime.appendChild(line.querySelector('.timer') || Util.createDom('div'));
@@ -11078,23 +10596,23 @@ class FleetManager
 
                 let originCoords = header.appendChild(Util.createDom('div'));
                 originCoords.appendChild(line.querySelector('.originCoords') || Util.createDom('div'));
-                if(onBack) originCoords.classList.add('ogl_active');
+                if (onBack) originCoords.classList.add('ogl_active');
 
                 let originPlanet = header.appendChild(Util.createDom('div'));
                 originPlanet.appendChild(line.querySelector('.originPlanet') || Util.createDom('div'));
-                if(onBack) originPlanet.classList.add('ogl_active');
+                if (onBack) originPlanet.classList.add('ogl_active');
 
-                let iconFleet = header.appendChild(Util.createDom('div', {'class':'ogl_active'}));
+                let iconFleet = header.appendChild(Util.createDom('div', {'class': 'ogl_active'}));
                 iconFleet.appendChild(line.querySelector('.starStreak .route a') || Util.createDom('div'));
                 iconFleet.querySelector('a').style.transform = 'scale(.75)';
 
                 let destinationPlanet = header.appendChild(Util.createDom('div'));
                 destinationPlanet.appendChild(line.querySelector('.destinationPlanet') || Util.createDom('div'));
-                if(!onBack) destinationPlanet.classList.add('ogl_active');
+                if (!onBack) destinationPlanet.classList.add('ogl_active');
 
                 let destinationCoords = header.appendChild(Util.createDom('div'));
                 destinationCoords.appendChild(line.querySelector('.destinationCoords') || Util.createDom('div'));
-                if(!onBack) destinationCoords.classList.add('ogl_active');
+                if (!onBack) destinationCoords.classList.add('ogl_active');
 
                 let rightAbsTime = header.appendChild(Util.createDom('div'));
                 rightAbsTime.appendChild(line.querySelector('.nextabsTime') || Util.createDom('div'));
@@ -11103,53 +10621,49 @@ class FleetManager
                 rightTime.appendChild(line.querySelector('.nextTimer') || Util.createDom('div'));
 
                 // grid
-                let id = '#'+iconFleet.querySelector('a').getAttribute('rel');
+                let id = '#' + iconFleet.querySelector('a').getAttribute('rel');
                 let div = document.querySelector(id);
-                let container = Util.createDom('div', {'class':'ogl_shipDetail'});
+                let container = Util.createDom('div', {'class': 'ogl_shipDetail'});
 
-                div.querySelectorAll('.fleetinfo tr').forEach((line, index) =>
-                {
-                    if(line.querySelector('td'))
-                    {
-                        let shipLine = Util.createDom('div', {'class':'ogl_movementItem'});
+                div.querySelectorAll('.fleetinfo tr').forEach((line, index) => {
+                    if (line.querySelector('td')) {
+                        let shipLine = Util.createDom('div', {'class': 'ogl_movementItem'});
                         let shipID = Util.findObjectByValue(this.ogl.db.loca, line.querySelector('td').textContent.replace(':', ''))
                             || (Object.entries(this.ogl.db.ships).find(e => e[1].name == line.querySelector('td').textContent.replace(':', '')) || [false])[0] || -1;
 
-                        if(shipID == 'metal') container.prepend(shipLine);
-                        else if(shipID == 'crystal') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[1]);
-                        else if(shipID == 'deut') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[2]);
-                        else if(shipID == 'food') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[3]);
+                        if (shipID == 'metal') container.prepend(shipLine);
+                        else if (shipID == 'crystal') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[1]);
+                        else if (shipID == 'deut') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[2]);
+                        else if (shipID == 'food') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[3]);
                         //else if(shipID == -1) container.prepend(shipLine);
-                        else if(shipID && shipID != -1) container.appendChild(shipLine);
+                        else if (shipID && shipID != -1) container.appendChild(shipLine);
 
                         let shipNumber = line.querySelector('td.value') ? line.querySelector('td.value').textContent : '0';
-                        if(shipID && shipID != -1)
-                        {
-                            shipLine.appendChild(Util.createDom('div', {'class':'ogl_shipIcon ogl_'+shipID}));
-                            shipLine.appendChild(Util.createDom('span', {'class':'ogl_'+shipID}, Util.formatToUnits(Util.formatNumber(shipNumber), 0).replace(' ','')));
+                        if (shipID && shipID != -1) {
+                            shipLine.appendChild(Util.createDom('div', {'class': 'ogl_shipIcon ogl_' + shipID}));
+                            shipLine.appendChild(Util.createDom('span', {'class': 'ogl_' + shipID}, Util.formatToUnits(Util.formatNumber(shipNumber), 0).replace(' ', '')));
                         }
                     }
                 });
 
-                let missionIcon = Util.createDom('div', {'class':'ogl_shipIcon ogl_mission'+missionType});
-                container.prepend(Util.createDom('div', {'class':'ogl_movementItem'}, missionIcon.outerHTML));
+                let missionIcon = Util.createDom('div', {'class': 'ogl_shipIcon ogl_mission' + missionType});
+                container.prepend(Util.createDom('div', {'class': 'ogl_movementItem'}, missionIcon.outerHTML));
 
                 // actions
-                let actions = Util.createDom('div', {'class':'ogl_actions'});
+                let actions = Util.createDom('div', {'class': 'ogl_actions'});
 
                 let reduceButton = actions.appendChild(Util.createDom('div'));
                 let reduceContent = reduceButton.appendChild(line.querySelector('.openDetails') || Util.createDom('div'));
-                if(reduceContent.innerHTML === '') reduceButton.classList.add('ogl_hidden');
+                if (reduceContent.innerHTML === '') reduceButton.classList.add('ogl_hidden');
 
                 let backButton = actions.appendChild(Util.createDom('div'));
                 let backContent = backButton.appendChild(line.querySelector('.reversal') || Util.createDom('div'));
-                if(!onBack) destinationCoords.classList.add('ogl_active');
-                if(backContent.innerHTML === '') backButton.classList.add('ogl_hidden');
+                if (!onBack) destinationCoords.classList.add('ogl_active');
+                if (backContent.innerHTML === '') backButton.classList.add('ogl_hidden');
 
-                if(backButton.querySelector('a'))
-                {
+                if (backButton.querySelector('a')) {
                     let time = backButton.querySelector('a').getAttribute('data-title') || backButton.querySelector('a').getAttribute('title');
-                    time = time.replace('<br>',' ');
+                    time = time.replace('<br>', ' ');
                     time = time.replace(/ \.$/, '');
                     time = time.trim().replace(/[ \.]/g, ':');
                     time = time.split(':');
@@ -11157,11 +10671,10 @@ class FleetManager
                     let initialTime = Date.now();
                     time = new Date(`${time[4]}-${time[3]}-${time[2]}T${time[5]}:${time[6]}:${time[7]}`).getTime();
 
-                    let domParent = actions.appendChild(Util.createDom('div', {'class':'ogl_backTime'}));
-                    let domElement = domParent.appendChild(Util.createDom('div', {'class':'ogl_fulldate ogl_hiddenContent ogl_timeZone ogl_backTimer'}));
+                    let domParent = actions.appendChild(Util.createDom('div', {'class': 'ogl_backTime'}));
+                    let domElement = domParent.appendChild(Util.createDom('div', {'class': 'ogl_fulldate ogl_hiddenContent ogl_timeZone ogl_backTimer'}));
 
-                    setInterval(() =>
-                    {
+                    setInterval(() => {
                         const deltaTime = Date.now() - initialTime;
                         const newTime = new Date((time + timeDelta - Math.round(timeDiff / 100000) * 100000) + deltaTime * 2);
 
@@ -11169,21 +10682,20 @@ class FleetManager
                         domElement.setAttribute('data-datezone', `${newTime.toLocaleDateString('fr-FR').replace(/\//g, '.')} `);
                         domElement.setAttribute('data-timezone', ` ${newTime.toLocaleTimeString('fr-FR')}`);
                     }, 500);
-                }
-                else actions.appendChild(Util.createDom('div'));
+                } else actions.appendChild(Util.createDom('div'));
 
                 let mailButton = actions.appendChild(Util.createDom('div'));
                 let mailContent = mailButton.appendChild(line.querySelector('.sendMail') || Util.createDom('div'));
-                if(mailContent.innerHTML === '') mailButton.classList.add('ogl_hidden');
+                if (mailContent.innerHTML === '') mailButton.classList.add('ogl_hidden');
 
                 let agsButton = actions.appendChild(Util.createDom('div'));
                 let agsContent = agsButton.appendChild(line.querySelector('.fedAttack a') || Util.createDom('div'));
-                if(!onBack) destinationCoords.classList.add('ogl_active');
-                if(agsContent.innerHTML === '') agsButton.classList.add('ogl_hidden');
+                if (!onBack) destinationCoords.classList.add('ogl_active');
+                if (agsContent.innerHTML === '') agsButton.classList.add('ogl_hidden');
 
-                let agsName = actions.appendChild(Util.createDom('div', {'class':'ogl_agsName'}));
+                let agsName = actions.appendChild(Util.createDom('div', {'class': 'ogl_agsName'}));
                 let agsNameContent = agsName.appendChild(line.querySelector('.allianceName') || Util.createDom('div'));
-                if(agsNameContent.innerHTML === '') agsName.classList.add('ogl_hidden');
+                if (agsNameContent.innerHTML === '') agsName.classList.add('ogl_hidden');
 
                 actions.appendChild(Util.createDom('div'));
 
@@ -11208,12 +10720,10 @@ class FleetManager
             }*/
 
             // add back timer
-            document.querySelectorAll('.reversal a').forEach((button, index) =>
-            {
-                setTimeout(() =>
-                {
+            document.querySelectorAll('.reversal a').forEach((button, index) => {
+                setTimeout(() => {
                     let time = button.getAttribute('data-tooltip') || button.getAttribute('title');
-                    time = time.replace('<br>',' ');
+                    time = time.replace('<br>', ' ');
                     time = time.replace(/ \.$/, '');
                     time = time.trim().replace(/[ \.]/g, ':');
                     time = time.split(':');
@@ -11221,10 +10731,9 @@ class FleetManager
                     let initialTime = Date.now();
                     time = new Date(`${time[4]}-${time[3]}-${time[2]}T${time[5]}:${time[6]}:${time[7]}`).getTime();
 
-                    let domElement = button.closest('.fleetDetails').appendChild(Util.createDom('div', {'class':'ogl_fulldate ogl_hiddenContent ogl_timeZone ogl_backTimer'}));
+                    let domElement = button.closest('.fleetDetails').appendChild(Util.createDom('div', {'class': 'ogl_fulldate ogl_hiddenContent ogl_timeZone ogl_backTimer'}));
 
-                    setInterval(() =>
-                    {
+                    setInterval(() => {
                         const deltaTime = Date.now() - initialTime;
                         const newTime = new Date((time + timeDelta - Math.round(timeDiff / 100000) * 100000) + deltaTime * 2);
 
@@ -11236,34 +10745,30 @@ class FleetManager
             });
 
             // replace default mouvement menu
-            document.querySelectorAll('.starStreak .route').forEach(movement =>
-            {
-                let id = '#'+movement.querySelector('a').getAttribute('rel');
+            document.querySelectorAll('.starStreak .route').forEach(movement => {
+                let id = '#' + movement.querySelector('a').getAttribute('rel');
                 let div = document.querySelector(id);
-                let container = movement.closest('.fleetDetails').appendChild(Util.createDom('div',{'class':'ogl_shipDetail'}));
+                let container = movement.closest('.fleetDetails').appendChild(Util.createDom('div', {'class': 'ogl_shipDetail'}));
 
                 movement.querySelector('a').classList.add('ogl_inFlight');
 
-                div.querySelectorAll('.fleetinfo tr').forEach((line, index) =>
-                {
-                    if(line.querySelector('td'))
-                    {
-                        let shipLine = Util.createDom('div', {'class':'ogl_movementItem'});
+                div.querySelectorAll('.fleetinfo tr').forEach((line, index) => {
+                    if (line.querySelector('td')) {
+                        let shipLine = Util.createDom('div', {'class': 'ogl_movementItem'});
                         let shipID = Util.findObjectByValue(this.ogl.db.loca, line.querySelector('td').textContent.replace(':', ''))
                             || (Object.entries(this.ogl.db.ships).find(e => e[1].name == line.querySelector('td').textContent.replace(':', '')) || [false])[0] || -1;
 
-                        if(shipID == 'metal') container.prepend(shipLine);
-                        else if(shipID == 'crystal') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[1]);
-                        else if(shipID == 'deut') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[2]);
-                        else if(shipID == 'food') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[3]);
-                        else if(shipID == -1) container.prepend(shipLine);
+                        if (shipID == 'metal') container.prepend(shipLine);
+                        else if (shipID == 'crystal') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[1]);
+                        else if (shipID == 'deut') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[2]);
+                        else if (shipID == 'food') container.insertBefore(shipLine, container.querySelectorAll('.ogl_movementItem')[3]);
+                        else if (shipID == -1) container.prepend(shipLine);
                         else container.appendChild(shipLine);
 
                         let shipNumber = line.querySelector('td.value') ? line.querySelector('td.value').textContent : '0';
-                        if(shipID && shipID != -1)
-                        {
-                            shipLine.appendChild(Util.createDom('div', {'class':'ogl_shipIcon ogl_'+shipID}));
-                            shipLine.appendChild(Util.createDom('span', {'class':'ogl_'+shipID}, Util.formatToUnits(Util.formatNumber(shipNumber), 0).replace(' ','')));
+                        if (shipID && shipID != -1) {
+                            shipLine.appendChild(Util.createDom('div', {'class': 'ogl_shipIcon ogl_' + shipID}));
+                            shipLine.appendChild(Util.createDom('span', {'class': 'ogl_' + shipID}, Util.formatToUnits(Util.formatNumber(shipNumber), 0).replace(' ', '')));
                         }
                     }
                 });
@@ -11271,25 +10776,21 @@ class FleetManager
         }
     }
 
-    calcRequiredShips(shipID, resources)
-    {
+    calcRequiredShips(shipID, resources) {
         resources = resources ?? this.totalOnPlanet;
         return Math.ceil(resources / this.ogl.db.ships[shipID].capacity);
     }
 
-    sendSpyProbe(coords, count, sender, noPopup, callback)
-    {
+    sendSpyProbe(coords, count, sender, noPopup, callback) {
         this.spyQueue = this.spyQueue || [];
-        this.spyQueue.push({coords:coords, count:count, sender:sender, noPopup:noPopup, callback:callback});
+        this.spyQueue.push({coords: coords, count: count, sender: sender, noPopup: noPopup, callback: callback});
 
         sender && sender.classList.add('ogl_loading');
-        if(this.spyReady) this.trySendProbes();
+        if (this.spyReady) this.trySendProbes();
     }
 
-    trySendProbes()
-    {
-        if(this.spyQueue?.length)
-        {
+    trySendProbes() {
+        if (this.spyQueue?.length) {
             let coords = this.spyQueue[0].coords;
             let count = this.spyQueue[0].count;
             let sender = this.spyQueue[0].sender;
@@ -11298,13 +10799,13 @@ class FleetManager
 
             let params =
                 {
-                    mission:6,
-                    galaxy:coords[0],
-                    system:coords[1],
-                    position:coords[2],
-                    type:coords[3],
-                    shipCount:count,
-                    token:token,
+                    mission: 6,
+                    galaxy: coords[0],
+                    system: coords[1],
+                    position: coords[2],
+                    type: coords[3],
+                    shipCount: count,
+                    token: token,
                 }
 
             let self = this;
@@ -11313,59 +10814,50 @@ class FleetManager
 
             $.ajax(miniFleetLink,
                 {
-                    data:params,
-                    dataType:"json",
-                    type:"POST",
-                    success:function(data)
-                    {
-                        if(typeof data.newAjaxToken != "undefined")
-                        {
+                    data: params,
+                    dataType: "json",
+                    type: "POST",
+                    success: function (data) {
+                        if (typeof data.newAjaxToken != "undefined") {
                             token = data.newAjaxToken;
                         }
 
-                        if(sender)
-                        {
+                        if (sender) {
                             sender.classList.remove('ogl_disabled');
                             sender.classList.remove('ogl_danger');
                         }
 
-                        if(!data.response.success && data.response.coordinates) fadeBox(data.response.message + ' ' + coords[0] + ":" + coords[1] + ":" + coords[2], !data.response.success);
-                        if(data.response.coordinates && !noPopup) fadeBox(data.response.message + ' ' + data.response.coordinates.galaxy + ":" + data.response.coordinates.system + ":" + data.response.coordinates.position, !data.response.success);
+                        if (!data.response.success && data.response.coordinates) fadeBox(data.response.message + ' ' + coords[0] + ":" + coords[1] + ":" + coords[2], !data.response.success);
+                        if (data.response.coordinates && !noPopup) fadeBox(data.response.message + ' ' + data.response.coordinates.galaxy + ":" + data.response.coordinates.system + ":" + data.response.coordinates.position, !data.response.success);
 
-                        if(sender && data.response.success)
-                        {
+                        if (sender && data.response.success) {
                             sender.classList.remove('ogl_loading');
                             sender.classList.add('ogl_disabled');
 
                             let index = self.ogl.find(self.ogl.db.positions, 'coords', `${coords[0]}:${coords[1]}:${coords[2]}`)[0];
-                            if(index)
-                            {
+                            if (index) {
                                 coords[3] == 3 ? self.ogl.db.positions[index].lastMoonSpy = serverTime.getTime() : self.ogl.db.positions[index].lastSpy = serverTime.getTime();
                                 self.ogl.save();
                             }
-                        }
-                        else if(sender && !data.response.success && data.response.coordinates)
-                        {
+                        } else if (sender && !data.response.success && data.response.coordinates) {
                             sender.classList.remove('ogl_loading');
                             sender.classList.add('ogl_danger');
                         }
 
-                        if(callback) callback(data);
+                        if (callback) callback(data);
 
                         self.spyReady = true;
 
-                        if(data.response.coordinates)
-                        {
+                        if (data.response.coordinates) {
                             self.spyQueue.shift();
                         }
 
                         self.trySendProbes();
                     },
-                    error:function(error)
-                    {
+                    error: function (error) {
                         fadeBox('Error');
                         sender.classList.remove('ogl_loading');
-                        if(sender) sender.classList.add('ogl_danger');
+                        if (sender) sender.classList.add('ogl_danger');
 
                         self.spyReady = true;
                         self.trySendProbes();
@@ -11374,8 +10866,7 @@ class FleetManager
         }
     }
 
-    expedition(mainShipID)
-    {
+    expedition(mainShipID) {
         fleetDispatcher.resetShips();
         fleetDispatcher.resetCargo();
 
@@ -11389,23 +10880,22 @@ class FleetManager
 
         let steps =
             {
-                10000 : { 202:10, 'max':40000 },
-                100000 : { 202:125, 'max':500000 },
-                1000000 : { 202:300, 'max':1200000 },
-                5000000 : { 202:450, 'max':1800000 },
-                25000000 : { 202:600, 'max':2400000 },
-                50000000 : { 202:750, 'max':3000000 },
-                75000000 : { 202:900, 'max':3600000 },
-                100000000 : { 202:1050, 'max':4200000 },
-                Infinity : { 202:1250, 'max':5000000 },
+                10000: {202: 10, 'max': 40000},
+                100000: {202: 125, 'max': 500000},
+                1000000: {202: 300, 'max': 1200000},
+                5000000: {202: 450, 'max': 1800000},
+                25000000: {202: 600, 'max': 2400000},
+                50000000: {202: 750, 'max': 3000000},
+                75000000: {202: 900, 'max': 3600000},
+                100000000: {202: 1050, 'max': 4200000},
+                Infinity: {202: 1250, 'max': 5000000},
             }
 
-        for(const [key, value] of Object.entries(steps))
-        {
+        for (const [key, value] of Object.entries(steps)) {
             steps[key][203] = Math.ceil(steps[key][202] / minFactor202to203);
             steps[key][219] = Math.ceil(steps[key][202] / minFactor202to219);
 
-            if(this.ogl.db.topScore[0] < key && !currentStep) currentStep = key;
+            if (this.ogl.db.topScore[0] < key && !currentStep) currentStep = key;
         }
 
         maxTotal = steps[currentStep]['max'];
@@ -11413,20 +10903,18 @@ class FleetManager
         maxTotal = this.ogl.account.class == 3 ? maxTotal * 3 * this.ogl.universe.ecoSpeed : maxTotal * 2;
         let mainAmount = Math.max(minShip, this.calcRequiredShips(mainShipID, maxTotal));
 
-        [218, 213, 211, 215, 207].forEach(shipID =>
-        {
+        [218, 213, 211, 215, 207].forEach(shipID => {
             let count = document.querySelector(`.technology[data-technology="${shipID}"] .amount`).getAttribute('data-value');
-            if(fillerID == 0 && count > 0) fillerID = shipID;
+            if (fillerID == 0 && count > 0) fillerID = shipID;
         });
 
-        if(this.ogl.db.options.togglesOff.indexOf('bigShip') > -1) fillerID = 0;
+        if (this.ogl.db.options.togglesOff.indexOf('bigShip') > -1) fillerID = 0;
 
-        shipsOnPlanet.forEach(ship =>
-        {
-            if(ship.id == mainShipID) fleetDispatcher.selectShip(ship.id, mainAmount);
-            else if(ship.id == fillerID && mainShipID != fillerID) fleetDispatcher.selectShip(ship.id, 1);
-            else if(ship.id == 210) fleetDispatcher.selectShip(ship.id, 1);
-            else if(ship.id == 219 && mainShipID != 219) fleetDispatcher.selectShip(ship.id, 1);
+        shipsOnPlanet.forEach(ship => {
+            if (ship.id == mainShipID) fleetDispatcher.selectShip(ship.id, mainAmount);
+            else if (ship.id == fillerID && mainShipID != fillerID) fleetDispatcher.selectShip(ship.id, 1);
+            else if (ship.id == 210) fleetDispatcher.selectShip(ship.id, 1);
+            else if (ship.id == 219 && mainShipID != 219) fleetDispatcher.selectShip(ship.id, 1);
         });
 
         fleetDispatcher.targetPlanet.galaxy = coords[0];
@@ -11442,51 +10930,45 @@ class FleetManager
     }
 }
 
-class EmpireManager
-{
-    constructor(ogl)
-    {
+class EmpireManager {
+    constructor(ogl) {
         this.ogl = ogl;
         this.addTimers();
 
-        this.resourceSum = Util.createDom('div', {'class':'ogl_resourcesSum'});
+        this.resourceSum = Util.createDom('div', {'class': 'ogl_resourcesSum'});
         let i = this.resourceSum.appendChild(Util.createDom('i'));
-        i.appendChild(Util.createDom('div', {'class':'ogl_loader'}));
-        this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_metal'}, '0'));
-        this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_sub ogl_metal'}, '+0'));
-        this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_crystal'}, '0'));
-        this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_sub ogl_crystal'}, '+0'));
-        this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_deut'}, '0'));
-        this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_sub ogl_deut'}, '+0'));
+        i.appendChild(Util.createDom('div', {'class': 'ogl_loader'}));
+        this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_metal'}, '0'));
+        this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_sub ogl_metal'}, '+0'));
+        this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_crystal'}, '0'));
+        this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_sub ogl_crystal'}, '+0'));
+        this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_deut'}, '0'));
+        this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_sub ogl_deut'}, '+0'));
 
         (document.querySelector('#cutty') || document.querySelector('#norm')).querySelector('#myPlanets, #myWorlds').after(this.resourceSum);
 
-        if(!this.ogl.prevLink) this.ogl.prevLink = this.ogl.current.type == 'moon' ? this.ogl.prev.smallplanetWithMoon.querySelector('.moonlink')?.getAttribute('href') || this.ogl.prev.smallplanet.querySelector('.planetlink')?.getAttribute('href') : this.ogl.prev.smallplanet.querySelector('.planetlink')?.getAttribute('href');
-        if(!this.ogl.nextLink) this.ogl.nextLink = this.ogl.current.type == 'moon' ? this.ogl.next.smallplanetWithMoon.querySelector('.moonlink')?.getAttribute('href') || this.ogl.next.smallplanet.querySelector('.planetlink')?.getAttribute('href') : this.ogl.next.smallplanet.querySelector('.planetlink')?.getAttribute('href');
+        if (!this.ogl.prevLink) this.ogl.prevLink = this.ogl.current.type == 'moon' ? this.ogl.prev.smallplanetWithMoon.querySelector('.moonlink')?.getAttribute('href') || this.ogl.prev.smallplanet.querySelector('.planetlink')?.getAttribute('href') : this.ogl.prev.smallplanet.querySelector('.planetlink')?.getAttribute('href');
+        if (!this.ogl.nextLink) this.ogl.nextLink = this.ogl.current.type == 'moon' ? this.ogl.next.smallplanetWithMoon.querySelector('.moonlink')?.getAttribute('href') || this.ogl.next.smallplanet.querySelector('.planetlink')?.getAttribute('href') : this.ogl.next.smallplanet.querySelector('.planetlink')?.getAttribute('href');
 
         this.mainResources = ['metal', 'crystal', 'deut', 'dm'];
         this.myPlanets = {};
-        this.total = [0,0,0,0];
-        this.onPlanet = [0,0,0,0];
-        this.prod = [0,0,0,0];
-        this.locked = [0,0,0,0];
-        this.flightResources = [0,0,0,0];
+        this.total = [0, 0, 0, 0];
+        this.onPlanet = [0, 0, 0, 0];
+        this.prod = [0, 0, 0, 0];
+        this.locked = [0, 0, 0, 0];
+        this.flightResources = [0, 0, 0, 0];
 
         let isGroup = false;
         let lastCoords, countGroup = 0;
 
-        document.querySelectorAll('.smallplanet').forEach(p =>
-        {
-            let coords = p.querySelector('.planetlink .planet-koords').textContent.slice(1,-1).split(':');
+        document.querySelectorAll('.smallplanet').forEach(p => {
+            let coords = p.querySelector('.planetlink .planet-koords').textContent.slice(1, -1).split(':');
 
-            if(lastCoords == coords[0] + ':' + coords[1])
-            {
+            if (lastCoords == coords[0] + ':' + coords[1]) {
                 p.setAttribute('data-multi', countGroup);
                 isGroup = true;
-            }
-            else
-            {
-                if(isGroup) countGroup++;
+            } else {
+                if (isGroup) countGroup++;
                 isGroup = false;
             }
 
@@ -11495,12 +10977,10 @@ class EmpireManager
 
         this.ogl.observeMutation(() => this.reloadEventbox(), 'eventbox');
 
-        new Promise(resolve =>
-        {
+        new Promise(resolve => {
             resolve(this.checkPlanetResources());
         })
-            .then(() =>
-            {
+            .then(() => {
                 this.checkLockedTechs();
                 this.checkStorage();
                 this.getEmpireData();
@@ -11508,7 +10988,7 @@ class EmpireManager
                 this.addStats();
                 this.checkCrawlers();
 
-                this.ogl.performances.push(['Empire',performance.now()]);
+                this.ogl.performances.push(['Empire', performance.now()]);
             });
 
         //this.checkPlanetResources();
@@ -11522,38 +11002,35 @@ class EmpireManager
     }
 
     // add planet "last refresh" timer
-    addTimers()
-    {
-        if(this.ogl.db.options.togglesOff.indexOf('timers') > -1) return;
+    addTimers() {
+        if (this.ogl.db.options.togglesOff.indexOf('timers') > -1) return;
 
         let now = serverTime.getTime();
         let currentCoords = this.ogl.current.coords.join(':');
 
-        if(!this.ogl.db.myActivities[currentCoords]) this.ogl.db.myActivities[currentCoords] = [0, 0];
+        if (!this.ogl.db.myActivities[currentCoords]) this.ogl.db.myActivities[currentCoords] = [0, 0];
 
         let planetActivity = this.ogl.db.myActivities[currentCoords][0];
         let moonActivity = this.ogl.db.myActivities[currentCoords][1];
 
-        if(this.ogl.current.type == 'moon') moonActivity = now;
+        if (this.ogl.current.type == 'moon') moonActivity = now;
         else planetActivity = now;
 
         this.ogl.db.myActivities[currentCoords] = [planetActivity, moonActivity];
 
-        document.querySelectorAll('.smallplanet').forEach(planet =>
-        {
+        document.querySelectorAll('.smallplanet').forEach(planet => {
             let coords = planet.querySelector('.planet-koords').textContent.slice(1, -1);
-            let timers = this.ogl.db.myActivities[coords] || [0,0];
+            let timers = this.ogl.db.myActivities[coords] || [0, 0];
 
-            let pt =  Math.min(Math.round((now - timers[0]) / 60000), 60);
-            let pTimer = planet.querySelector('.planetlink').appendChild(Util.createDom('div', {'class':'ogl_timer ogl_medium ogl_short', 'data-timer':pt}));
+            let pt = Math.min(Math.round((now - timers[0]) / 60000), 60);
+            let pTimer = planet.querySelector('.planetlink').appendChild(Util.createDom('div', {'class': 'ogl_timer ogl_medium ogl_short', 'data-timer': pt}));
 
             this.updateTimer(pTimer, timers[0]);
             setInterval(() => this.updateTimer(pTimer, timers[0]), 20000);
 
-            if(planet.querySelector('.moonlink'))
-            {
-                let mt =  Math.min(Math.round((now - timers[1]) / 60000), 60);
-                let mTimer = planet.querySelector('.moonlink').appendChild(Util.createDom('div', {'class':'ogl_timer ogl_medium ogl_short', 'data-timer':mt}));
+            if (planet.querySelector('.moonlink')) {
+                let mt = Math.min(Math.round((now - timers[1]) / 60000), 60);
+                let mTimer = planet.querySelector('.moonlink').appendChild(Util.createDom('div', {'class': 'ogl_timer ogl_medium ogl_short', 'data-timer': mt}));
 
                 this.updateTimer(mTimer, timers[1]);
                 setInterval(() => this.updateTimer(mTimer, timers[1]), 20000);
@@ -11561,21 +11038,19 @@ class EmpireManager
         });
     }
 
-    updateTimer(element, timer)
-    {
+    updateTimer(element, timer) {
         let time = Math.min(Math.round((serverTime.getTime() - timer) / 60000), 60);
 
-        if(time >= 15) element.classList.remove('ogl_short');
-        if(time >= 30) element.classList.remove('ogl_medium');
-        if(time >= 60) return;
+        if (time >= 15) element.classList.remove('ogl_short');
+        if (time >= 30) element.classList.remove('ogl_medium');
+        if (time >= 60) return;
 
         element.setAttribute('data-timer', time);
     }
 
-    checkPlanetResources()
-    {
+    checkPlanetResources() {
         let coords = this.ogl.current.coords.join(':');
-        if(this.ogl.current.type == 'moon') coords += ':M';
+        if (this.ogl.current.type == 'moon') coords += ':M';
 
         this.ogl.db.me.planets[coords] = this.ogl.db.me.planets[coords] || {};
         this.ogl.db.me.planets[coords].resources = this.ogl.db.me.planets[coords].resources || {};
@@ -11588,100 +11063,84 @@ class EmpireManager
         // this.ogl.saveAsync();
     }
 
-    checkMovement()
-    {
+    checkMovement() {
         // remove deleted / relocated planets
-        Object.keys(this.ogl.db.me.planets).forEach(k =>
-        {
-            if(!document.querySelector(`.smallplanet[data-coords="${k.replace(':M', '')}"]`))
-            {
+        Object.keys(this.ogl.db.me.planets).forEach(k => {
+            if (!document.querySelector(`.smallplanet[data-coords="${k.replace(':M', '')}"]`)) {
                 delete this.ogl.db.me.planets[k];
             }
         });
 
-        Object.entries(this.ogl.db.me.planets).forEach(planet =>
-        {
+        Object.entries(this.ogl.db.me.planets).forEach(planet => {
             let coords = planet[0];
 
             this.myPlanets[coords] = this.myPlanets[coords] || {};
-            this.myPlanets[coords].resources = this.ogl.db.me.planets[coords].resources || { metal:0, crystal:0, deut:0 };
-            this.myPlanets[coords].resourcesFlight = this.myPlanets[coords].resourcesFlight || { metal:0, crystal:0, deut:0 };
+            this.myPlanets[coords].resources = this.ogl.db.me.planets[coords].resources || {metal: 0, crystal: 0, deut: 0};
+            this.myPlanets[coords].resourcesFlight = this.myPlanets[coords].resourcesFlight || {metal: 0, crystal: 0, deut: 0};
             this.myPlanets[coords].ships = {};
             this.myPlanets[coords].shipsFlight = this.myPlanets[coords].shipsFlight || {};
             this.myPlanets[coords].opponentShips = this.myPlanets[coords].opponentShips || {};
             this.myPlanets[coords].missions = this.myPlanets[coords].missions || [];
 
-            this.ogl.db.me.planets[coords] = this.ogl.db.me.planets[coords] || { techs:{} };
+            this.ogl.db.me.planets[coords] = this.ogl.db.me.planets[coords] || {techs: {}};
             Object.keys(this.ogl.db.ships).forEach(ship => this.myPlanets[coords].ships[ship] = this.ogl.db.me.planets[coords].techs?.[ship] || 0);
         });
 
-        Util.getXML(`https://${window.location.host}/game/index.php?page=componentOnly&component=eventList&ajax=1`, result =>
-        {
+        Util.getXML(`https://${window.location.host}/game/index.php?page=componentOnly&component=eventList&ajax=1`, result => {
             let idList = [];
             let resourceKeys = ['metal', 'crystal', 'deut', 'food'];
 
-            result.querySelectorAll('.eventFleet').forEach(line =>
-            {
+            result.querySelectorAll('.eventFleet').forEach(line => {
                 let coords;
                 let coordsNode, isMoon;
                 let id = line.getAttribute('id').replace('eventRow-', '');
                 let mission = line.getAttribute('data-mission-type');
                 let back = line.getAttribute('data-return-flight') == 'false' ? false : true;
-                let fromAnotherPlayer = document.querySelector(`.smallplanet[data-coords="${line.querySelector('.coordsOrigin').textContent.trim().slice(1,-1)}"]`) ? false : true;
-                let toAnotherPlayer = document.querySelector(`.smallplanet[data-coords="${line.querySelector('.destCoords').textContent.trim().slice(1,-1)}"]`) ? false : true;
+                let fromAnotherPlayer = document.querySelector(`.smallplanet[data-coords="${line.querySelector('.coordsOrigin').textContent.trim().slice(1, -1)}"]`) ? false : true;
+                let toAnotherPlayer = document.querySelector(`.smallplanet[data-coords="${line.querySelector('.destCoords').textContent.trim().slice(1, -1)}"]`) ? false : true;
 
-                if((mission == '1' || mission == '6') && fromAnotherPlayer) // ennemy attacks and spies
+                if ((mission == '1' || mission == '6') && fromAnotherPlayer) // ennemy attacks and spies
                 {
                     coordsNode = line.querySelector('.destCoords');
                     isMoon = line.querySelector('.destFleet figure.moon');
-                }
-                else if((mission == '1' && back)    // attack
+                } else if ((mission == '1' && back)    // attack
                     || mission == '3'                   // transpo
                     || mission == '4'                   // deploy
                     || (mission == '7' && back)         // colo
                     || (mission == '8' && back)         // harvest
                     || (mission == '15' && back))       // expedition
                 {
-                    if(idList.indexOf(parseInt(id)) > -1) return;
-                    if(mission == '3' && !back) idList.push(parseInt(id) + 1);
+                    if (idList.indexOf(parseInt(id)) > -1) return;
+                    if (mission == '3' && !back) idList.push(parseInt(id) + 1);
 
-                    if(toAnotherPlayer || back)
-                    {
+                    if (toAnotherPlayer || back) {
                         coordsNode = line.querySelector('.coordsOrigin');
                         isMoon = line.querySelector('.originFleet figure.moon');
-                    }
-                    else
-                    {
+                    } else {
                         coordsNode = line.querySelector('.destCoords');
                         isMoon = line.querySelector('.destFleet figure.moon');
                     }
-                }
-                else return;
+                } else return;
 
-                coords = coordsNode.textContent.trim().slice(1,-1);
-                if(isMoon) coords += ':M';
+                coords = coordsNode.textContent.trim().slice(1, -1);
+                if (isMoon) coords += ':M';
 
                 this.myPlanets[coords] = this.myPlanets[coords] || {};
                 this.myPlanets[coords].missions.push(mission);
 
                 let tooltip = Util.createDom('div', {}, (line.querySelector('.icon_movement .tooltip') || line.querySelector('.icon_movement_reserve .tooltip')).getAttribute('title'));
-                tooltip.querySelectorAll('.fleetinfo tr').forEach(subline =>
-                {
-                    if(subline.textContent.trim() == '') subline.classList.add('ogl_hidden');
-                    else if(!subline.querySelector('td')) subline.classList.add('ogl_full');
-                    else
-                    {
+                tooltip.querySelectorAll('.fleetinfo tr').forEach(subline => {
+                    if (subline.textContent.trim() == '') subline.classList.add('ogl_hidden');
+                    else if (!subline.querySelector('td')) subline.classList.add('ogl_full');
+                    else {
                         let name = subline.querySelector('td').textContent.replace(':', '');
                         let shipID = (Object.entries(this.ogl.db.ships).find(e => e[1].name == name) || [false])[0];
                         let resourceName = resourceKeys.find(e => this.ogl.component.lang.getText(e) == name);
 
-                        if(shipID && shipID > -1 && subline.querySelector('.value'))
-                        {
-                            if((mission == '1' || mission == '6') && fromAnotherPlayer) this.myPlanets[coords].opponentShips[shipID] = (this.myPlanets[coords].opponentShips[shipID] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
-                            else if(!toAnotherPlayer || back) this.myPlanets[coords].shipsFlight[shipID] = (this.myPlanets[coords].shipsFlight[shipID] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
-                        }
-                        else if(resourceName && (!toAnotherPlayer || back))
-                        {
+                        if (shipID && shipID > -1 && subline.querySelector('.value')) {
+                            if ((mission == '1' || mission == '6') && fromAnotherPlayer) this.myPlanets[coords].opponentShips[shipID] = (this.myPlanets[coords].opponentShips[shipID] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
+                            else if (!toAnotherPlayer || back) this.myPlanets[coords].shipsFlight[shipID] = (this.myPlanets[coords].shipsFlight[shipID] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
+                        } else if (resourceName && (!toAnotherPlayer || back)) {
                             this.myPlanets[coords].resourcesFlight[resourceName] = (this.myPlanets[coords].resourcesFlight[resourceName] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
                         }
                     }
@@ -11689,72 +11148,66 @@ class EmpireManager
             });
 
             // fleet movements
-            Object.entries(this.myPlanets).forEach(entry =>
-            {
-                let content = Util.createDom('table', {'class':'ogl_inFlightTable'});
-                Object.entries(entry[1].shipsFlight).forEach(ship =>
-                {
+            Object.entries(this.myPlanets).forEach(entry => {
+                let content = Util.createDom('table', {'class': 'ogl_inFlightTable'});
+                Object.entries(entry[1].shipsFlight).forEach(ship => {
                     let tr = content.appendChild(Util.createDom('tr'));
-                    tr.appendChild(Util.createDom('td', {'class':`ogl_shipIcon ogl_${ship[0]}`}));
-                    tr.appendChild(Util.createDom('td', {'class':'value'}, Util.formatToUnits(ship[1])));
+                    tr.appendChild(Util.createDom('td', {'class': `ogl_shipIcon ogl_${ship[0]}`}));
+                    tr.appendChild(Util.createDom('td', {'class': 'value'}, Util.formatToUnits(ship[1])));
                 });
 
-                content.appendChild(Util.createDom('tr', {'class':'ogl_full'}));
+                content.appendChild(Util.createDom('tr', {'class': 'ogl_full'}));
 
-                Object.entries(entry[1].resourcesFlight).forEach(res =>
-                {
-                    let tr = content.appendChild(Util.createDom('tr', {'class':`ogl_${res[0]}`}));
-                    tr.appendChild(Util.createDom('td', {'class':`ogl_shipIcon ogl_${res[0]}`}));
-                    tr.appendChild(Util.createDom('td', {'class':`value`}, Util.formatToUnits(res[1] || '0')));
+                Object.entries(entry[1].resourcesFlight).forEach(res => {
+                    let tr = content.appendChild(Util.createDom('tr', {'class': `ogl_${res[0]}`}));
+                    tr.appendChild(Util.createDom('td', {'class': `ogl_shipIcon ogl_${res[0]}`}));
+                    tr.appendChild(Util.createDom('td', {'class': `value`}, Util.formatToUnits(res[1] || '0')));
                 });
 
                 content.appendChild(Util.createDom('hr'));
-                let missionsDiv = content.appendChild(Util.createDom('div', {'class':`ogl_missionList`}));
+                let missionsDiv = content.appendChild(Util.createDom('div', {'class': `ogl_missionList`}));
 
-                [...new Set(entry[1].missions)].forEach(missionID =>
-                {
+                [...new Set(entry[1].missions)].forEach(missionID => {
                     let occurences = entry[1].missions.filter(x => x === missionID).length;
-                    missionsDiv.appendChild(Util.createDom('div', {'data-mission-type':missionID, 'data-mission-occurence':`${occurences}`}));
+                    missionsDiv.appendChild(Util.createDom('div', {'data-mission-type': missionID, 'data-mission-occurence': `${occurences}`}));
                 });
 
-                let icon = document.querySelector(`.smallplanet[data-coords="${entry[0].replace(':M', '')}"]`).appendChild(Util.createDom('div', {'class':`ogl_missionType tooltipLeft ogl_inFlight ${entry[0].indexOf(':M') > 1 ? 'ogl_moonFleet' : 'ogl_planetFleet'}`, 'title':'loading'}));
+                let icon = document.querySelector(`.smallplanet[data-coords="${entry[0].replace(':M', '')}"]`).appendChild(Util.createDom('div', {
+                    'class': `ogl_missionType tooltipLeft ogl_inFlight ${entry[0].indexOf(':M') > 1 ? 'ogl_moonFleet' : 'ogl_planetFleet'}`,
+                    'title': 'loading'
+                }));
                 //if(Object.values(entry[1].resourcesFlight).reduce((previousValue, currentValue) => previousValue + currentValue) > 0) icon.classList.add('ogl_active');
 
                 icon.setAttribute('data-mission-type', (entry[1].missions || [0])[0] || 0);
 
-                if(document.querySelector(`.smallplanet[data-coords="${entry[0].replace(':M', '')}"] .alert`) && (entry[1].isAttacked || entry[1].isSpied))
-                {
+                if (document.querySelector(`.smallplanet[data-coords="${entry[0].replace(':M', '')}"] .alert`) && (entry[1].isAttacked || entry[1].isSpied)) {
                     document.querySelector(`.smallplanet[data-coords="${entry[0].replace(':M', '')}"] .alert`).remove();
                 }
 
-                icon.addEventListener('mouseenter', () =>
-                {
+                icon.addEventListener('mouseenter', () => {
                     this.ogl.component.tooltip.update(icon, content)
                 });
             });
 
             // resources summary
-            document.querySelectorAll('.smallplanet').forEach(planet =>
-            {
+            document.querySelectorAll('.smallplanet').forEach(planet => {
                 let coords = planet.querySelector('.planet-koords').textContent.slice(1, -1);
 
-                resourceKeys.forEach((resourceKey, index) =>
-                {
+                resourceKeys.forEach((resourceKey, index) => {
                     this.total[index] += this.ogl.db.me.planets[coords]?.resources[resourceKey] || 0;
-                    this.total[index] += this.ogl.db.me.planets[coords+':M']?.resources[resourceKey] || 0;
+                    this.total[index] += this.ogl.db.me.planets[coords + ':M']?.resources[resourceKey] || 0;
                     this.total[index] += this.myPlanets[coords]?.resourcesFlight[resourceKey] || 0;
-                    this.total[index] += this.myPlanets[coords+':M']?.resourcesFlight[resourceKey] || 0;
+                    this.total[index] += this.myPlanets[coords + ':M']?.resourcesFlight[resourceKey] || 0;
 
                     this.onPlanet[index] += this.ogl.db.me.planets[coords]?.resources[resourceKey] || 0;
-                    this.onPlanet[index] += this.ogl.db.me.planets[coords+':M']?.resources[resourceKey] || 0;
+                    this.onPlanet[index] += this.ogl.db.me.planets[coords + ':M']?.resources[resourceKey] || 0;
 
                     this.prod[index] += parseFloat(this.ogl.db.me.planets[coords]?.production?.[index]) || 0;
 
                     this.flightResources[index] += this.myPlanets[coords]?.resourcesFlight[resourceKey] || 0;
-                    this.flightResources[index] += this.myPlanets[coords+':M']?.resourcesFlight[resourceKey] || 0;
+                    this.flightResources[index] += this.myPlanets[coords + ':M']?.resourcesFlight[resourceKey] || 0;
 
-                    Object.values(this.ogl.db.lock?.[coords] || {}).forEach(lock =>
-                    {
+                    Object.values(this.ogl.db.lock?.[coords] || {}).forEach(lock => {
                         this.locked[index] += parseFloat(lock?.[resourceKey]) || 0;
                     });
                 });
@@ -11764,46 +11217,37 @@ class EmpireManager
 
             let displayIndex = 0;
 
-            this.resourceSum.addEventListener('click', () =>
-            {
-                displayIndex = displayIndex == 3 ?  0 : displayIndex + 1;
+            this.resourceSum.addEventListener('click', () => {
+                displayIndex = displayIndex == 3 ? 0 : displayIndex + 1;
                 this.resourceSum.classList.add('ogl_active');
                 selectDisplay();
             });
 
-            let selectDisplay = () =>
-            {
+            let selectDisplay = () => {
                 let target, icon;
 
-                if(displayIndex == 0)
-                {
+                if (displayIndex == 0) {
                     icon = 'functions';
                     target = this.total;
-                }
-                else if(displayIndex == 1)
-                {
+                } else if (displayIndex == 1) {
                     icon = 'send';
                     target = this.flightResources;
-                }
-                else if(displayIndex == 2)
-                {
+                } else if (displayIndex == 2) {
                     icon = 'public';
                     target = this.onPlanet;
-                }
-                else if(displayIndex == 3)
-                {
+                } else if (displayIndex == 3) {
                     icon = 'lock';
                     target = this.locked;
                 }
 
                 this.resourceSum.textContent = '';
-                this.resourceSum.appendChild(Util.createDom('i', {'class':'material-icons'}, icon));
-                this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_metal'}, Util.formatToUnits(target[0]) || '0'));
-                this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_sub ogl_metal'}, '+'+Util.formatToUnits(Math.round(this.prod[0]*24*3600), 0) || '+0'));
-                this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_crystal'}, Util.formatToUnits(target[1]) || '0'));
-                this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_sub ogl_crystal'}, '+'+Util.formatToUnits(Math.round(this.prod[1]*24*3600), 0) || '+0'));
-                this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_deut'}, Util.formatToUnits(target[2]) || '0'));
-                this.resourceSum.appendChild(Util.createDom('div', {'class':'ogl_sub ogl_deut'}, '+'+Util.formatToUnits(Math.round(this.prod[2]*24*3600), 0) || '+0'));
+                this.resourceSum.appendChild(Util.createDom('i', {'class': 'material-icons'}, icon));
+                this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_metal'}, Util.formatToUnits(target[0]) || '0'));
+                this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_sub ogl_metal'}, '+' + Util.formatToUnits(Math.round(this.prod[0] * 24 * 3600), 0) || '+0'));
+                this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_crystal'}, Util.formatToUnits(target[1]) || '0'));
+                this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_sub ogl_crystal'}, '+' + Util.formatToUnits(Math.round(this.prod[1] * 24 * 3600), 0) || '+0'));
+                this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_deut'}, Util.formatToUnits(target[2]) || '0'));
+                this.resourceSum.appendChild(Util.createDom('div', {'class': 'ogl_sub ogl_deut'}, '+' + Util.formatToUnits(Math.round(this.prod[2] * 24 * 3600), 0) || '+0'));
 
                 setTimeout(() => this.resourceSum.classList.remove('ogl_active'), 50);
             }
@@ -12048,21 +11492,18 @@ class EmpireManager
         });*/
     }
 
-    addStats(startDate, endDate)
-    {
-        if(this.ogl.db.options.togglesOff.indexOf('renta') > -1) return;
+    addStats(startDate, endDate) {
+        if (this.ogl.db.options.togglesOff.indexOf('renta') > -1) return;
 
-        if(this.ogl.db.stats.NaN) delete this.ogl.db.stats.NaN;
+        if (this.ogl.db.stats.NaN) delete this.ogl.db.stats.NaN;
 
         document.querySelector('.ogl_stats')?.remove();
 
         let entry = Object.keys(this.ogl.db.stats).sort()[0];
-        if(!isNaN(entry)) this.ogl.db.stats.firstEntry = entry;
+        if (!isNaN(entry)) this.ogl.db.stats.firstEntry = entry;
 
-        for (const [key, value] of Object.entries(this.ogl.db.stats))
-        {
-            if(Date.now() - key > 31 * 24 * 60 * 60 * 1000)
-            {
+        for (const [key, value] of Object.entries(this.ogl.db.stats)) {
+            if (Date.now() - key > 31 * 24 * 60 * 60 * 1000) {
                 delete this.ogl.db.stats[key];
             }
         }
@@ -12070,7 +11511,7 @@ class EmpireManager
         // this.ogl.saveAsync();
 
         startDate = startDate || Date.now() - this.ogl.db.options.dateFilter * 24 * 60 * 60 * 1000;
-        endDate = endDate  || Date.now();
+        endDate = endDate || Date.now();
 
         let days = Math.round((endDate - startDate) / 24 / 60 / 60 / 1000);
         let rangeDate = days;
@@ -12079,17 +11520,14 @@ class EmpireManager
         let raidOccurences = 0;
         let expeOccurences = 0;
 
-        if(startDate >= 0)
-        {
-            for(let i=0; i<days; i++)
-            {
+        if (startDate >= 0) {
+            for (let i = 0; i < days; i++) {
                 let date = new Date(endDate - i * 24 * 60 * 60 * 1000);
                 let midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0).getTime();
                 this.dailiesStats.push(this.ogl.db.stats[midnight] || false);
 
                 // fix
-                if(this.ogl.db.stats?.[midnight]?.raidOccuences)
-                {
+                if (this.ogl.db.stats?.[midnight]?.raidOccuences) {
                     this.ogl.db.stats[midnight].raidOccurences = (this.ogl.db.stats[midnight].raidOccurences || 0) + this.ogl.db.stats.total.raidOccuences;
                     delete this.ogl.db.stats[midnight].raidOccuences;
                 }
@@ -12097,12 +11535,9 @@ class EmpireManager
                 raidOccurences += this.ogl.db.stats?.[midnight]?.raidOccurences || 0;
                 expeOccurences += this.ogl.db.stats?.[midnight]?.expeOccurences && Object.values(this.ogl.db.stats?.[midnight]?.expeOccurences).length ? Object.values(this.ogl.db.stats?.[midnight]?.expeOccurences).reduce((a, b) => a + b) : 0;
             }
-        }
-        else
-        {
+        } else {
             // fix
-            if(this.ogl.db.stats?.total?.raidOccuences)
-            {
+            if (this.ogl.db.stats?.total?.raidOccuences) {
                 this.ogl.db.stats.total.raidOccurences = (this.ogl.db.stats.total.raidOccurences || 0) + this.ogl.db.stats.total.raidOccuences;
                 delete this.ogl.db.stats.total.raidOccuences;
             }
@@ -12117,44 +11552,38 @@ class EmpireManager
         }
 
 
-
-        let cumul = { metal:0, crystal:0, deut:0, dm:0 };
-        let cumulExpe = { metal:0, crystal:0, deut:0, dm:0 };
-        let cumulRaid = { metal:0, crystal:0, deut:0, dm:0 };
+        let cumul = {metal: 0, crystal: 0, deut: 0, dm: 0};
+        let cumulExpe = {metal: 0, crystal: 0, deut: 0, dm: 0};
+        let cumulRaid = {metal: 0, crystal: 0, deut: 0, dm: 0};
         let cumulConso = 0;
         let cumulExpeOccurences = {};
         let emptyData = true;
 
-        Object.values(this.dailiesStats).forEach(daily =>
-        {
-            if(!daily || (!daily.raid && !daily.expe)) return;
+        Object.values(this.dailiesStats).forEach(daily => {
+            if (!daily || (!daily.raid && !daily.expe)) return;
 
-            if(emptyData) emptyData = false;
+            if (emptyData) emptyData = false;
 
-            ['metal','crystal','deut','dm',202,203,204,205,206,207,208,209,210,211,213,214,215,218,219].forEach(id =>
-            {
+            ['metal', 'crystal', 'deut', 'dm', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 218, 219].forEach(id => {
                 cumul[id] = parseInt(cumul[id]) || 0;
-                if(isNaN(id)) cumulRaid[id] = parseInt(cumulRaid[id]) || 0;
+                if (isNaN(id)) cumulRaid[id] = parseInt(cumulRaid[id]) || 0;
                 cumulExpe[id] = parseInt(cumulExpe[id]) || 0;
 
                 let dayRaidValue = parseInt(daily?.raid?.[id]) || 0;
                 let dayExpeValue = parseInt(daily?.expe?.[id]) || 0;
 
                 // raids
-                if(dayRaidValue && isNaN(id))
-                {
+                if (dayRaidValue && isNaN(id)) {
                     cumul[id] = cumul[id] + dayRaidValue;
                     cumulRaid[id] = cumulRaid[id] + dayRaidValue;
                 }
 
                 // expeditions
-                if(dayExpeValue)
-                {
+                if (dayExpeValue) {
                     cumul[id] = cumul[id] + dayExpeValue;
                     cumulExpe[id] = cumulExpe[id] + dayExpeValue;
 
-                    if(!isNaN(id) && this.ogl.db.options.togglesOff.indexOf('ignoreExpeShips') > -1)
-                    {
+                    if (!isNaN(id) && this.ogl.db.options.togglesOff.indexOf('ignoreExpeShips') > -1) {
                         let shipData = Datafinder.getTech(id);
 
                         cumul.metal = (cumul.metal || 0) + (shipData.metal || 0) * dayExpeValue;
@@ -12170,51 +11599,45 @@ class EmpireManager
 
             cumulConso += daily.consumption || 0;
 
-            if(daily.expeOccurences)
-            {
-                for(let k of Object.keys(daily.expeOccurences))
-                {
+            if (daily.expeOccurences) {
+                for (let k of Object.keys(daily.expeOccurences)) {
                     cumulExpeOccurences[k] = (cumulExpeOccurences[k] || 0) + (daily?.expeOccurences?.[k] || 0);
                 }
             }
         });
 
-        if(this.ogl.db.options.togglesOff.indexOf('ignoreConsumption') == -1) cumulConso = 0;
+        if (this.ogl.db.options.togglesOff.indexOf('ignoreConsumption') == -1) cumulConso = 0;
 
-        let dom = document.querySelector('#links').appendChild(Util.createDom('div', {'class':'ogl_stats'}));
-        ['metal', 'crystal', 'deut', 'dm'].forEach(res =>
-        {
+        let dom = document.querySelector('#links').appendChild(Util.createDom('div', {'class': 'ogl_stats'}));
+        ['metal', 'crystal', 'deut', 'dm'].forEach(res => {
             let line = dom.appendChild(Util.createDom('div'));
-            line.appendChild(Util.createDom('div', {'class':`ogl_shipIcon ogl_${res}`}));
-            line.appendChild(Util.createDom('div', {'class':`number ogl_${res}`}, Util.formatToUnits((res == 'deut' ? cumul[res]+cumulConso : cumul[res]) || '0')));
+            line.appendChild(Util.createDom('div', {'class': `ogl_shipIcon ogl_${res}`}));
+            line.appendChild(Util.createDom('div', {'class': `number ogl_${res}`}, Util.formatToUnits((res == 'deut' ? cumul[res] + cumulConso : cumul[res]) || '0')));
         });
 
-        dom.appendChild(Util.createDom('div', {'class':'ogl_labelLimit'}, Math.floor(rangeDate) + LocalizationStrings.timeunits.short.day));
+        dom.appendChild(Util.createDom('div', {'class': 'ogl_labelLimit'}, Math.floor(rangeDate) + LocalizationStrings.timeunits.short.day));
 
-        let more = dom.appendChild(Util.createDom('button', {'class':'ogl_button material-icons tooltip ogl_moreStats', 'title':this.ogl.component.lang.getText('moreStats')}, 'open_in_full'));
-        more.addEventListener('click', () =>
-        {
+        let more = dom.appendChild(Util.createDom('button', {'class': 'ogl_button material-icons tooltip ogl_moreStats', 'title': this.ogl.component.lang.getText('moreStats')}, 'open_in_full'));
+        more.addEventListener('click', () => {
             this.ogl.component.popup.load();
 
-            let container = Util.createDom('div', {'class':'ogl_statsDetails'});
-            let dateArea = container.appendChild(Util.createDom('div', {'class':'ogl_dateArea'}));
-            let mainArea = container.appendChild(Util.createDom('div', {'class':'ogl_mainArea'}));
+            let container = Util.createDom('div', {'class': 'ogl_statsDetails'});
+            let dateArea = container.appendChild(Util.createDom('div', {'class': 'ogl_dateArea'}));
+            let mainArea = container.appendChild(Util.createDom('div', {'class': 'ogl_mainArea'}));
 
             let today = new Date();
-            today.setHours(0,0,0,0);
+            today.setHours(0, 0, 0, 0);
 
             let currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
             let currentDay = today.getDate();
             let prevMonthLength = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0).getDate();
-            let monthLength = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 0).getDate();
+            let monthLength = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
 
             let filterDiv = dateArea.appendChild(Util.createDom('div'));
-            [1, 7, 14, 30, 40000].forEach(filter =>
-            {
-                let button = filterDiv.appendChild(Util.createDom('div', {'class':''}, filter.toString().replace(/^1$/, 'today').replace(/^7$/, '7d').replace(/^14$/, '14d').replace(/^30$/, '30d').replace('40000', 'all')));
-                if(this.ogl.db.options.dateFilter == filter) button.classList.add('ogl_active');
-                button.addEventListener('click', () =>
-                {
+            [1, 7, 14, 30, 40000].forEach(filter => {
+                let button = filterDiv.appendChild(Util.createDom('div', {'class': ''}, filter.toString().replace(/^1$/, 'today').replace(/^7$/, '7d').replace(/^14$/, '14d').replace(/^30$/, '30d').replace('40000', 'all')));
+                if (this.ogl.db.options.dateFilter == filter) button.classList.add('ogl_active');
+                button.addEventListener('click', () => {
                     this.ogl.db.options.dateFilter = filter;
                     this.addStats(Date.now() - filter * 24 * 60 * 60 * 1000, Date.now());
                     document.querySelector('.ogl_stats .ogl_moreStats').click();
@@ -12224,37 +11647,34 @@ class EmpireManager
 
             // 1 - 31 days grid
             let dayDiv = dateArea.appendChild(Util.createDom('div'));
-            for(let i=currentDay; i>currentDay-31; i--)
-            {
+            for (let i = currentDay; i > currentDay - 31; i--) {
                 let totalSum = 0;
                 let timestamp = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i, 0, 0, 0).getTime();
                 let dateDiff = today.getDate() - i;
-                let btn = Util.createDom('div', {'class':'ogl_button'}, i > 0 ? i : prevMonthLength+i);
+                let btn = Util.createDom('div', {'class': 'ogl_button'}, i > 0 ? i : prevMonthLength + i);
                 dayDiv.prepend(btn);
 
-                if(timestamp === today.getTime()) btn.classList.add('ogl_today');
-                if(timestamp >= startDate && timestamp < endDate) btn.classList.add('ogl_active');
+                if (timestamp === today.getTime()) btn.classList.add('ogl_today');
+                if (timestamp >= startDate && timestamp < endDate) btn.classList.add('ogl_active');
 
-                if(this.ogl.db.stats[timestamp])
-                {
+                if (this.ogl.db.stats[timestamp]) {
                     let raidSum, expeSum = 0;
 
-                    if(this.ogl.db.stats[timestamp].raid) raidSum = Object.values(this.ogl.db.stats[timestamp].raid).reduce((sum, a) => sum + a, 0);
-                    if(this.ogl.db.stats[timestamp].expe) expeSum = Object.values(this.ogl.db.stats[timestamp].expe).reduce((sum, a) => sum + a, 0);
+                    if (this.ogl.db.stats[timestamp].raid) raidSum = Object.values(this.ogl.db.stats[timestamp].raid).reduce((sum, a) => sum + a, 0);
+                    if (this.ogl.db.stats[timestamp].expe) expeSum = Object.values(this.ogl.db.stats[timestamp].expe).reduce((sum, a) => sum + a, 0);
 
                     totalSum = raidSum + expeSum;
                 }
 
-                if(totalSum == 0) btn.classList.add('ogl_disabled');
+                if (totalSum == 0) btn.classList.add('ogl_disabled');
 
-                btn.addEventListener('click', () =>
-                {
+                btn.addEventListener('click', () => {
                     this.addStats(Date.now() - (dateDiff + 1) * 24 * 60 * 60 * 1000, Date.now() - (dateDiff) * 24 * 60 * 60 * 1000);
                     document.querySelector('.ogl_stats .ogl_moreStats').click();
                 });
             }
 
-            let calendarIcon = Util.createDom('i', {'class':'material-icons ogl_calendarIcon'}, 'date_range');
+            let calendarIcon = Util.createDom('i', {'class': 'material-icons ogl_calendarIcon'}, 'date_range');
             dayDiv.prepend(calendarIcon);
 
             //if(this.daysOpen) dayDiv.classList.remove('ogl_hidden');
@@ -12266,105 +11686,92 @@ class EmpireManager
                 this.daysOpen = !dayDiv.classList.contains('ogl_hidden');
             });*/
 
-            let tables = mainArea.appendChild(Util.createDom('div', {'class':'ogl_statsTables'}));
-            let recap = mainArea.appendChild(Util.createDom('div', {'class':'ogl_statsRecap tooltip', 'title':Util.formatToUnits(cumul.metal + cumul.crystal + cumul.deut)}));
+            let tables = mainArea.appendChild(Util.createDom('div', {'class': 'ogl_statsTables'}));
+            let recap = mainArea.appendChild(Util.createDom('div', {'class': 'ogl_statsRecap tooltip', 'title': Util.formatToUnits(cumul.metal + cumul.crystal + cumul.deut)}));
             recap.appendChild(Util.createDom('div', {}, 'Total'));
-            this.mainResources.forEach(res =>
-            {
-                let div = recap.appendChild(Util.createDom('div', {'class':`ogl_${res}`}, Util.formatToUnits(cumul[res] || '0')));
-                if(res == 'deut' && cumulConso) div.appendChild(Util.createDom('div', {'class':`ogl_${res}`}, Util.formatToUnits(cumulConso)));
+            this.mainResources.forEach(res => {
+                let div = recap.appendChild(Util.createDom('div', {'class': `ogl_${res}`}, Util.formatToUnits(cumul[res] || '0')));
+                if (res == 'deut' && cumulConso) div.appendChild(Util.createDom('div', {'class': `ogl_${res}`}, Util.formatToUnits(cumulConso)));
             });
 
-            let firstCol = tables.appendChild(Util.createDom('span', {'class':'ogl_statsColumn'}));
+            let firstCol = tables.appendChild(Util.createDom('span', {'class': 'ogl_statsColumn'}));
 
-            let chartArea = firstCol.appendChild(Util.createDom('span', {'class':'ogl_chartArea', 'data-html2canvas-ignore':true}));
-            let chart = chartArea.appendChild(Util.createDom('span', {'class':'ogl_pie'}));
-            let labels = chartArea.appendChild(Util.createDom('span', {'class':'ogl_pieLabel'}))
-            let dataSum = Object.values(cumulExpeOccurences).reduce((a,b) => b>0 ? a+b : a+0, 0);
+            let chartArea = firstCol.appendChild(Util.createDom('span', {'class': 'ogl_chartArea', 'data-html2canvas-ignore': true}));
+            let chart = chartArea.appendChild(Util.createDom('span', {'class': 'ogl_pie'}));
+            let labels = chartArea.appendChild(Util.createDom('span', {'class': 'ogl_pieLabel'}))
+            let dataSum = Object.values(cumulExpeOccurences).reduce((a, b) => b > 0 ? a + b : a + 0, 0);
             let pieStats = Object.entries(cumulExpeOccurences).sort((a, b) => a[0].localeCompare(b[0])).map(x => (1 / (dataSum / x[1]) * 100));
             let gradient = '';
             let sum = 0;
             let colors = ['#e64a19', '#19bd9b', '#f9a825', '#64648b', '#c52b51', '#05abc3', '#c5ced3'];
 
-            pieStats.forEach((v, index) =>
-            {
-                gradient += `${colors[index]} ${Math.max(sum, 0)||0}%, ${colors[index]} ${Math.max(sum + v, 0)||0}%, `;
+            pieStats.forEach((v, index) => {
+                gradient += `${colors[index]} ${Math.max(sum, 0) || 0}%, ${colors[index]} ${Math.max(sum + v, 0) || 0}%, `;
                 sum += v;
 
-                if(index == pieStats.length-1 && (isNaN(sum) || sum < 0)) gradient = '';
+                if (index == pieStats.length - 1 && (isNaN(sum) || sum < 0)) gradient = '';
             });
 
             chart.style.background = `conic-gradient(${gradient}#000)`;
 
-            Object.entries(cumulExpeOccurences).sort((a, b) => a[0].localeCompare(b[0])).forEach((e, index) =>
-            {
-                if(e[0] == 'none') e[0] = 'other';
+            Object.entries(cumulExpeOccurences).sort((a, b) => a[0].localeCompare(b[0])).forEach((e, index) => {
+                if (e[0] == 'none') e[0] = 'other';
 
                 let label = labels.appendChild(Util.createDom('span', {}, `<span>${this.ogl.component.lang.getText(e[0])}</span><span>${Util.formatToUnits(Math.max(0, e[1]))}</span><b>${Math.max(0, pieStats[index].toFixed(2)) || 0}%</b>`));
-                label.prepend(Util.createDom('span', {'style':'background:'+colors[index]}));
+                label.prepend(Util.createDom('span', {'style': 'background:' + colors[index]}));
             });
 
-            let shipsArea = firstCol.appendChild(Util.createDom('span', {'class':'ogl_shipsArea', 'data-html2canvas-ignore':true}));
+            let shipsArea = firstCol.appendChild(Util.createDom('span', {'class': 'ogl_shipsArea', 'data-html2canvas-ignore': true}));
             let expeArea = firstCol.appendChild(Util.createDom('div'));
 
-            for (const [key, value] of Object.entries(cumulExpe))
-            {
-                if(!this.mainResources.includes(key))
-                {
-                    let entry = shipsArea.appendChild(Util.createDom('div', {'class':'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
-                    if(value < 0) entry.classList.add('ogl_danger');
+            for (const [key, value] of Object.entries(cumulExpe)) {
+                if (!this.mainResources.includes(key)) {
+                    let entry = shipsArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
+                    if (value < 0) entry.classList.add('ogl_danger');
                 }
             }
 
             let withWithout = this.ogl.db.options.togglesOff.indexOf('ignoreExpeShips') == -1 ? 's/' : 'c/';
             expeArea.appendChild(Util.createDom('h3', {}, `Expedições (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut) / expeOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut))}">${Util.formatNumber(expeOccurences)}</u>) ${withWithout} naves`));
-            for (const [key, value] of Object.entries(cumulExpe))
-            {
-                if(this.mainResources.includes(key))
-                {
-                    let entry = expeArea.appendChild(Util.createDom('div', {'class':'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
-                    if(value < 0) entry.classList.add('ogl_danger');
+            for (const [key, value] of Object.entries(cumulExpe)) {
+                if (this.mainResources.includes(key)) {
+                    let entry = expeArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
+                    if (value < 0) entry.classList.add('ogl_danger');
                 }
             }
 
             let raidArea = firstCol.appendChild(Util.createDom('div'));
             raidArea.appendChild(Util.createDom('h3', {}, `Combates (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut) / raidOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut))}">${Util.formatNumber(raidOccurences)}</u>)`));
-            for (const [key, value] of Object.entries(cumulRaid))
-            {
-                raidArea.appendChild(Util.createDom('div', {'class':'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
+            for (const [key, value] of Object.entries(cumulRaid)) {
+                raidArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
             }
 
             raidArea.appendChild(Util.createDom('h3', {}, 'ø / dia'));
-            for (const [key, value] of Object.entries(cumul))
-            {
-                if(this.mainResources.includes(key)) raidArea.appendChild(Util.createDom('div', {'class':'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(Math.round(value/rangeDate))}</div>`));
+            for (const [key, value] of Object.entries(cumul)) {
+                if (this.mainResources.includes(key)) raidArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(Math.round(value / rangeDate))}</div>`));
             }
 
             raidArea.appendChild(Util.createDom('h3', {}, 'ø + prod  / dia'));
-            for (const [key, value] of Object.entries(cumul))
-            {
-                if(this.mainResources.includes(key))
-                {
-                    let resIndex =  key == 'metal' ? '0' : key == 'crystal' ? '1' : '2';
+            for (const [key, value] of Object.entries(cumul)) {
+                if (this.mainResources.includes(key)) {
+                    let resIndex = key == 'metal' ? '0' : key == 'crystal' ? '1' : '2';
                     let totalRes = parseInt(this.ogl.account.totalProd[resIndex]);
 
-                    if(key == 'dm') raidArea.appendChild(Util.createDom('div', {'class':'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(Math.round(value/rangeDate))}</div>`));
-                    else if(isNaN(key)) raidArea.appendChild(Util.createDom('div', {'class':'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(Math.round(parseFloat(value)/rangeDate) + totalRes*24*3600)}</div>`));
+                    if (key == 'dm') raidArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(Math.round(value / rangeDate))}</div>`));
+                    else if (isNaN(key)) raidArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(Math.round(parseFloat(value) / rangeDate) + totalRes * 24 * 3600)}</div>`));
                 }
             }
 
-            if(!sum || emptyData)
-            {
+            if (!sum || emptyData) {
                 chartArea.classList.add('ogl_hidden');
                 shipsArea.classList.add('ogl_hidden');
                 expeArea.classList.add('ogl_hidden');
 
-                if(emptyData) raidArea.classList.add('ogl_hidden');
+                if (emptyData) raidArea.classList.add('ogl_hidden');
             }
 
-            let shareButton = Util.createDom('div', {'class':'ogl_button'}, '<i class="material-icons">file_download</i>Download (.jpg)');
-            shareButton.addEventListener('click', () =>
-            {
+            let shareButton = Util.createDom('div', {'class': 'ogl_button'}, '<i class="material-icons">file_download</i>Download (.jpg)');
+            shareButton.addEventListener('click', () => {
                 shareButton.textContent = 'loading...';
                 shareButton.classList.add('ogl_disabled');
 
@@ -12374,49 +11781,45 @@ class EmpireManager
                 Util.takeScreenshot(container, shareButton, `ogl_${this.ogl.universe.name}_${this.ogl.universe.lang}_stats_${serverTime.getTime()}`);
             });
 
-            this.ogl.component.popup.open(container, () =>
-            {
+            this.ogl.component.popup.open(container, () => {
                 this.ogl.component.popup.content.appendChild(shareButton);
             });
         });
 
-        let blackholeButton = dom.appendChild(Util.createDom('button', {'class':'ogl_button material-icons tooltip', 'title':this.ogl.component.lang.getText('signalBlackhole')}, 'sentiment_very_dissatisfied'));
-        blackholeButton.addEventListener('click', () =>
-        {
+        let blackholeButton = dom.appendChild(Util.createDom('button', {
+            'class': 'ogl_button material-icons tooltip',
+            'title': this.ogl.component.lang.getText('signalBlackhole')
+        }, 'sentiment_very_dissatisfied'));
+        blackholeButton.addEventListener('click', () => {
             this.ogl.component.popup.load();
 
             let date = new Date();
             let midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0).getTime();
 
-            let container = Util.createDom('div', {'class':'ogl_blackHole'});
-            [202,203,204,205,206,207,208,209,210,211,213,214,215,218,219].forEach(shipID =>
-            {
+            let container = Util.createDom('div', {'class': 'ogl_blackHole'});
+            [202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 218, 219].forEach(shipID => {
                 let content = container.appendChild(Util.createDom('div'));
-                content.appendChild(Util.createDom('div', {'class':'ogl_shipIcon ogl_'+shipID+' tooltipUp', 'data-title': this.ogl.component.lang.getText('ship'+shipID)}));
-                content.appendChild(Util.createDom('input', {'type':'text', 'class':'ogl_checkInput', 'data-ship':shipID}));
+                content.appendChild(Util.createDom('div', {'class': 'ogl_shipIcon ogl_' + shipID + ' tooltipUp', 'data-title': this.ogl.component.lang.getText('ship' + shipID)}));
+                content.appendChild(Util.createDom('input', {'type': 'text', 'class': 'ogl_checkInput', 'data-ship': shipID}));
             });
 
-            let confirmButton = Util.createDom('div', {'class':'ogl_button'}, 'OK');
-            confirmButton.addEventListener('click', () =>
-            {
-                if(confirm('Do you really want to add this black hole ?'))
-                {
+            let confirmButton = Util.createDom('div', {'class': 'ogl_button'}, 'OK');
+            confirmButton.addEventListener('click', () => {
+                if (confirm('Do you really want to add this black hole ?')) {
                     let result = {};
-                    container.querySelectorAll('input').forEach(input =>
-                    {
+                    container.querySelectorAll('input').forEach(input => {
                         let shipID = parseInt(input.getAttribute('data-ship'));
                         let amount = parseInt(input.value.replace(/[\,\. ]/g, ''));
-                        if(!isNaN(shipID) && !isNaN(amount)) result[shipID] = amount;
+                        if (!isNaN(shipID) && !isNaN(amount)) result[shipID] = amount;
                     });
 
-                    this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || { idList:[], expe:{}, raid:{}, expeOccurences:{}, raidOccurences:0, consumption:0 };
+                    this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
                     this.ogl.db.stats[midnight].expe = this.ogl.db.stats[midnight].expe || {};
                     this.ogl.db.stats.total.expe = this.ogl.db.stats.total.expe || {};
                     this.ogl.db.stats[midnight].expeOccurences = this.ogl.db.stats[midnight].expeOccurences || {};
                     this.ogl.db.stats.total.expeOccurences = this.ogl.db.stats.total.expeOccurences || {};
 
-                    for(let [k,v] of Object.entries(result))
-                    {
+                    for (let [k, v] of Object.entries(result)) {
                         this.ogl.db.stats[midnight].expe[k] = (this.ogl.db.stats[midnight].expe?.[k] || 0) - v;
                         this.ogl.db.stats.total.expe[k] = (this.ogl.db.stats.total.expe?.[k] || 0) - v;
                     }
@@ -12429,8 +11832,7 @@ class EmpireManager
                 }
             });
 
-            this.ogl.component.popup.open(container, () =>
-            {
+            this.ogl.component.popup.open(container, () => {
                 this.ogl.component.popup.content.appendChild(confirmButton);
             });
         });
@@ -12448,20 +11850,18 @@ class EmpireManager
         */
     }
 
-    addCalendar(startDate, endDate)
-    {
-        let domElement = Util.createDom('div', {'class':'ogl_calendar'});
+    addCalendar(startDate, endDate) {
+        let domElement = Util.createDom('div', {'class': 'ogl_calendar'});
 
         // Liste des jours de la semaine
         let dayList = [];
-        for(let i=0; i<7; i++)
-        {
-            dayList.push(new Date(24*60*60*1000*(4+i)).toLocaleString('en-EN', {weekday:'long'}));
+        for (let i = 0; i < 7; i++) {
+            dayList.push(new Date(24 * 60 * 60 * 1000 * (4 + i)).toLocaleString('en-EN', {weekday: 'long'}));
         }
 
         // Date actuelle
         let today = new Date();
-        today.setHours(0,0,0,0);
+        today.setHours(0, 0, 0, 0);
 
         // Mois actuel
         let currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -12471,61 +11871,54 @@ class EmpireManager
         domElement.appendChild(content);
 
         // Création des cellules contenant le jour de la semaine
-        for(let i=0; i<dayList.length; i++)
-        {
-            content.appendChild(Util.createDom('span', {'class':'cell day'}, dayList[i].substring(0, 3).toUpperCase()));
+        for (let i = 0; i < dayList.length; i++) {
+            content.appendChild(Util.createDom('span', {'class': 'cell day'}, dayList[i].substring(0, 3).toUpperCase()));
         }
 
         // Création des cellules vides si nécessaire
-        for(let i=1; i<currentMonth.getDay(); i++)
-        {
-            content.appendChild(Util.createDom('div', {'class':'cell empty'}));
+        for (let i = 1; i < currentMonth.getDay(); i++) {
+            content.appendChild(Util.createDom('div', {'class': 'cell empty'}));
         }
 
         // Nombre de jour dans le mois affiché
-        let monthLength = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 0).getDate();
+        let monthLength = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
 
         // Création des cellules contenant les jours du mois affiché
-        for(let i=1; i<=monthLength; i++)
-        {
-            let cell = content.appendChild(Util.createDom('span', {'class':'cell'}, i));
+        for (let i = 1; i <= monthLength; i++) {
+            let cell = content.appendChild(Util.createDom('span', {'class': 'cell'}, i));
 
             // Timestamp de la cellule
             let timestamp = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i, 0, 0, 0).getTime();
 
             // Ajoute une classe spéciale pour aujourd'hui
-            if(timestamp === today.getTime()) cell.classList.add('ogl_today');
+            if (timestamp === today.getTime()) cell.classList.add('ogl_today');
             else if (timestamp > today.getTime()) cell.classList.add('ogl_disabled');
 
-            if(timestamp >= startDate && timestamp < endDate)
-            {
+            if (timestamp >= startDate && timestamp < endDate) {
                 cell.classList.add('ogl_active');
             }
 
-            if(timestamp - 24 * 60 * 60 * 1000 <= startDate && timestamp >= startDate && !content.querySelector('.ogl_firstDate')) cell.classList.add('ogl_firstDate');
-            if(timestamp + 24 * 60 * 60 * 1000 >= endDate && !content.querySelector('.ogl_lastDate')) cell.classList.add('ogl_lastDate');
+            if (timestamp - 24 * 60 * 60 * 1000 <= startDate && timestamp >= startDate && !content.querySelector('.ogl_firstDate')) cell.classList.add('ogl_firstDate');
+            if (timestamp + 24 * 60 * 60 * 1000 >= endDate && !content.querySelector('.ogl_lastDate')) cell.classList.add('ogl_lastDate');
 
             let dateDiff = today.getDate() - i;
             let total = 0;
 
-            if(this.ogl.db.stats[timestamp])
-            {
-                let raids = Object.keys(this.ogl.db.stats?.[timestamp]?.raid || {}).length ? Object.values(this.ogl.db.stats?.[timestamp]?.raid || {a:0}).reduce((a, b) => a + b) : 0;
-                let expes = Object.keys(this.ogl.db.stats?.[timestamp]?.expe || {}).length ? Object.values(this.ogl.db.stats?.[timestamp]?.expe || {a:0}).reduce((a, b) => a + b) : 0;
+            if (this.ogl.db.stats[timestamp]) {
+                let raids = Object.keys(this.ogl.db.stats?.[timestamp]?.raid || {}).length ? Object.values(this.ogl.db.stats?.[timestamp]?.raid || {a: 0}).reduce((a, b) => a + b) : 0;
+                let expes = Object.keys(this.ogl.db.stats?.[timestamp]?.expe || {}).length ? Object.values(this.ogl.db.stats?.[timestamp]?.expe || {a: 0}).reduce((a, b) => a + b) : 0;
                 total = raids + expes;
             }
 
-            if(total == 0) cell.classList.add('ogl_disabled');
+            if (total == 0) cell.classList.add('ogl_disabled');
 
-            cell.addEventListener('click', () =>
-            {
+            cell.addEventListener('click', () => {
                 this.addStats(Date.now() - (dateDiff + 1) * 24 * 60 * 60 * 1000, Date.now() - (dateDiff) * 24 * 60 * 60 * 1000);
                 document.querySelector('.ogl_stats .ogl_moreStats').click();
             });
         }
 
-        if(!content.querySelector('.ogl_firstDate') && content.querySelector('.cell.empty'))
-        {
+        if (!content.querySelector('.ogl_firstDate') && content.querySelector('.cell.empty')) {
             content.querySelector('.cell.empty:last-of-type').classList.add('ogl_disabled');
             content.querySelector('.cell.empty:last-of-type').classList.add('ogl_beforeDate');
         }
@@ -12533,8 +11926,7 @@ class EmpireManager
         return domElement;
     }
 
-    lockTech(tech)
-    {
+    lockTech(tech) {
         let coords = this.ogl.current.coords.join(':');
         tech.onMoon = this.ogl.current.type == 'moon';
 
@@ -12546,94 +11938,80 @@ class EmpireManager
         this.checkLockedTechs();
     }
 
-    checkLockedTechs(refresh, noSub)
-    {
+    checkLockedTechs(refresh, noSub) {
         let coords = this.ogl.current.coords.join(':');
         let pageList = ['supplies', 'facilities', 'research', 'shipyard', 'defenses', 'lfbuildings', 'lfresearch'];
 
-        if(pageList.indexOf(this.ogl.page) > -1 && this.ogl.db.lock?.[coords])
-        {
-            Object.keys(this.ogl.db.lock[coords]).forEach(key =>
-            {
-                if(this.ogl.db.lock[coords][key] && key.indexOf(this.ogl.current.type) > -1)
-                {
-                    if(this.ogl.db.lock[coords][key].level <= parseInt(document.querySelector(`[data-technology="${this.ogl.db.lock[coords][key].id}"] .targetlevel`)?.getAttribute('data-value') || document.querySelector(`[data-technology="${this.ogl.db.lock[coords][key].id}"] .level`)?.getAttribute('data-value') || 0))
-                    {
-                        delete(this.ogl.db.lock[coords][key]);
+        if (pageList.indexOf(this.ogl.page) > -1 && this.ogl.db.lock?.[coords]) {
+            Object.keys(this.ogl.db.lock[coords]).forEach(key => {
+                if (this.ogl.db.lock[coords][key] && key.indexOf(this.ogl.current.type) > -1) {
+                    if (this.ogl.db.lock[coords][key].level <= parseInt(document.querySelector(`[data-technology="${this.ogl.db.lock[coords][key].id}"] .targetlevel`)?.getAttribute('data-value') || document.querySelector(`[data-technology="${this.ogl.db.lock[coords][key].id}"] .level`)?.getAttribute('data-value') || 0)) {
+                        delete (this.ogl.db.lock[coords][key]);
                     }
                 }
             });
         }
 
-        document.querySelectorAll('.smallplanet').forEach(planet =>
-        {
+        document.querySelectorAll('.smallplanet').forEach(planet => {
             planet.querySelector('.ogl_lockedIcon') && planet.querySelector('.ogl_lockedIcon').remove();
 
             let coords = planet.querySelector('.planet-koords').textContent.slice(1, -1);
 
-            if(this.ogl.db.lock?.[coords] && Object.entries(this.ogl.db.lock[coords]).length > 0)
-            {
-                let button = planet.appendChild(Util.createDom('div', {'class':'ogl_lockedIcon material-icons tooltipLeft'}, 'lock'));
+            if (this.ogl.db.lock?.[coords] && Object.entries(this.ogl.db.lock[coords]).length > 0) {
+                let button = planet.appendChild(Util.createDom('div', {'class': 'ogl_lockedIcon material-icons tooltipLeft'}, 'lock'));
 
-                let tooltipCumul = [0,0,0];
+                let tooltipCumul = [0, 0, 0];
                 let isReady = false;
 
-                for(let tech of Object.values(this.ogl.db.lock[coords]))
-                {
+                for (let tech of Object.values(this.ogl.db.lock[coords])) {
                     tooltipCumul[0] += tech.metal;
                     tooltipCumul[1] += tech.crystal;
                     tooltipCumul[2] += tech.deut;
 
-                    if(tech.metal == 0 && tech.crystal == 0 && tech.deut == 0) isReady = true;
+                    if (tech.metal == 0 && tech.crystal == 0 && tech.deut == 0) isReady = true;
                 }
 
-                if(isReady) button.classList.add('ogl_ok');
+                if (isReady) button.classList.add('ogl_ok');
 
                 button.title = 'Locked' + '<div class="splitLine"></div>';
-                ['metal','crystal','deut'].forEach((res, index) =>
-                {
+                ['metal', 'crystal', 'deut'].forEach((res, index) => {
                     let resName = this.ogl.component.lang.getText(res);
                     button.title += `<div>${resName}:&nbsp;<span class="ogl_${res} float_right">${Util.formatToUnits(tooltipCumul[index])}</span></div>`;
                 });
 
-                button.addEventListener('click', () =>
-                {
+                button.addEventListener('click', () => {
                     this.ogl.component.popup.load();
 
-                    if(!noSub)
-                    {
+                    if (!noSub) {
                         this.availableResources = [(this.ogl.db.me?.planets?.[coords]?.resources?.metal || 0), (this.ogl.db.me?.planets?.[coords]?.resources?.crystal || 0), (this.ogl.db.me?.planets?.[coords]?.resources?.deut || 0)];
                     }
 
-                    let container = Util.createDom('div', {'class':'ogl_lockPopup'});
-                    let planetContainer = container.appendChild(Util.createDom('div', {'class':'ogl_lockedContainer'}));
-                    let moonContainer = container.appendChild(Util.createDom('div', {'class':'ogl_lockedContainer'}));
+                    let container = Util.createDom('div', {'class': 'ogl_lockPopup'});
+                    let planetContainer = container.appendChild(Util.createDom('div', {'class': 'ogl_lockedContainer'}));
+                    let moonContainer = container.appendChild(Util.createDom('div', {'class': 'ogl_lockedContainer'}));
 
                     let cumul = [0, 0, 0, 0, 0, 0];
 
-                    for(let tech of Object.values(this.ogl.db.lock[coords]))
-                    {
+                    for (let tech of Object.values(this.ogl.db.lock[coords])) {
                         let targetContainer = tech.onMoon ? moonContainer : planetContainer;
                         targetContainer.appendChild(Util.createDom('span', {}, tech.name));
                         targetContainer.appendChild(Util.createDom('i', {}, tech.amount > 1 ? tech.amount : tech.level));
-                        targetContainer.appendChild(Util.createDom('b', {'class':'ogl_metal'}, Util.formatToUnits(tech.metal)));
-                        targetContainer.appendChild(Util.createDom('b', {'class':'ogl_crystal'}, Util.formatToUnits(tech.crystal)));
-                        targetContainer.appendChild(Util.createDom('b', {'class':'ogl_deut'}, Util.formatToUnits(tech.deut)));
+                        targetContainer.appendChild(Util.createDom('b', {'class': 'ogl_metal'}, Util.formatToUnits(tech.metal)));
+                        targetContainer.appendChild(Util.createDom('b', {'class': 'ogl_crystal'}, Util.formatToUnits(tech.crystal)));
+                        targetContainer.appendChild(Util.createDom('b', {'class': 'ogl_deut'}, Util.formatToUnits(tech.deut)));
 
-                        let substract = targetContainer.appendChild(Util.createDom('b', {'class':'material-icons'}, 'remove'));
+                        let substract = targetContainer.appendChild(Util.createDom('b', {'class': 'material-icons'}, 'remove'));
 
-                        if(this.availableResources[0] <= 0 && this.availableResources[1] <= 0 && this.availableResources[2] <= 0)
-                        {
+                        if (this.availableResources[0] <= 0 && this.availableResources[1] <= 0 && this.availableResources[2] <= 0) {
                             substract.classList.add('ogl_disabled');
                         }
 
-                        substract.addEventListener('click', () =>
-                        {
+                        substract.addEventListener('click', () => {
                             let key = `${tech.id}_${tech.level}_${tech.onMoon ? 'moon' : 'planet'}`;
 
-                            if(this.availableResources[0] > 0) this.ogl.db.lock[coords][key].metal = Math.max(tech.metal - (this.ogl.db.me?.planets?.[coords]?.resources?.metal || 0), 0);
-                            if(this.availableResources[1] > 0) this.ogl.db.lock[coords][key].crystal = Math.max(tech.crystal - (this.ogl.db.me?.planets?.[coords]?.resources?.crystal || 0), 0);
-                            if(this.availableResources[2] > 0) this.ogl.db.lock[coords][key].deut = Math.max(tech.deut - (this.ogl.db.me?.planets?.[coords]?.resources?.deut || 0), 0);
+                            if (this.availableResources[0] > 0) this.ogl.db.lock[coords][key].metal = Math.max(tech.metal - (this.ogl.db.me?.planets?.[coords]?.resources?.metal || 0), 0);
+                            if (this.availableResources[1] > 0) this.ogl.db.lock[coords][key].crystal = Math.max(tech.crystal - (this.ogl.db.me?.planets?.[coords]?.resources?.crystal || 0), 0);
+                            if (this.availableResources[2] > 0) this.ogl.db.lock[coords][key].deut = Math.max(tech.deut - (this.ogl.db.me?.planets?.[coords]?.resources?.deut || 0), 0);
 
                             this.availableResources[0] -= tech.metal;
                             this.availableResources[1] -= tech.crystal;
@@ -12644,9 +12022,8 @@ class EmpireManager
                             this.checkLockedTechs(coords, true);
                         });
 
-                        let send = targetContainer.appendChild(Util.createDom('b', {'class':'material-icons'}, 'local_shipping'));
-                        send.addEventListener('click', () =>
-                        {
+                        let send = targetContainer.appendChild(Util.createDom('b', {'class': 'material-icons'}, 'local_shipping'));
+                        send.addEventListener('click', () => {
                             this.ogl.db.lockedList = [];
                             this.ogl.db.lockedList.push(`${tech.id}_${tech.level}_${tech.onMoon ? 'moon' : 'planet'}`);
                             this.ogl.save();
@@ -12655,9 +12032,8 @@ class EmpireManager
                             Util.redirect(`https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&ogl_mode=3&galaxy=${splitted[0]}&system=${splitted[1]}&position=${splitted[2]}&mission=${this.ogl.db.options.defaultMission}&type=${tech.onMoon ? 3 : 1}`, this.ogl);
                         });
 
-                        let remove = targetContainer.appendChild(Util.createDom('b', {'class':'material-icons'}, 'close'));
-                        remove.addEventListener('click', () =>
-                        {
+                        let remove = targetContainer.appendChild(Util.createDom('b', {'class': 'material-icons'}, 'close'));
+                        remove.addEventListener('click', () => {
                             delete this.ogl.db.lock[coords][`${tech.id}_${tech.level}_${!tech.onMoon ? 'planet' : 'moon'}`];
                             // this.ogl.saveAsync();
                             this.ogl.component.popup.close();
@@ -12670,27 +12046,23 @@ class EmpireManager
                         cumul[2 + offset] += tech.deut;
                     }
 
-                    ['planet', 'moon'].forEach(e =>
-                    {
+                    ['planet', 'moon'].forEach(e => {
                         let headerContainer = e == 'planet' ? planetContainer : moonContainer;
                         let offset = e == 'planet' ? 0 : 3;
 
-                        headerContainer.appendChild(Util.createDom('span', {'class':'ogl_header'}, 'Total ' + e));
-                        headerContainer.appendChild(Util.createDom('i', {'class':'ogl_header'}, '&nbsp;'));
-                        headerContainer.appendChild(Util.createDom('b', {'class':'ogl_header ogl_metal'}, Util.formatToUnits(cumul[0 + offset])));
-                        headerContainer.appendChild(Util.createDom('b', {'class':'ogl_header ogl_crystal'}, Util.formatToUnits(cumul[1 + offset])));
-                        headerContainer.appendChild(Util.createDom('b', {'class':'ogl_header ogl_deut'}, Util.formatToUnits(cumul[2 + offset])));
-                        headerContainer.appendChild(Util.createDom('i', {'class':'ogl_header'}, '&nbsp;'));
+                        headerContainer.appendChild(Util.createDom('span', {'class': 'ogl_header'}, 'Total ' + e));
+                        headerContainer.appendChild(Util.createDom('i', {'class': 'ogl_header'}, '&nbsp;'));
+                        headerContainer.appendChild(Util.createDom('b', {'class': 'ogl_header ogl_metal'}, Util.formatToUnits(cumul[0 + offset])));
+                        headerContainer.appendChild(Util.createDom('b', {'class': 'ogl_header ogl_crystal'}, Util.formatToUnits(cumul[1 + offset])));
+                        headerContainer.appendChild(Util.createDom('b', {'class': 'ogl_header ogl_deut'}, Util.formatToUnits(cumul[2 + offset])));
+                        headerContainer.appendChild(Util.createDom('i', {'class': 'ogl_header'}, '&nbsp;'));
 
-                        let send = headerContainer.appendChild(Util.createDom('b', {'class':'ogl_header material-icons'}, 'local_shipping'));
-                        send.addEventListener('click', () =>
-                        {
+                        let send = headerContainer.appendChild(Util.createDom('b', {'class': 'ogl_header material-icons'}, 'local_shipping'));
+                        send.addEventListener('click', () => {
                             this.ogl.db.lockedList = [];
 
-                            for(let tech of Object.values(this.ogl.db.lock[coords]))
-                            {
-                                if(this.ogl.db.lock[coords][`${tech.id}_${tech.level}_${e}`])
-                                {
+                            for (let tech of Object.values(this.ogl.db.lock[coords])) {
+                                if (this.ogl.db.lock[coords][`${tech.id}_${tech.level}_${e}`]) {
                                     this.ogl.db.lockedList.push(`${tech.id}_${tech.level}_${e}`);
                                     this.ogl.save();
 
@@ -12700,12 +12072,10 @@ class EmpireManager
                             }
                         });
 
-                        let remove = headerContainer.appendChild(Util.createDom('b', {'class':'ogl_header material-icons'}, 'close'));
-                        remove.addEventListener('click', () =>
-                        {
-                            for(let tech of Object.values(this.ogl.db.lock[coords]))
-                            {
-                                if(this.ogl.db.lock[coords][`${tech.id}_${tech.level}_${e}`]) delete this.ogl.db.lock[coords][`${tech.id}_${tech.level}_${e}`];
+                        let remove = headerContainer.appendChild(Util.createDom('b', {'class': 'ogl_header material-icons'}, 'close'));
+                        remove.addEventListener('click', () => {
+                            for (let tech of Object.values(this.ogl.db.lock[coords])) {
+                                if (this.ogl.db.lock[coords][`${tech.id}_${tech.level}_${e}`]) delete this.ogl.db.lock[coords][`${tech.id}_${tech.level}_${e}`];
                             }
 
                             // this.ogl.saveAsync();
@@ -12717,24 +12087,22 @@ class EmpireManager
                     this.ogl.component.popup.open(container);
                 });
 
-                if(refresh && refresh == coords) button.click();
+                if (refresh && refresh == coords) button.click();
             }
         });
     }
 
-    checkStorage()
-    {
-        if(this.ogl.current.type == 'moon') return;
+    checkStorage() {
+        if (this.ogl.current.type == 'moon') return;
 
         let storage =
             {
-                'metal' : resourcesBar.resources.metal.storage,
-                'crystal' : resourcesBar.resources.crystal.storage,
-                'deut' : resourcesBar.resources.deuterium.storage,
+                'metal': resourcesBar.resources.metal.storage,
+                'crystal': resourcesBar.resources.crystal.storage,
+                'deut': resourcesBar.resources.deuterium.storage,
             };
 
-        ['metal', 'crystal', 'deut'].forEach(res =>
-        {
+        ['metal', 'crystal', 'deut'].forEach(res => {
             let prod = resourcesBar.resources[res.replace('deut', 'deuterium')].tooltip.replace(/\./g, '').match(/\d+/g)[2];
             let timeLeft = prod > 0 ? Math.floor((storage[res] - this.ogl.current[res]) / prod) || 0 : 0;
             let day = Math.max(0, Math.floor(timeLeft / 24));
@@ -12742,91 +12110,80 @@ class EmpireManager
 
             let box = document.querySelector(`#${res.replace('deut', 'deuterium')}_box`);
             let text = day > 365 ? `> 365${LocalizationStrings.timeunits.short.day}` : `${day}${LocalizationStrings.timeunits.short.day}<br>${hour}${LocalizationStrings.timeunits.short.hour}`;
-            box.querySelector('.resourceIcon').appendChild(Util.createDom('div', {'class':'ogl_storage'}, text));
+            box.querySelector('.resourceIcon').appendChild(Util.createDom('div', {'class': 'ogl_storage'}, text));
         });
     }
 
-    checkCrawlers()
-    {
-        if(this.ogl.current.type == 'planet' && (this.ogl.page == 'supplies' || this.ogl.page == 'shipyard'))
-        {
+    checkCrawlers() {
+        if (this.ogl.current.type == 'planet' && (this.ogl.page == 'supplies' || this.ogl.page == 'shipyard')) {
             let currentCoords = this.ogl.current.coords.join(':');
 
             let maxCrawler = ((this.ogl.db.me.planets?.[currentCoords]?.techs?.[1] || 0) + (this.ogl.db.me.planets?.[currentCoords]?.techs?.[2] || 0) + (this.ogl.db.me.planets?.[currentCoords]?.techs?.[3] || 0)) * 8;
-            if(document.querySelector('#officers .geologist.on') && this.ogl.account.class == 1) maxCrawler += maxCrawler * .1;
-            document.querySelector('.technology[data-technology="217"] .amount span').appendChild(Util.createDom('span', {'class':'ogl_maxCrawler'}, ` / ${Util.formatNumber(Math.floor(maxCrawler))}`));
+            if (document.querySelector('#officers .geologist.on') && this.ogl.account.class == 1) maxCrawler += maxCrawler * .1;
+            document.querySelector('.technology[data-technology="217"] .amount span').appendChild(Util.createDom('span', {'class': 'ogl_maxCrawler'}, ` / ${Util.formatNumber(Math.floor(maxCrawler))}`));
         }
     }
 
-    getEmpireData(forced)
-    {
+    getEmpireData(forced) {
         let now = Date.now();
 
-        if(now > this.ogl.db.lastEmpireUpdate + 300000 || forced) // update every 5 mn
+        if (now > this.ogl.db.lastEmpireUpdate + 300000 || forced) // update every 5 mn
         {
             let stacks = 0;
             let maxLoop = document.querySelector('.smallplanet .moonlink') ? 2 : 1;
 
-            for(let i=0; i<maxLoop; i++)
-            {
+            for (let i = 0; i < maxLoop; i++) {
                 $.ajax(
                     {
-                        url:`https://${window.location.host}/game/index.php?page=ajax&component=empire&ajax=1&asJson=1&planetType=${i}`,
-                        type:'GET',
-                        dataType:'json',
-                        success:result =>
-                        {
+                        url: `https://${window.location.host}/game/index.php?page=ajax&component=empire&ajax=1&asJson=1&planetType=${i}`,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: result => {
                             let data = JSON.parse(result.mergedArray).planets;
-                            if(!data) return;
+                            if (!data) return;
 
-                            Object.values(data).forEach(p =>
-                            {
-                                let stockDiv = Util.createDom('div', {'class':'ogl_stock'});
+                            Object.values(data).forEach(p => {
+                                let stockDiv = Util.createDom('div', {'class': 'ogl_stock'});
                                 let coords = p.coordinates.slice(1, -1);
 
-                                if(p.type != 1) coords += ':M';
+                                if (p.type != 1) coords += ':M';
 
                                 let currentPlanetCoords = this.ogl.current.coords.join(':');
-                                if(this.ogl.current.type == 'moon') currentPlanetCoords += ':M';
+                                if (this.ogl.current.type == 'moon') currentPlanetCoords += ':M';
 
-                                this.ogl.db.me.planets[coords] = this.ogl.db.me.planets[coords] || { techs:{} };
+                                this.ogl.db.me.planets[coords] = this.ogl.db.me.planets[coords] || {techs: {}};
                                 this.ogl.db.me.planets[coords].techs = this.ogl.db.me.planets[coords].techs || {};
                                 this.ogl.db.me.planets[coords].resources = this.ogl.db.me.planets[coords].resources || {};
                                 this.ogl.db.me.planets[coords].production = this.ogl.db.me.planets[coords].production || [];
                                 this.ogl.db.me.planets[coords].storage = (this.ogl.db.me.planets[coords].storage?.constructor?.name == 'array' ? {} : this.ogl.db.me.planets[coords].storage) || {};
 
-                                Object.keys(p).forEach(k =>
-                                {
-                                    if(!isNaN(k))
-                                    {
+                                Object.keys(p).forEach(k => {
+                                    if (!isNaN(k)) {
                                         this.ogl.db.me.planets[coords].techs[k] = p[k];
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         // resources
-                                        if(k == 'metal' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.metal = p[k];
-                                        else if(k == 'crystal' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.crystal = p[k];
-                                        else if(k == 'deuterium' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.deut = p[k];
-                                        else if(k == 'food' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.food = p[k];
-                                        else if(k == 'population' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.population = p[k];
+                                        if (k == 'metal' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.metal = p[k];
+                                        else if (k == 'crystal' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.crystal = p[k];
+                                        else if (k == 'deuterium' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.deut = p[k];
+                                        else if (k == 'food' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.food = p[k];
+                                        else if (k == 'population' && coords != currentPlanetCoords) this.ogl.db.me.planets[coords].resources.population = p[k];
                                         // storage
-                                        else if(k == 'metalStorage') this.ogl.db.me.planets[coords].storage.metal = p[k];
-                                        else if(k == 'crystalStorage') this.ogl.db.me.planets[coords].storage.crystal = p[k];
-                                        else if(k == 'deuteriumStorage') this.ogl.db.me.planets[coords].storage.deut = p[k];
-                                        else if(k == 'foodStorage') this.ogl.db.me.planets[coords].storage.food = p[k];
-                                        else if(k == 'populationStorage') this.ogl.db.me.planets[coords].storage.population = p[k];
+                                        else if (k == 'metalStorage') this.ogl.db.me.planets[coords].storage.metal = p[k];
+                                        else if (k == 'crystalStorage') this.ogl.db.me.planets[coords].storage.crystal = p[k];
+                                        else if (k == 'deuteriumStorage') this.ogl.db.me.planets[coords].storage.deut = p[k];
+                                        else if (k == 'foodStorage') this.ogl.db.me.planets[coords].storage.food = p[k];
+                                        else if (k == 'populationStorage') this.ogl.db.me.planets[coords].storage.population = p[k];
                                         // production
-                                        else if(k == 'production')
-                                        {
-                                            this.ogl.db.me.planets[coords].production[0] = (p[k].hourly[0]/ 3600).toFixed(2);
-                                            this.ogl.db.me.planets[coords].production[1] = (p[k].hourly[1]/ 3600).toFixed(2);
-                                            this.ogl.db.me.planets[coords].production[2] = (p[k].hourly[2]/ 3600).toFixed(2);
+                                        else if (k == 'production') {
+                                            this.ogl.db.me.planets[coords].production[0] = (p[k].hourly[0] / 3600).toFixed(2);
+                                            this.ogl.db.me.planets[coords].production[1] = (p[k].hourly[1] / 3600).toFixed(2);
+                                            this.ogl.db.me.planets[coords].production[2] = (p[k].hourly[2] / 3600).toFixed(2);
                                             this.ogl.db.me.planets[coords].production[3] = serverTime.getTime();
                                         }
                                         // other
-                                        else if(k == 'fieldUsed') this.ogl.db.me.planets[coords].fieldUsed = p[k];
-                                        else if(k == 'fieldMax') this.ogl.db.me.planets[coords].fieldMax = p[k];
-                                        else if(k == 'temperature') this.ogl.db.me.planets[coords].temperature = p[k].match(/[-+]?[0-9]*\.?[0-9]+/g)[1];
+                                        else if (k == 'fieldUsed') this.ogl.db.me.planets[coords].fieldUsed = p[k];
+                                        else if (k == 'fieldMax') this.ogl.db.me.planets[coords].fieldMax = p[k];
+                                        else if (k == 'temperature') this.ogl.db.me.planets[coords].temperature = p[k].match(/[-+]?[0-9]*\.?[0-9]+/g)[1];
                                     }
                                 });
 
@@ -12834,45 +12191,39 @@ class EmpireManager
                                 let targetID = i != 1 ? p.id : p.planetID;
                                 let target = document.querySelector(`.smallplanet[id="planet-${targetID}"] .${targetType}`);
 
-                                ['metal', 'crystal', 'deut'].forEach(res =>
-                                {
+                                ['metal', 'crystal', 'deut'].forEach(res => {
                                     let storage = this.ogl.db.me.planets?.[coords]?.storage?.[res];
                                     let amount = this.ogl.db.me.planets[coords].resources[res];
-                                    let line = stockDiv.appendChild(Util.createDom('div', {'class':`ogl_${res}`}, Util.formatToUnits(amount)));
+                                    let line = stockDiv.appendChild(Util.createDom('div', {'class': `ogl_${res}`}, Util.formatToUnits(amount)));
 
-                                    if(storage && amount >= storage && i != 1) line.classList.add('ogl_full');
+                                    if (storage && amount >= storage && i != 1) line.classList.add('ogl_full');
                                 });
 
                                 target.querySelector('.ogl_stock').innerHTML = stockDiv.innerHTML;
                             });
 
                             stacks++;
-                            if(stacks == maxLoop)
-                            {
+                            if (stacks == maxLoop) {
                                 this.ogl.db.lastEmpireUpdate = now;
                                 this.ogl.saveAsync();
                             }
                         }
                     });
             }
-        }
-        else setTimeout(() => this.getEmpireData(true), 60000);
+        } else setTimeout(() => this.getEmpireData(true), 60000);
     }
 
-    reloadEventbox()
-    {
-        if(document.querySelector('#eventboxContent h2 .ogl_button') || !document.querySelector('#eventboxContent h2')) return;
+    reloadEventbox() {
+        if (document.querySelector('#eventboxContent h2 .ogl_button') || !document.querySelector('#eventboxContent h2')) return;
 
-        let button = document.querySelector('#eventboxContent h2').appendChild(Util.createDom('div', {'class':'ogl_button material-icons'}, 'refresh'));
-        button.addEventListener('click', () =>
-        {
-            if(document.querySelector('#eventboxContent #eventContent').querySelector('.ogl_loader')) return;
+        let button = document.querySelector('#eventboxContent h2').appendChild(Util.createDom('div', {'class': 'ogl_button material-icons'}, 'refresh'));
+        button.addEventListener('click', () => {
+            if (document.querySelector('#eventboxContent #eventContent').querySelector('.ogl_loader')) return;
 
             document.querySelector('#eventboxContent #eventContent').textContent = '';
-            document.querySelector('#eventboxContent #eventContent').appendChild(Util.createDom('div', {'class':'ogl_loader'}));
+            document.querySelector('#eventboxContent #eventContent').appendChild(Util.createDom('div', {'class': 'ogl_loader'}));
 
-            Util.getRaw(eventlistLink, result =>
-            {
+            Util.getRaw(eventlistLink, result => {
                 $("#eventboxContent").html(result);
                 toggleEvents.loaded = true;
             });
@@ -12880,90 +12231,2724 @@ class EmpireManager
     }
 }
 
-class Datafinder
-{
-    static getTech(id)
-    {
+class Datafinder {
+    static getTech(id) {
         let tech =
             {
                 // base
-                1 : { priceFactor:1.5 },
-                2 : { priceFactor:1.6 },
-                3 : { priceFactor:1.5 },
-                4 : { priceFactor:1.5 },
-                12 : { priceFactor:1.8 },
-                33 : { energyFactor:2 },
-                36 : { priceFactor:5, energyFactor:2.5 },
-                124 : { priceFactor:1.75 },
-                199 : { priceFactor:3, energyFactor:3 },
+                1: {priceFactor: 1.5},
+                2: {priceFactor: 1.6},
+                3: {priceFactor: 1.5},
+                4: {priceFactor: 1.5},
+                12: {priceFactor: 1.8},
+                33: {energyFactor: 2},
+                36: {priceFactor: 5, energyFactor: 2.5},
+                124: {priceFactor: 1.75},
+                199: {priceFactor: 3, energyFactor: 3},
 
                 // ship
-                202: { metal:2000,      crystal:2000,       deut:0 },
-                203: { metal:6000,      crystal:6000,       deut:0 },
-                204: { metal:3000,      crystal:1000,       deut:0 },
-                205: { metal:6000,      crystal:4000,       deut:0 },
-                206: { metal:20000,     crystal:7000,       deut:2000 },
-                207: { metal:45000,     crystal:15000,      deut:0 },
-                208: { metal:10000,     crystal:20000,      deut:10000 },
-                209: { metal:10000,     crystal:6000,       deut:2000 },
-                210: {  crystal:1000,       deut:0 },
-                211: { metal:50000,     crystal:25000,      deut:15000 },
-                212: { metal:0,         crystal:2000,       deut:500 },
-                213: { metal:60000,     crystal:50000,      deut:15000 },
-                214: { metal:5000000,   crystal:4000000,    deut:1000000 },
-                215: { metal:30000,     crystal:40000,      deut:15000 },
-                217: { metal:2000,      crystal:2000,       deut:1000 },
-                218: { metal:85000,     crystal:55000,      deut:20000 },
-                219: { metal:8000,      crystal:15000,      deut:8000 },
+                202: {metal: 2000, crystal: 2000, deut: 0},
+                203: {metal: 6000, crystal: 6000, deut: 0},
+                204: {metal: 3000, crystal: 1000, deut: 0},
+                205: {metal: 6000, crystal: 4000, deut: 0},
+                206: {metal: 20000, crystal: 7000, deut: 2000},
+                207: {metal: 45000, crystal: 15000, deut: 0},
+                208: {metal: 10000, crystal: 20000, deut: 10000},
+                209: {metal: 10000, crystal: 6000, deut: 2000},
+                210: {crystal: 1000, deut: 0},
+                211: {metal: 50000, crystal: 25000, deut: 15000},
+                212: {metal: 0, crystal: 2000, deut: 500},
+                213: {metal: 60000, crystal: 50000, deut: 15000},
+                214: {metal: 5000000, crystal: 4000000, deut: 1000000},
+                215: {metal: 30000, crystal: 40000, deut: 15000},
+                217: {metal: 2000, crystal: 2000, deut: 1000},
+                218: {metal: 85000, crystal: 55000, deut: 20000},
+                219: {metal: 8000, crystal: 15000, deut: 8000},
 
                 // def
-                401: { metal:2000,  crystal:0,      deut:0 },
-                402: { metal:1500,  crystal:500,    deut:0 },
-                403: { metal:6000,  crystal:2000,   deut:0 },
-                404: { metal:20000, crystal:15000,  deut:2000 },
-                405: { metal:5000,  crystal:3000,   deut:0 },
-                406: { metal:50000, crystal:50000,  deut:30000 },
-                407: { metal:10000, crystal:10000,  deut:0 },
-                408: { metal:50000, crystal:50000,  deut:0 },
+                401: {metal: 2000, crystal: 0, deut: 0},
+                402: {metal: 1500, crystal: 500, deut: 0},
+                403: {metal: 6000, crystal: 2000, deut: 0},
+                404: {metal: 20000, crystal: 15000, deut: 2000},
+                405: {metal: 5000, crystal: 3000, deut: 0},
+                406: {metal: 50000, crystal: 50000, deut: 30000},
+                407: {metal: 10000, crystal: 10000, deut: 0},
+                408: {metal: 50000, crystal: 50000, deut: 0},
 
                 // lifeforms
-                "11101":{"name":"Residential Sector","type":"Building","lifeform":"Human","metal":7,"crystal":2,"deut":0,"energy":"","priceFactor":1.2,"energyFactor":"","baseBonus1":210,"factorBonus1":1.21,"maxBonus1":"","baseBonus2":16,"factorBonus2":1.2,"maxBonus2":"","baseBonus3":9,"factorBonus3":1.15,"maxBonus3":"","durationFactor":1.21,"duration":40},"11102":{"name":"Biosphere Farm","type":"Building","lifeform":"Human","metal":5,"crystal":2,"deut":0,"energy":8,"priceFactor":1.23,"energyFactor":1.02,"baseBonus1":10,"factorBonus1":1.15,"maxBonus1":"","baseBonus2":10,"factorBonus2":1.14,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.25,"duration":40},"11103":{"name":"Research Centre","type":"Building","lifeform":"Human","metal":20000,"crystal":25000,"deut":10000,"energy":10,"priceFactor":1.3,"energyFactor":1.08,"baseBonus1":0.25,"factorBonus1":1,"maxBonus1":0.25,"baseBonus2":2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.25,"duration":16000},"11104":{"name":"Academy of Sciences","type":"Building","lifeform":"Human","metal":5000,"crystal":3200,"deut":1500,"energy":15,"priceFactor":1.7,"energyFactor":1.25,"baseBonus1":20000000,"factorBonus1":1.1,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.6,"duration":16000},"11105":{"name":"Neuro-Calibration Centre","type":"Building","lifeform":"Human","metal":50000,"crystal":40000,"deut":50000,"energy":30,"priceFactor":1.7,"energyFactor":1.25,"baseBonus1":100000000,"factorBonus1":1.1,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.7,"duration":64000},"11106":{"name":"High Energy Smelting","type":"Building","lifeform":"Human","metal":9000,"crystal":6000,"deut":3000,"energy":40,"priceFactor":1.5,"energyFactor":1.1,"baseBonus1":1.5,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":2000},"11107":{"name":"Food Silo","type":"Building","lifeform":"Human","metal":25000,"crystal":13000,"deut":7000,"energy":"","priceFactor":1.09,"energyFactor":"","baseBonus1":1,"factorBonus1":1,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":0.8,"baseBonus3":0.8,"factorBonus3":1,"maxBonus3":"","durationFactor":1.17,"duration":12000},"11108":{"name":"Fusion-Powered Production","type":"Building","lifeform":"Human","metal":50000,"crystal":25000,"deut":15000,"energy":80,"priceFactor":1.5,"energyFactor":1.1,"baseBonus1":1.5,"factorBonus1":1,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":28000},"11109":{"name":"Skyscraper","type":"Building","lifeform":"Human","metal":75000,"crystal":20000,"deut":25000,"energy":50,"priceFactor":1.09,"energyFactor":1.02,"baseBonus1":1.5,"factorBonus1":1,"maxBonus1":"","baseBonus2":1.5,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":40000},"11110":{"name":"Biotech Lab","type":"Building","lifeform":"Human","metal":150000,"crystal":30000,"deut":15000,"energy":60,"priceFactor":1.12,"energyFactor":1.03,"baseBonus1":5,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":52000},"11111":{"name":"Metropolis","type":"Building","lifeform":"Human","metal":80000,"crystal":35000,"deut":60000,"energy":90,"priceFactor":1.5,"energyFactor":1.05,"baseBonus1":0.5,"factorBonus1":1,"maxBonus1":1,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":90000},"11112":{"name":"Planetary Shield","type":"Building","lifeform":"Human","metal":250000,"crystal":125000,"deut":125000,"energy":100,"priceFactor":1.2,"energyFactor":1.02,"baseBonus1":1.5,"factorBonus1":1,"maxBonus1":0.8,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":95000},"11201":{"name":"Intergalactic Envoys","type":"Tech 1","lifeform":"Human","metal":5000,"crystal":2500,"deut":500,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":1,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":1000},"11202":{"name":"High-Performance Extractors","type":"Tech 2","lifeform":"Human","metal":7000,"crystal":10000,"deut":5000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.06,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":2000},"11203":{"name":"Fusion Drives","type":"Tech 3","lifeform":"Human","metal":15000,"crystal":10000,"deut":5000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.5,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":2500},"11204":{"name":"Stealth Field Generator","type":"Tech 4","lifeform":"Human","metal":20000,"crystal":15000,"deut":7500,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":3500},"11205":{"name":"Orbital Den","type":"Tech 5","lifeform":"Human","metal":25000,"crystal":20000,"deut":10000,"energy":"","priceFactor":1.4,"energyFactor":"","baseBonus1":4,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":4500},"11206":{"name":"Research AI","type":"Tech 6","lifeform":"Human","metal":35000,"crystal":25000,"deut":15000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.99,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":5000},"11207":{"name":"High-Performance Terraformer","type":"Tech 7","lifeform":"Human","metal":70000,"crystal":40000,"deut":20000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":8000},"11208":{"name":"Enhanced Production Technologies","type":"Tech 8","lifeform":"Human","metal":80000,"crystal":50000,"deut":20000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.06,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":6000},"11209":{"name":"Light Fighter Mk II","type":"Tech 9","lifeform":"Human","metal":320000,"crystal":240000,"deut":100000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":6500},"11210":{"name":"Cruiser Mk II","type":"Tech 10","lifeform":"Human","metal":320000,"crystal":240000,"deut":100000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":7000},"11211":{"name":"Improved Lab Technology","type":"Tech 11","lifeform":"Human","metal":120000,"crystal":30000,"deut":25000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.99,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":7500},"11212":{"name":"Plasma Terraformer","type":"Tech 12","lifeform":"Human","metal":100000,"crystal":40000,"deut":30000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":10000},"11213":{"name":"Low-Temperature Drives","type":"Tech 13","lifeform":"Human","metal":200000,"crystal":100000,"deut":100000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":8500},"11214":{"name":"Bomber Mk II","type":"Tech 14","lifeform":"Human","metal":160000,"crystal":120000,"deut":50000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":9000},"11215":{"name":"Destroyer Mk II","type":"Tech 15","lifeform":"Human","metal":160000,"crystal":120000,"deut":50000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":9500},"11216":{"name":"Battlecruiser Mk II","type":"Tech 16","lifeform":"Human","metal":320000,"crystal":240000,"deut":100000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":10000},"11217":{"name":"Robot Assistants","type":"Tech 17","lifeform":"Human","metal":300000,"crystal":180000,"deut":120000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":0.99,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":11000},"11218":{"name":"Supercomputer","type":"Tech 18","lifeform":"Human","metal":500000,"crystal":300000,"deut":200000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.99,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":13000},"12101":{"name":"Meditation Enclave","type":"Building","lifeform":"Rock´tal","metal":9,"crystal":3,"deut":0,"energy":"","priceFactor":1.2,"energyFactor":"","baseBonus1":150,"factorBonus1":1.22,"maxBonus1":"","baseBonus2":12,"factorBonus2":1.2,"maxBonus2":"","baseBonus3":5,"factorBonus3":1.15,"maxBonus3":"","durationFactor":1.21,"duration":40},"12102":{"name":"Crystal Farm","type":"Building","lifeform":"Rock´tal","metal":7,"crystal":2,"deut":0,"energy":10,"priceFactor":1.2,"energyFactor":1.03,"baseBonus1":8,"factorBonus1":1.15,"maxBonus1":"","baseBonus2":6,"factorBonus2":1.14,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.21,"duration":40},"12103":{"name":"Rune Technologium","type":"Building","lifeform":"Rock´tal","metal":40000,"crystal":10000,"deut":15000,"energy":15,"priceFactor":1.3,"energyFactor":1.1,"baseBonus1":0.25,"factorBonus1":1,"maxBonus1":0.25,"baseBonus2":2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.25,"duration":16000},"12104":{"name":"Rune Forge","type":"Building","lifeform":"Rock´tal","metal":5000,"crystal":3800,"deut":1000,"energy":20,"priceFactor":1.7,"energyFactor":1.35,"baseBonus1":16000000,"factorBonus1":1.14,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.6,"duration":16000},"12105":{"name":"Oriktorium","type":"Building","lifeform":"Rock´tal","metal":50000,"crystal":40000,"deut":50000,"energy":60,"priceFactor":1.65,"energyFactor":1.3,"baseBonus1":90000000,"factorBonus1":1.1,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.7,"duration":64000},"12106":{"name":"Magma Forge","type":"Building","lifeform":"Rock´tal","metal":10000,"crystal":8000,"deut":1000,"energy":40,"priceFactor":1.4,"energyFactor":1.1,"baseBonus1":2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":2000},"12107":{"name":"Disruption Chamber","type":"Building","lifeform":"Rock´tal","metal":20000,"crystal":15000,"deut":10000,"energy":"","priceFactor":1.2,"energyFactor":"","baseBonus1":1.5,"factorBonus1":1,"maxBonus1":"","baseBonus2":0.5,"factorBonus2":1,"maxBonus2":0.4,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.25,"duration":16000},"12108":{"name":"Megalith","type":"Building","lifeform":"Rock´tal","metal":50000,"crystal":35000,"deut":15000,"energy":80,"priceFactor":1.5,"energyFactor":1.3,"baseBonus1":1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":1,"factorBonus2":1,"maxBonus2":0.5,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":40000},"12109":{"name":"Crystal Refinery","type":"Building","lifeform":"Rock´tal","metal":85000,"crystal":44000,"deut":25000,"energy":90,"priceFactor":1.4,"energyFactor":1.1,"baseBonus1":2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":40000},"12110":{"name":"Deuterium Synthesiser","type":"Building","lifeform":"Rock´tal","metal":120000,"crystal":50000,"deut":20000,"energy":90,"priceFactor":1.4,"energyFactor":1.1,"baseBonus1":2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":52000},"12111":{"name":"Mineral Research Centre","type":"Building","lifeform":"Rock´tal","metal":250000,"crystal":150000,"deut":100000,"energy":120,"priceFactor":1.8,"energyFactor":1.3,"baseBonus1":0.5,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":90000},"12112":{"name":"Advanced Recycling Plant","type":"Building","lifeform":"Rock´tal","metal":250000,"crystal":125000,"deut":125000,"energy":100,"priceFactor":1.5,"energyFactor":1.1,"baseBonus1":0.6,"factorBonus1":1,"maxBonus1":0.3,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":95000},"12201":{"name":"Volcanic Batteries","type":"Tech 1","lifeform":"Rock´tal","metal":10000,"crystal":6000,"deut":1000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.25,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":1000},"12202":{"name":"Acoustic Scanning","type":"Tech 2","lifeform":"Rock´tal","metal":7500,"crystal":12500,"deut":5000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.08,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":2000},"12203":{"name":"High Energy Pump Systems","type":"Tech 3","lifeform":"Rock´tal","metal":15000,"crystal":10000,"deut":5000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.08,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":2500},"12204":{"name":"Cargo Hold Expansion (Civilian Ships)","type":"Tech 4","lifeform":"Rock´tal","metal":20000,"crystal":15000,"deut":7500,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.4,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":3500},"12205":{"name":"Magma-Powered Production","type":"Tech 5","lifeform":"Rock´tal","metal":25000,"crystal":20000,"deut":10000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.08,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":4500},"12206":{"name":"Geothermal Power Plants","type":"Tech 6","lifeform":"Rock´tal","metal":50000,"crystal":50000,"deut":20000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.25,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":5000},"12207":{"name":"Depth Sounding","type":"Tech 7","lifeform":"Rock´tal","metal":70000,"crystal":40000,"deut":20000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.08,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":5500},"12208":{"name":"Ion Crystal Enhancement (Heavy Fighter)","type":"Tech 8","lifeform":"Rock´tal","metal":160000,"crystal":120000,"deut":50000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":6000},"12209":{"name":"Improved Stellarator","type":"Tech 9","lifeform":"Rock´tal","metal":75000,"crystal":55000,"deut":25000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.15,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.3,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":6500},"12210":{"name":"Hardened Diamond Drill Heads","type":"Tech 10","lifeform":"Rock´tal","metal":85000,"crystal":40000,"deut":35000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.08,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":7000},"12211":{"name":"Seismic Mining Technology","type":"Tech 11","lifeform":"Rock´tal","metal":120000,"crystal":30000,"deut":25000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.08,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":7500},"12212":{"name":"Magma-Powered Pump Systems","type":"Tech 12","lifeform":"Rock´tal","metal":100000,"crystal":40000,"deut":30000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.08,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":8000},"12213":{"name":"Ion Crystal Modules","type":"Tech 13","lifeform":"Rock´tal","metal":200000,"crystal":100000,"deut":100000,"energy":"","priceFactor":1.2,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":8500},"12214":{"name":"Optimised Silo Construction Method","type":"Tech 14","lifeform":"Rock´tal","metal":220000,"crystal":110000,"deut":110000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":9000},"12215":{"name":"Diamond Energy Transmitter","type":"Tech 15","lifeform":"Rock´tal","metal":240000,"crystal":120000,"deut":120000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":9500},"12216":{"name":"Obsidian Shield Reinforcement","type":"Tech 16","lifeform":"Rock´tal","metal":250000,"crystal":250000,"deut":250000,"energy":"","priceFactor":1.4,"energyFactor":"","baseBonus1":0.5,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":10000},"12217":{"name":"Rune Shields","type":"Tech 17","lifeform":"Rock´tal","metal":500000,"crystal":300000,"deut":200000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":13000},"12218":{"name":"Rock’tal Collector Enhancement","type":"Tech 18","lifeform":"Rock´tal","metal":300000,"crystal":180000,"deut":120000,"energy":"","priceFactor":1.7,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":11000},"13101":{"name":"Assembly Line","type":"Building","lifeform":"Mecha","metal":6,"crystal":2,"deut":0,"energy":"","priceFactor":1.21,"energyFactor":"","baseBonus1":500,"factorBonus1":1.21,"maxBonus1":"","baseBonus2":24,"factorBonus2":1.2,"maxBonus2":"","baseBonus3":22,"factorBonus3":1.15,"maxBonus3":"","durationFactor":1.22,"duration":40},"13102":{"name":"Fusion Cell Factory","type":"Building","lifeform":"Mecha","metal":5,"crystal":2,"deut":0,"energy":8,"priceFactor":1.18,"energyFactor":1.02,"baseBonus1":18,"factorBonus1":1.15,"maxBonus1":"","baseBonus2":23,"factorBonus2":1.12,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":48},"13103":{"name":"Robotics Research Centre","type":"Building","lifeform":"Mecha","metal":30000,"crystal":20000,"deut":10000,"energy":13,"priceFactor":1.3,"energyFactor":1.08,"baseBonus1":0.25,"factorBonus1":1,"maxBonus1":0.25,"baseBonus2":2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.25,"duration":16000},"13104":{"name":"Update Network","type":"Building","lifeform":"Mecha","metal":5000,"crystal":3800,"deut":1000,"energy":10,"priceFactor":1.8,"energyFactor":1.2,"baseBonus1":40000000,"factorBonus1":1.1,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.6,"duration":16000},"13105":{"name":"Quantum Computer Centre","type":"Building","lifeform":"Mecha","metal":50000,"crystal":40000,"deut":50000,"energy":40,"priceFactor":1.8,"energyFactor":1.2,"baseBonus1":130000000,"factorBonus1":1.1,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.7,"duration":64000},"13106":{"name":"Automatised Assembly Centre","type":"Building","lifeform":"Mecha","metal":7500,"crystal":7000,"deut":1000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":2,"factorBonus1":1,"maxBonus1":0.99,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":2000},"13107":{"name":"High-Performance Transformer","type":"Building","lifeform":"Mecha","metal":35000,"crystal":15000,"deut":10000,"energy":40,"priceFactor":1.5,"energyFactor":1.05,"baseBonus1":1,"factorBonus1":1,"maxBonus1":"","baseBonus2":0.3,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":16000},"13108":{"name":"Microchip Assembly Line","type":"Building","lifeform":"Mecha","metal":50000,"crystal":20000,"deut":30000,"energy":40,"priceFactor":1.07,"energyFactor":1.01,"baseBonus1":2,"factorBonus1":1,"maxBonus1":"","baseBonus2":2,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.17,"duration":12000},"13109":{"name":"Production Assembly Hall","type":"Building","lifeform":"Mecha","metal":100000,"crystal":10000,"deut":3000,"energy":80,"priceFactor":1.14,"energyFactor":1.04,"baseBonus1":2,"factorBonus1":1,"maxBonus1":"","baseBonus2":6,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":40000},"13110":{"name":"High-Performance Synthesiser","type":"Building","lifeform":"Mecha","metal":100000,"crystal":40000,"deut":20000,"energy":60,"priceFactor":1.5,"energyFactor":1.1,"baseBonus1":2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":52000},"13111":{"name":"Chip Mass Production","type":"Building","lifeform":"Mecha","metal":55000,"crystal":50000,"deut":30000,"energy":70,"priceFactor":1.5,"energyFactor":1.05,"baseBonus1":0.3,"factorBonus1":1,"maxBonus1":1,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":50000},"13112":{"name":"Nano Repair Bots","type":"Building","lifeform":"Mecha","metal":250000,"crystal":125000,"deut":125000,"energy":100,"priceFactor":1.4,"energyFactor":1.05,"baseBonus1":1.3,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":95000},"13201":{"name":"Catalyser Technology","type":"Tech 1","lifeform":"Mecha","metal":10000,"crystal":6000,"deut":1000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.08,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":1000},"13202":{"name":"Plasma Drive","type":"Tech 2","lifeform":"Mecha","metal":7500,"crystal":12500,"deut":5000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":2000},"13203":{"name":"Efficiency Module","type":"Tech 3","lifeform":"Mecha","metal":15000,"crystal":10000,"deut":5000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.03,"factorBonus1":1,"maxBonus1":0.3,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":2500},"13204":{"name":"Depot AI","type":"Tech 4","lifeform":"Mecha","metal":20000,"crystal":15000,"deut":7500,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":3500},"13205":{"name":"General Overhaul (Light Fighter)","type":"Tech 5","lifeform":"Mecha","metal":160000,"crystal":120000,"deut":50000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":4500},"13206":{"name":"Automated Transport Lines","type":"Tech 6","lifeform":"Mecha","metal":50000,"crystal":50000,"deut":20000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.06,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":5000},"13207":{"name":"Improved Drone AI","type":"Tech 7","lifeform":"Mecha","metal":70000,"crystal":40000,"deut":20000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":5500},"13208":{"name":"Experimental Recycling Technology","type":"Tech 8","lifeform":"Mecha","metal":160000,"crystal":120000,"deut":50000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":1,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":6000},"13209":{"name":"General Overhaul (Cruiser)","type":"Tech 9","lifeform":"Mecha","metal":160000,"crystal":120000,"deut":50000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":6500},"13210":{"name":"Slingshot Autopilot","type":"Tech 10","lifeform":"Mecha","metal":85000,"crystal":40000,"deut":35000,"energy":"","priceFactor":1.2,"energyFactor":"","baseBonus1":0.15,"factorBonus1":1,"maxBonus1":0.9,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":7000},"13211":{"name":"High-Temperature Superconductors","type":"Tech 11","lifeform":"Mecha","metal":120000,"crystal":30000,"deut":25000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":7500},"13212":{"name":"General Overhaul (Battleship)","type":"Tech 12","lifeform":"Mecha","metal":160000,"crystal":120000,"deut":50000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":8000},"13213":{"name":"Artificial Swarm Intelligence","type":"Tech 13","lifeform":"Mecha","metal":200000,"crystal":100000,"deut":100000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.06,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":8500},"13214":{"name":"General Overhaul (Battlecruiser)","type":"Tech 14","lifeform":"Mecha","metal":160000,"crystal":120000,"deut":50000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":9000},"13215":{"name":"General Overhaul (Bomber)","type":"Tech 15","lifeform":"Mecha","metal":320000,"crystal":240000,"deut":100000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":9500},"13216":{"name":"General Overhaul (Destroyer)","type":"Tech 16","lifeform":"Mecha","metal":320000,"crystal":240000,"deut":100000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":10000},"13217":{"name":"Experimental Weapons Technology","type":"Tech 17","lifeform":"Mecha","metal":500000,"crystal":300000,"deut":200000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":13000},"13218":{"name":"Mechan General Enhancement","type":"Tech 18","lifeform":"Mecha","metal":300000,"crystal":180000,"deut":120000,"energy":"","priceFactor":1.7,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":11000},"14101":{"name":"Sanctuary","type":"Building","lifeform":"Kaelesh","metal":4,"crystal":3,"deut":0,"energy":"","priceFactor":1.21,"energyFactor":"","baseBonus1":250,"factorBonus1":1.21,"maxBonus1":"","baseBonus2":16,"factorBonus2":1.2,"maxBonus2":"","baseBonus3":11,"factorBonus3":1.15,"maxBonus3":"","durationFactor":1.22,"duration":40},"14102":{"name":"Antimatter Condenser","type":"Building","lifeform":"Kaelesh","metal":6,"crystal":3,"deut":0,"energy":9,"priceFactor":1.21,"energyFactor":1.02,"baseBonus1":12,"factorBonus1":1.15,"maxBonus1":"","baseBonus2":12,"factorBonus2":1.14,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.22,"duration":40},"14103":{"name":"Vortex Chamber","type":"Building","lifeform":"Kaelesh","metal":20000,"crystal":20000,"deut":30000,"energy":10,"priceFactor":1.3,"energyFactor":1.08,"baseBonus1":0.25,"factorBonus1":1,"maxBonus1":0.25,"baseBonus2":2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.25,"duration":16000},"14104":{"name":"Halls of Realisation","type":"Building","lifeform":"Kaelesh","metal":7500,"crystal":5000,"deut":800,"energy":15,"priceFactor":1.8,"energyFactor":1.3,"baseBonus1":30000000,"factorBonus1":1.1,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.7,"duration":16000},"14105":{"name":"Forum of Transcendence","type":"Building","lifeform":"Kaelesh","metal":60000,"crystal":30000,"deut":50000,"energy":30,"priceFactor":1.8,"energyFactor":1.3,"baseBonus1":100000000,"factorBonus1":1.1,"maxBonus1":"","baseBonus2":1,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.8,"duration":64000},"14106":{"name":"Antimatter Convector","type":"Building","lifeform":"Kaelesh","metal":8500,"crystal":5000,"deut":3000,"energy":"","priceFactor":1.25,"energyFactor":"","baseBonus1":1,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.35,"duration":2000},"14107":{"name":"Cloning Laboratory","type":"Building","lifeform":"Kaelesh","metal":15000,"crystal":15000,"deut":20000,"energy":"","priceFactor":1.2,"energyFactor":"","baseBonus1":2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":12000},"14108":{"name":"Chrysalis Accelerator","type":"Building","lifeform":"Kaelesh","metal":75000,"crystal":25000,"deut":30000,"energy":30,"priceFactor":1.05,"energyFactor":1.03,"baseBonus1":2,"factorBonus1":1,"maxBonus1":"","baseBonus2":6,"factorBonus2":1,"maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.18,"duration":16000},"14109":{"name":"Bio Modifier","type":"Building","lifeform":"Kaelesh","metal":87500,"crystal":25000,"deut":30000,"energy":40,"priceFactor":1.2,"energyFactor":1.02,"baseBonus1":200,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":40000},"14110":{"name":"Psionic Modulator","type":"Building","lifeform":"Kaelesh","metal":150000,"crystal":30000,"deut":30000,"energy":140,"priceFactor":1.5,"energyFactor":1.05,"baseBonus1":1,"factorBonus1":1,"maxBonus1":0.25,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.8,"duration":52000},"14111":{"name":"Ship Manufacturing Hall","type":"Building","lifeform":"Kaelesh","metal":75000,"crystal":50000,"deut":55000,"energy":90,"priceFactor":1.2,"energyFactor":1.04,"baseBonus1":1.5,"factorBonus1":1,"maxBonus1":0.7,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":90000},"14112":{"name":"Supra Refractor","type":"Building","lifeform":"Kaelesh","metal":500000,"crystal":250000,"deut":250000,"energy":100,"priceFactor":1.4,"energyFactor":1.05,"baseBonus1":0.5,"factorBonus1":1,"maxBonus1":0.3,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":95000},"14201":{"name":"Heat Recovery","type":"Tech 1","lifeform":"Kaelesh","metal":10000,"crystal":6000,"deut":1000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.03,"factorBonus1":1,"maxBonus1":0.3,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":1000},"14202":{"name":"Sulphide Process","type":"Tech 2","lifeform":"Kaelesh","metal":7500,"crystal":12500,"deut":5000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.08,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":2000},"14203":{"name":"Psionic Network","type":"Tech 3","lifeform":"Kaelesh","metal":15000,"crystal":10000,"deut":5000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.05,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":2500},"14204":{"name":"Telekinetic Tractor Beam","type":"Tech 4","lifeform":"Kaelesh","metal":20000,"crystal":15000,"deut":7500,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":3500},"14205":{"name":"Enhanced Sensor Technology","type":"Tech 5","lifeform":"Kaelesh","metal":25000,"crystal":20000,"deut":10000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":4500},"14206":{"name":"Neuromodal Compressor","type":"Tech 6","lifeform":"Kaelesh","metal":50000,"crystal":50000,"deut":20000,"energy":"","priceFactor":1.3,"energyFactor":"","baseBonus1":0.4,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":5000},"14207":{"name":"Neuro-Interface","type":"Tech 7","lifeform":"Kaelesh","metal":70000,"crystal":40000,"deut":20000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.99,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":5500},"14208":{"name":"Interplanetary Analysis Network","type":"Tech 8","lifeform":"Kaelesh","metal":80000,"crystal":50000,"deut":20000,"energy":"","priceFactor":1.2,"energyFactor":"","baseBonus1":0.6,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":6000},"14209":{"name":"Overclocking (Heavy Fighter)","type":"Tech 9","lifeform":"Kaelesh","metal":320000,"crystal":240000,"deut":100000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":6500},"14210":{"name":"Telekinetic Drive","type":"Tech 10","lifeform":"Kaelesh","metal":85000,"crystal":40000,"deut":35000,"energy":"","priceFactor":1.2,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.2,"duration":7000},"14211":{"name":"Sixth Sense","type":"Tech 11","lifeform":"Kaelesh","metal":120000,"crystal":30000,"deut":25000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":7500},"14212":{"name":"Psychoharmoniser","type":"Tech 12","lifeform":"Kaelesh","metal":100000,"crystal":40000,"deut":30000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.06,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":8000},"14213":{"name":"Efficient Swarm Intelligence","type":"Tech 13","lifeform":"Kaelesh","metal":200000,"crystal":100000,"deut":100000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":0.99,"baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":8500},"14214":{"name":"Overclocking (Large Cargo)","type":"Tech 14","lifeform":"Kaelesh","metal":160000,"crystal":120000,"deut":50000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":1,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":9000},"14215":{"name":"Gravitation Sensors","type":"Tech 15","lifeform":"Kaelesh","metal":240000,"crystal":120000,"deut":120000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.1,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":9500},"14216":{"name":"Overclocking (Battleship)","type":"Tech 16","lifeform":"Kaelesh","metal":320000,"crystal":240000,"deut":100000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.3,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":10000},"14217":{"name":"Psionic Shield Matrix","type":"Tech 17","lifeform":"Kaelesh","metal":500000,"crystal":300000,"deut":200000,"energy":"","priceFactor":1.5,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":0.5,"baseBonus2":0.2,"factorBonus2":1,"maxBonus2":0.99,"baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.3,"duration":13000},"14218":{"name":"Kaelesh Discoverer Enhancement","type":"Tech 18","lifeform":"Kaelesh","metal":300000,"crystal":180000,"deut":120000,"energy":"","priceFactor":1.7,"energyFactor":"","baseBonus1":0.2,"factorBonus1":1,"maxBonus1":"","baseBonus2":"","factorBonus2":"","maxBonus2":"","baseBonus3":"","factorBonus3":"","maxBonus3":"","durationFactor":1.4,"duration":11000}
+                "11101": {
+                    "name": "Residential Sector",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 7,
+                    "crystal": 2,
+                    "deut": 0,
+                    "energy": "",
+                    "priceFactor": 1.2,
+                    "energyFactor": "",
+                    "baseBonus1": 210,
+                    "factorBonus1": 1.21,
+                    "maxBonus1": "",
+                    "baseBonus2": 16,
+                    "factorBonus2": 1.2,
+                    "maxBonus2": "",
+                    "baseBonus3": 9,
+                    "factorBonus3": 1.15,
+                    "maxBonus3": "",
+                    "durationFactor": 1.21,
+                    "duration": 40
+                },
+                "11102": {
+                    "name": "Biosphere Farm",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 5,
+                    "crystal": 2,
+                    "deut": 0,
+                    "energy": 8,
+                    "priceFactor": 1.23,
+                    "energyFactor": 1.02,
+                    "baseBonus1": 10,
+                    "factorBonus1": 1.15,
+                    "maxBonus1": "",
+                    "baseBonus2": 10,
+                    "factorBonus2": 1.14,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.25,
+                    "duration": 40
+                },
+                "11103": {
+                    "name": "Research Centre",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 20000,
+                    "crystal": 25000,
+                    "deut": 10000,
+                    "energy": 10,
+                    "priceFactor": 1.3,
+                    "energyFactor": 1.08,
+                    "baseBonus1": 0.25,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.25,
+                    "baseBonus2": 2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.25,
+                    "duration": 16000
+                },
+                "11104": {
+                    "name": "Academy of Sciences",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 5000,
+                    "crystal": 3200,
+                    "deut": 1500,
+                    "energy": 15,
+                    "priceFactor": 1.7,
+                    "energyFactor": 1.25,
+                    "baseBonus1": 20000000,
+                    "factorBonus1": 1.1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.6,
+                    "duration": 16000
+                },
+                "11105": {
+                    "name": "Neuro-Calibration Centre",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 50000,
+                    "crystal": 40000,
+                    "deut": 50000,
+                    "energy": 30,
+                    "priceFactor": 1.7,
+                    "energyFactor": 1.25,
+                    "baseBonus1": 100000000,
+                    "factorBonus1": 1.1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.7,
+                    "duration": 64000
+                },
+                "11106": {
+                    "name": "High Energy Smelting",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 9000,
+                    "crystal": 6000,
+                    "deut": 3000,
+                    "energy": 40,
+                    "priceFactor": 1.5,
+                    "energyFactor": 1.1,
+                    "baseBonus1": 1.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 2000
+                },
+                "11107": {
+                    "name": "Food Silo",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 25000,
+                    "crystal": 13000,
+                    "deut": 7000,
+                    "energy": "",
+                    "priceFactor": 1.09,
+                    "energyFactor": "",
+                    "baseBonus1": 1,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.8,
+                    "baseBonus3": 0.8,
+                    "factorBonus3": 1,
+                    "maxBonus3": "",
+                    "durationFactor": 1.17,
+                    "duration": 12000
+                },
+                "11108": {
+                    "name": "Fusion-Powered Production",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 50000,
+                    "crystal": 25000,
+                    "deut": 15000,
+                    "energy": 80,
+                    "priceFactor": 1.5,
+                    "energyFactor": 1.1,
+                    "baseBonus1": 1.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 28000
+                },
+                "11109": {
+                    "name": "Skyscraper",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 75000,
+                    "crystal": 20000,
+                    "deut": 25000,
+                    "energy": 50,
+                    "priceFactor": 1.09,
+                    "energyFactor": 1.02,
+                    "baseBonus1": 1.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1.5,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 40000
+                },
+                "11110": {
+                    "name": "Biotech Lab",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 150000,
+                    "crystal": 30000,
+                    "deut": 15000,
+                    "energy": 60,
+                    "priceFactor": 1.12,
+                    "energyFactor": 1.03,
+                    "baseBonus1": 5,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 52000
+                },
+                "11111": {
+                    "name": "Metropolis",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 80000,
+                    "crystal": 35000,
+                    "deut": 60000,
+                    "energy": 90,
+                    "priceFactor": 1.5,
+                    "energyFactor": 1.05,
+                    "baseBonus1": 0.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": 1,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 90000
+                },
+                "11112": {
+                    "name": "Planetary Shield",
+                    "type": "Building",
+                    "lifeform": "Human",
+                    "metal": 250000,
+                    "crystal": 125000,
+                    "deut": 125000,
+                    "energy": 100,
+                    "priceFactor": 1.2,
+                    "energyFactor": 1.02,
+                    "baseBonus1": 1.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.8,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 95000
+                },
+                "11201": {
+                    "name": "Intergalactic Envoys",
+                    "type": "Tech 1",
+                    "lifeform": "Human",
+                    "metal": 5000,
+                    "crystal": 2500,
+                    "deut": 500,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 1,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 1000
+                },
+                "11202": {
+                    "name": "High-Performance Extractors",
+                    "type": "Tech 2",
+                    "lifeform": "Human",
+                    "metal": 7000,
+                    "crystal": 10000,
+                    "deut": 5000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.06,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 2000
+                },
+                "11203": {
+                    "name": "Fusion Drives",
+                    "type": "Tech 3",
+                    "lifeform": "Human",
+                    "metal": 15000,
+                    "crystal": 10000,
+                    "deut": 5000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 2500
+                },
+                "11204": {
+                    "name": "Stealth Field Generator",
+                    "type": "Tech 4",
+                    "lifeform": "Human",
+                    "metal": 20000,
+                    "crystal": 15000,
+                    "deut": 7500,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 3500
+                },
+                "11205": {
+                    "name": "Orbital Den",
+                    "type": "Tech 5",
+                    "lifeform": "Human",
+                    "metal": 25000,
+                    "crystal": 20000,
+                    "deut": 10000,
+                    "energy": "",
+                    "priceFactor": 1.4,
+                    "energyFactor": "",
+                    "baseBonus1": 4,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 4500
+                },
+                "11206": {
+                    "name": "Research AI",
+                    "type": "Tech 6",
+                    "lifeform": "Human",
+                    "metal": 35000,
+                    "crystal": 25000,
+                    "deut": 15000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.99,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 5000
+                },
+                "11207": {
+                    "name": "High-Performance Terraformer",
+                    "type": "Tech 7",
+                    "lifeform": "Human",
+                    "metal": 70000,
+                    "crystal": 40000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 8000
+                },
+                "11208": {
+                    "name": "Enhanced Production Technologies",
+                    "type": "Tech 8",
+                    "lifeform": "Human",
+                    "metal": 80000,
+                    "crystal": 50000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.06,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 6000
+                },
+                "11209": {
+                    "name": "Light Fighter Mk II",
+                    "type": "Tech 9",
+                    "lifeform": "Human",
+                    "metal": 320000,
+                    "crystal": 240000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 6500
+                },
+                "11210": {
+                    "name": "Cruiser Mk II",
+                    "type": "Tech 10",
+                    "lifeform": "Human",
+                    "metal": 320000,
+                    "crystal": 240000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 7000
+                },
+                "11211": {
+                    "name": "Improved Lab Technology",
+                    "type": "Tech 11",
+                    "lifeform": "Human",
+                    "metal": 120000,
+                    "crystal": 30000,
+                    "deut": 25000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.99,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 7500
+                },
+                "11212": {
+                    "name": "Plasma Terraformer",
+                    "type": "Tech 12",
+                    "lifeform": "Human",
+                    "metal": 100000,
+                    "crystal": 40000,
+                    "deut": 30000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 10000
+                },
+                "11213": {
+                    "name": "Low-Temperature Drives",
+                    "type": "Tech 13",
+                    "lifeform": "Human",
+                    "metal": 200000,
+                    "crystal": 100000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 8500
+                },
+                "11214": {
+                    "name": "Bomber Mk II",
+                    "type": "Tech 14",
+                    "lifeform": "Human",
+                    "metal": 160000,
+                    "crystal": 120000,
+                    "deut": 50000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 9000
+                },
+                "11215": {
+                    "name": "Destroyer Mk II",
+                    "type": "Tech 15",
+                    "lifeform": "Human",
+                    "metal": 160000,
+                    "crystal": 120000,
+                    "deut": 50000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 9500
+                },
+                "11216": {
+                    "name": "Battlecruiser Mk II",
+                    "type": "Tech 16",
+                    "lifeform": "Human",
+                    "metal": 320000,
+                    "crystal": 240000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 10000
+                },
+                "11217": {
+                    "name": "Robot Assistants",
+                    "type": "Tech 17",
+                    "lifeform": "Human",
+                    "metal": 300000,
+                    "crystal": 180000,
+                    "deut": 120000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.99,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 11000
+                },
+                "11218": {
+                    "name": "Supercomputer",
+                    "type": "Tech 18",
+                    "lifeform": "Human",
+                    "metal": 500000,
+                    "crystal": 300000,
+                    "deut": 200000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.99,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 13000
+                },
+                "12101": {
+                    "name": "Meditation Enclave",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 9,
+                    "crystal": 3,
+                    "deut": 0,
+                    "energy": "",
+                    "priceFactor": 1.2,
+                    "energyFactor": "",
+                    "baseBonus1": 150,
+                    "factorBonus1": 1.22,
+                    "maxBonus1": "",
+                    "baseBonus2": 12,
+                    "factorBonus2": 1.2,
+                    "maxBonus2": "",
+                    "baseBonus3": 5,
+                    "factorBonus3": 1.15,
+                    "maxBonus3": "",
+                    "durationFactor": 1.21,
+                    "duration": 40
+                },
+                "12102": {
+                    "name": "Crystal Farm",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 7,
+                    "crystal": 2,
+                    "deut": 0,
+                    "energy": 10,
+                    "priceFactor": 1.2,
+                    "energyFactor": 1.03,
+                    "baseBonus1": 8,
+                    "factorBonus1": 1.15,
+                    "maxBonus1": "",
+                    "baseBonus2": 6,
+                    "factorBonus2": 1.14,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.21,
+                    "duration": 40
+                },
+                "12103": {
+                    "name": "Rune Technologium",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 40000,
+                    "crystal": 10000,
+                    "deut": 15000,
+                    "energy": 15,
+                    "priceFactor": 1.3,
+                    "energyFactor": 1.1,
+                    "baseBonus1": 0.25,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.25,
+                    "baseBonus2": 2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.25,
+                    "duration": 16000
+                },
+                "12104": {
+                    "name": "Rune Forge",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 5000,
+                    "crystal": 3800,
+                    "deut": 1000,
+                    "energy": 20,
+                    "priceFactor": 1.7,
+                    "energyFactor": 1.35,
+                    "baseBonus1": 16000000,
+                    "factorBonus1": 1.14,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.6,
+                    "duration": 16000
+                },
+                "12105": {
+                    "name": "Oriktorium",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 50000,
+                    "crystal": 40000,
+                    "deut": 50000,
+                    "energy": 60,
+                    "priceFactor": 1.65,
+                    "energyFactor": 1.3,
+                    "baseBonus1": 90000000,
+                    "factorBonus1": 1.1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.7,
+                    "duration": 64000
+                },
+                "12106": {
+                    "name": "Magma Forge",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 10000,
+                    "crystal": 8000,
+                    "deut": 1000,
+                    "energy": 40,
+                    "priceFactor": 1.4,
+                    "energyFactor": 1.1,
+                    "baseBonus1": 2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 2000
+                },
+                "12107": {
+                    "name": "Disruption Chamber",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 20000,
+                    "crystal": 15000,
+                    "deut": 10000,
+                    "energy": "",
+                    "priceFactor": 1.2,
+                    "energyFactor": "",
+                    "baseBonus1": 1.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": 0.5,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.4,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.25,
+                    "duration": 16000
+                },
+                "12108": {
+                    "name": "Megalith",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 50000,
+                    "crystal": 35000,
+                    "deut": 15000,
+                    "energy": 80,
+                    "priceFactor": 1.5,
+                    "energyFactor": 1.3,
+                    "baseBonus1": 1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.5,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 40000
+                },
+                "12109": {
+                    "name": "Crystal Refinery",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 85000,
+                    "crystal": 44000,
+                    "deut": 25000,
+                    "energy": 90,
+                    "priceFactor": 1.4,
+                    "energyFactor": 1.1,
+                    "baseBonus1": 2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 40000
+                },
+                "12110": {
+                    "name": "Deuterium Synthesiser",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 120000,
+                    "crystal": 50000,
+                    "deut": 20000,
+                    "energy": 90,
+                    "priceFactor": 1.4,
+                    "energyFactor": 1.1,
+                    "baseBonus1": 2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 52000
+                },
+                "12111": {
+                    "name": "Mineral Research Centre",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 250000,
+                    "crystal": 150000,
+                    "deut": 100000,
+                    "energy": 120,
+                    "priceFactor": 1.8,
+                    "energyFactor": 1.3,
+                    "baseBonus1": 0.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 90000
+                },
+                "12112": {
+                    "name": "Advanced Recycling Plant",
+                    "type": "Building",
+                    "lifeform": "Rock´tal",
+                    "metal": 250000,
+                    "crystal": 125000,
+                    "deut": 125000,
+                    "energy": 100,
+                    "priceFactor": 1.5,
+                    "energyFactor": 1.1,
+                    "baseBonus1": 0.6,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.3,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 95000
+                },
+                "12201": {
+                    "name": "Volcanic Batteries",
+                    "type": "Tech 1",
+                    "lifeform": "Rock´tal",
+                    "metal": 10000,
+                    "crystal": 6000,
+                    "deut": 1000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.25,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 1000
+                },
+                "12202": {
+                    "name": "Acoustic Scanning",
+                    "type": "Tech 2",
+                    "lifeform": "Rock´tal",
+                    "metal": 7500,
+                    "crystal": 12500,
+                    "deut": 5000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.08,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 2000
+                },
+                "12203": {
+                    "name": "High Energy Pump Systems",
+                    "type": "Tech 3",
+                    "lifeform": "Rock´tal",
+                    "metal": 15000,
+                    "crystal": 10000,
+                    "deut": 5000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.08,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 2500
+                },
+                "12204": {
+                    "name": "Cargo Hold Expansion (Civilian Ships)",
+                    "type": "Tech 4",
+                    "lifeform": "Rock´tal",
+                    "metal": 20000,
+                    "crystal": 15000,
+                    "deut": 7500,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.4,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 3500
+                },
+                "12205": {
+                    "name": "Magma-Powered Production",
+                    "type": "Tech 5",
+                    "lifeform": "Rock´tal",
+                    "metal": 25000,
+                    "crystal": 20000,
+                    "deut": 10000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.08,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 4500
+                },
+                "12206": {
+                    "name": "Geothermal Power Plants",
+                    "type": "Tech 6",
+                    "lifeform": "Rock´tal",
+                    "metal": 50000,
+                    "crystal": 50000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.25,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 5000
+                },
+                "12207": {
+                    "name": "Depth Sounding",
+                    "type": "Tech 7",
+                    "lifeform": "Rock´tal",
+                    "metal": 70000,
+                    "crystal": 40000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.08,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 5500
+                },
+                "12208": {
+                    "name": "Ion Crystal Enhancement (Heavy Fighter)",
+                    "type": "Tech 8",
+                    "lifeform": "Rock´tal",
+                    "metal": 160000,
+                    "crystal": 120000,
+                    "deut": 50000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 6000
+                },
+                "12209": {
+                    "name": "Improved Stellarator",
+                    "type": "Tech 9",
+                    "lifeform": "Rock´tal",
+                    "metal": 75000,
+                    "crystal": 55000,
+                    "deut": 25000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.15,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.3,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 6500
+                },
+                "12210": {
+                    "name": "Hardened Diamond Drill Heads",
+                    "type": "Tech 10",
+                    "lifeform": "Rock´tal",
+                    "metal": 85000,
+                    "crystal": 40000,
+                    "deut": 35000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.08,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 7000
+                },
+                "12211": {
+                    "name": "Seismic Mining Technology",
+                    "type": "Tech 11",
+                    "lifeform": "Rock´tal",
+                    "metal": 120000,
+                    "crystal": 30000,
+                    "deut": 25000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.08,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 7500
+                },
+                "12212": {
+                    "name": "Magma-Powered Pump Systems",
+                    "type": "Tech 12",
+                    "lifeform": "Rock´tal",
+                    "metal": 100000,
+                    "crystal": 40000,
+                    "deut": 30000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.08,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 8000
+                },
+                "12213": {
+                    "name": "Ion Crystal Modules",
+                    "type": "Tech 13",
+                    "lifeform": "Rock´tal",
+                    "metal": 200000,
+                    "crystal": 100000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.2,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 8500
+                },
+                "12214": {
+                    "name": "Optimised Silo Construction Method",
+                    "type": "Tech 14",
+                    "lifeform": "Rock´tal",
+                    "metal": 220000,
+                    "crystal": 110000,
+                    "deut": 110000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 9000
+                },
+                "12215": {
+                    "name": "Diamond Energy Transmitter",
+                    "type": "Tech 15",
+                    "lifeform": "Rock´tal",
+                    "metal": 240000,
+                    "crystal": 120000,
+                    "deut": 120000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 9500
+                },
+                "12216": {
+                    "name": "Obsidian Shield Reinforcement",
+                    "type": "Tech 16",
+                    "lifeform": "Rock´tal",
+                    "metal": 250000,
+                    "crystal": 250000,
+                    "deut": 250000,
+                    "energy": "",
+                    "priceFactor": 1.4,
+                    "energyFactor": "",
+                    "baseBonus1": 0.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 10000
+                },
+                "12217": {
+                    "name": "Rune Shields",
+                    "type": "Tech 17",
+                    "lifeform": "Rock´tal",
+                    "metal": 500000,
+                    "crystal": 300000,
+                    "deut": 200000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 13000
+                },
+                "12218": {
+                    "name": "Rock’tal Collector Enhancement",
+                    "type": "Tech 18",
+                    "lifeform": "Rock´tal",
+                    "metal": 300000,
+                    "crystal": 180000,
+                    "deut": 120000,
+                    "energy": "",
+                    "priceFactor": 1.7,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 11000
+                },
+                "13101": {
+                    "name": "Assembly Line",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 6,
+                    "crystal": 2,
+                    "deut": 0,
+                    "energy": "",
+                    "priceFactor": 1.21,
+                    "energyFactor": "",
+                    "baseBonus1": 500,
+                    "factorBonus1": 1.21,
+                    "maxBonus1": "",
+                    "baseBonus2": 24,
+                    "factorBonus2": 1.2,
+                    "maxBonus2": "",
+                    "baseBonus3": 22,
+                    "factorBonus3": 1.15,
+                    "maxBonus3": "",
+                    "durationFactor": 1.22,
+                    "duration": 40
+                },
+                "13102": {
+                    "name": "Fusion Cell Factory",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 5,
+                    "crystal": 2,
+                    "deut": 0,
+                    "energy": 8,
+                    "priceFactor": 1.18,
+                    "energyFactor": 1.02,
+                    "baseBonus1": 18,
+                    "factorBonus1": 1.15,
+                    "maxBonus1": "",
+                    "baseBonus2": 23,
+                    "factorBonus2": 1.12,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 48
+                },
+                "13103": {
+                    "name": "Robotics Research Centre",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 30000,
+                    "crystal": 20000,
+                    "deut": 10000,
+                    "energy": 13,
+                    "priceFactor": 1.3,
+                    "energyFactor": 1.08,
+                    "baseBonus1": 0.25,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.25,
+                    "baseBonus2": 2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.25,
+                    "duration": 16000
+                },
+                "13104": {
+                    "name": "Update Network",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 5000,
+                    "crystal": 3800,
+                    "deut": 1000,
+                    "energy": 10,
+                    "priceFactor": 1.8,
+                    "energyFactor": 1.2,
+                    "baseBonus1": 40000000,
+                    "factorBonus1": 1.1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.6,
+                    "duration": 16000
+                },
+                "13105": {
+                    "name": "Quantum Computer Centre",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 50000,
+                    "crystal": 40000,
+                    "deut": 50000,
+                    "energy": 40,
+                    "priceFactor": 1.8,
+                    "energyFactor": 1.2,
+                    "baseBonus1": 130000000,
+                    "factorBonus1": 1.1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.7,
+                    "duration": 64000
+                },
+                "13106": {
+                    "name": "Automatised Assembly Centre",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 7500,
+                    "crystal": 7000,
+                    "deut": 1000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 2,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.99,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 2000
+                },
+                "13107": {
+                    "name": "High-Performance Transformer",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 35000,
+                    "crystal": 15000,
+                    "deut": 10000,
+                    "energy": 40,
+                    "priceFactor": 1.5,
+                    "energyFactor": 1.05,
+                    "baseBonus1": 1,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": 0.3,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 16000
+                },
+                "13108": {
+                    "name": "Microchip Assembly Line",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 50000,
+                    "crystal": 20000,
+                    "deut": 30000,
+                    "energy": 40,
+                    "priceFactor": 1.07,
+                    "energyFactor": 1.01,
+                    "baseBonus1": 2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": 2,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.17,
+                    "duration": 12000
+                },
+                "13109": {
+                    "name": "Production Assembly Hall",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 100000,
+                    "crystal": 10000,
+                    "deut": 3000,
+                    "energy": 80,
+                    "priceFactor": 1.14,
+                    "energyFactor": 1.04,
+                    "baseBonus1": 2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": 6,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 40000
+                },
+                "13110": {
+                    "name": "High-Performance Synthesiser",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 100000,
+                    "crystal": 40000,
+                    "deut": 20000,
+                    "energy": 60,
+                    "priceFactor": 1.5,
+                    "energyFactor": 1.1,
+                    "baseBonus1": 2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 52000
+                },
+                "13111": {
+                    "name": "Chip Mass Production",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 55000,
+                    "crystal": 50000,
+                    "deut": 30000,
+                    "energy": 70,
+                    "priceFactor": 1.5,
+                    "energyFactor": 1.05,
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": 1,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 50000
+                },
+                "13112": {
+                    "name": "Nano Repair Bots",
+                    "type": "Building",
+                    "lifeform": "Mecha",
+                    "metal": 250000,
+                    "crystal": 125000,
+                    "deut": 125000,
+                    "energy": 100,
+                    "priceFactor": 1.4,
+                    "energyFactor": 1.05,
+                    "baseBonus1": 1.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 95000
+                },
+                "13201": {
+                    "name": "Catalyser Technology",
+                    "type": "Tech 1",
+                    "lifeform": "Mecha",
+                    "metal": 10000,
+                    "crystal": 6000,
+                    "deut": 1000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.08,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 1000
+                },
+                "13202": {
+                    "name": "Plasma Drive",
+                    "type": "Tech 2",
+                    "lifeform": "Mecha",
+                    "metal": 7500,
+                    "crystal": 12500,
+                    "deut": 5000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 2000
+                },
+                "13203": {
+                    "name": "Efficiency Module",
+                    "type": "Tech 3",
+                    "lifeform": "Mecha",
+                    "metal": 15000,
+                    "crystal": 10000,
+                    "deut": 5000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.03,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.3,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 2500
+                },
+                "13204": {
+                    "name": "Depot AI",
+                    "type": "Tech 4",
+                    "lifeform": "Mecha",
+                    "metal": 20000,
+                    "crystal": 15000,
+                    "deut": 7500,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 3500
+                },
+                "13205": {
+                    "name": "General Overhaul (Light Fighter)",
+                    "type": "Tech 5",
+                    "lifeform": "Mecha",
+                    "metal": 160000,
+                    "crystal": 120000,
+                    "deut": 50000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 4500
+                },
+                "13206": {
+                    "name": "Automated Transport Lines",
+                    "type": "Tech 6",
+                    "lifeform": "Mecha",
+                    "metal": 50000,
+                    "crystal": 50000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.06,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 5000
+                },
+                "13207": {
+                    "name": "Improved Drone AI",
+                    "type": "Tech 7",
+                    "lifeform": "Mecha",
+                    "metal": 70000,
+                    "crystal": 40000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 5500
+                },
+                "13208": {
+                    "name": "Experimental Recycling Technology",
+                    "type": "Tech 8",
+                    "lifeform": "Mecha",
+                    "metal": 160000,
+                    "crystal": 120000,
+                    "deut": 50000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 1,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 6000
+                },
+                "13209": {
+                    "name": "General Overhaul (Cruiser)",
+                    "type": "Tech 9",
+                    "lifeform": "Mecha",
+                    "metal": 160000,
+                    "crystal": 120000,
+                    "deut": 50000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 6500
+                },
+                "13210": {
+                    "name": "Slingshot Autopilot",
+                    "type": "Tech 10",
+                    "lifeform": "Mecha",
+                    "metal": 85000,
+                    "crystal": 40000,
+                    "deut": 35000,
+                    "energy": "",
+                    "priceFactor": 1.2,
+                    "energyFactor": "",
+                    "baseBonus1": 0.15,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.9,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 7000
+                },
+                "13211": {
+                    "name": "High-Temperature Superconductors",
+                    "type": "Tech 11",
+                    "lifeform": "Mecha",
+                    "metal": 120000,
+                    "crystal": 30000,
+                    "deut": 25000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 7500
+                },
+                "13212": {
+                    "name": "General Overhaul (Battleship)",
+                    "type": "Tech 12",
+                    "lifeform": "Mecha",
+                    "metal": 160000,
+                    "crystal": 120000,
+                    "deut": 50000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 8000
+                },
+                "13213": {
+                    "name": "Artificial Swarm Intelligence",
+                    "type": "Tech 13",
+                    "lifeform": "Mecha",
+                    "metal": 200000,
+                    "crystal": 100000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.06,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 8500
+                },
+                "13214": {
+                    "name": "General Overhaul (Battlecruiser)",
+                    "type": "Tech 14",
+                    "lifeform": "Mecha",
+                    "metal": 160000,
+                    "crystal": 120000,
+                    "deut": 50000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 9000
+                },
+                "13215": {
+                    "name": "General Overhaul (Bomber)",
+                    "type": "Tech 15",
+                    "lifeform": "Mecha",
+                    "metal": 320000,
+                    "crystal": 240000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 9500
+                },
+                "13216": {
+                    "name": "General Overhaul (Destroyer)",
+                    "type": "Tech 16",
+                    "lifeform": "Mecha",
+                    "metal": 320000,
+                    "crystal": 240000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 10000
+                },
+                "13217": {
+                    "name": "Experimental Weapons Technology",
+                    "type": "Tech 17",
+                    "lifeform": "Mecha",
+                    "metal": 500000,
+                    "crystal": 300000,
+                    "deut": 200000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 13000
+                },
+                "13218": {
+                    "name": "Mechan General Enhancement",
+                    "type": "Tech 18",
+                    "lifeform": "Mecha",
+                    "metal": 300000,
+                    "crystal": 180000,
+                    "deut": 120000,
+                    "energy": "",
+                    "priceFactor": 1.7,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 11000
+                },
+                "14101": {
+                    "name": "Sanctuary",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 4,
+                    "crystal": 3,
+                    "deut": 0,
+                    "energy": "",
+                    "priceFactor": 1.21,
+                    "energyFactor": "",
+                    "baseBonus1": 250,
+                    "factorBonus1": 1.21,
+                    "maxBonus1": "",
+                    "baseBonus2": 16,
+                    "factorBonus2": 1.2,
+                    "maxBonus2": "",
+                    "baseBonus3": 11,
+                    "factorBonus3": 1.15,
+                    "maxBonus3": "",
+                    "durationFactor": 1.22,
+                    "duration": 40
+                },
+                "14102": {
+                    "name": "Antimatter Condenser",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 6,
+                    "crystal": 3,
+                    "deut": 0,
+                    "energy": 9,
+                    "priceFactor": 1.21,
+                    "energyFactor": 1.02,
+                    "baseBonus1": 12,
+                    "factorBonus1": 1.15,
+                    "maxBonus1": "",
+                    "baseBonus2": 12,
+                    "factorBonus2": 1.14,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.22,
+                    "duration": 40
+                },
+                "14103": {
+                    "name": "Vortex Chamber",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 20000,
+                    "crystal": 20000,
+                    "deut": 30000,
+                    "energy": 10,
+                    "priceFactor": 1.3,
+                    "energyFactor": 1.08,
+                    "baseBonus1": 0.25,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.25,
+                    "baseBonus2": 2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.25,
+                    "duration": 16000
+                },
+                "14104": {
+                    "name": "Halls of Realisation",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 7500,
+                    "crystal": 5000,
+                    "deut": 800,
+                    "energy": 15,
+                    "priceFactor": 1.8,
+                    "energyFactor": 1.3,
+                    "baseBonus1": 30000000,
+                    "factorBonus1": 1.1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.7,
+                    "duration": 16000
+                },
+                "14105": {
+                    "name": "Forum of Transcendence",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 60000,
+                    "crystal": 30000,
+                    "deut": 50000,
+                    "energy": 30,
+                    "priceFactor": 1.8,
+                    "energyFactor": 1.3,
+                    "baseBonus1": 100000000,
+                    "factorBonus1": 1.1,
+                    "maxBonus1": "",
+                    "baseBonus2": 1,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.8,
+                    "duration": 64000
+                },
+                "14106": {
+                    "name": "Antimatter Convector",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 8500,
+                    "crystal": 5000,
+                    "deut": 3000,
+                    "energy": "",
+                    "priceFactor": 1.25,
+                    "energyFactor": "",
+                    "baseBonus1": 1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.35,
+                    "duration": 2000
+                },
+                "14107": {
+                    "name": "Cloning Laboratory",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 15000,
+                    "crystal": 15000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.2,
+                    "energyFactor": "",
+                    "baseBonus1": 2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 12000
+                },
+                "14108": {
+                    "name": "Chrysalis Accelerator",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 75000,
+                    "crystal": 25000,
+                    "deut": 30000,
+                    "energy": 30,
+                    "priceFactor": 1.05,
+                    "energyFactor": 1.03,
+                    "baseBonus1": 2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": 6,
+                    "factorBonus2": 1,
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.18,
+                    "duration": 16000
+                },
+                "14109": {
+                    "name": "Bio Modifier",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 87500,
+                    "crystal": 25000,
+                    "deut": 30000,
+                    "energy": 40,
+                    "priceFactor": 1.2,
+                    "energyFactor": 1.02,
+                    "baseBonus1": 200,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 40000
+                },
+                "14110": {
+                    "name": "Psionic Modulator",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 150000,
+                    "crystal": 30000,
+                    "deut": 30000,
+                    "energy": 140,
+                    "priceFactor": 1.5,
+                    "energyFactor": 1.05,
+                    "baseBonus1": 1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.25,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.8,
+                    "duration": 52000
+                },
+                "14111": {
+                    "name": "Ship Manufacturing Hall",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 75000,
+                    "crystal": 50000,
+                    "deut": 55000,
+                    "energy": 90,
+                    "priceFactor": 1.2,
+                    "energyFactor": 1.04,
+                    "baseBonus1": 1.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.7,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 90000
+                },
+                "14112": {
+                    "name": "Supra Refractor",
+                    "type": "Building",
+                    "lifeform": "Kaelesh",
+                    "metal": 500000,
+                    "crystal": 250000,
+                    "deut": 250000,
+                    "energy": 100,
+                    "priceFactor": 1.4,
+                    "energyFactor": 1.05,
+                    "baseBonus1": 0.5,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.3,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 95000
+                },
+                "14201": {
+                    "name": "Heat Recovery",
+                    "type": "Tech 1",
+                    "lifeform": "Kaelesh",
+                    "metal": 10000,
+                    "crystal": 6000,
+                    "deut": 1000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.03,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.3,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 1000
+                },
+                "14202": {
+                    "name": "Sulphide Process",
+                    "type": "Tech 2",
+                    "lifeform": "Kaelesh",
+                    "metal": 7500,
+                    "crystal": 12500,
+                    "deut": 5000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.08,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 2000
+                },
+                "14203": {
+                    "name": "Psionic Network",
+                    "type": "Tech 3",
+                    "lifeform": "Kaelesh",
+                    "metal": 15000,
+                    "crystal": 10000,
+                    "deut": 5000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.05,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 2500
+                },
+                "14204": {
+                    "name": "Telekinetic Tractor Beam",
+                    "type": "Tech 4",
+                    "lifeform": "Kaelesh",
+                    "metal": 20000,
+                    "crystal": 15000,
+                    "deut": 7500,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 3500
+                },
+                "14205": {
+                    "name": "Enhanced Sensor Technology",
+                    "type": "Tech 5",
+                    "lifeform": "Kaelesh",
+                    "metal": 25000,
+                    "crystal": 20000,
+                    "deut": 10000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 4500
+                },
+                "14206": {
+                    "name": "Neuromodal Compressor",
+                    "type": "Tech 6",
+                    "lifeform": "Kaelesh",
+                    "metal": 50000,
+                    "crystal": 50000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.3,
+                    "energyFactor": "",
+                    "baseBonus1": 0.4,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 5000
+                },
+                "14207": {
+                    "name": "Neuro-Interface",
+                    "type": "Tech 7",
+                    "lifeform": "Kaelesh",
+                    "metal": 70000,
+                    "crystal": 40000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.99,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 5500
+                },
+                "14208": {
+                    "name": "Interplanetary Analysis Network",
+                    "type": "Tech 8",
+                    "lifeform": "Kaelesh",
+                    "metal": 80000,
+                    "crystal": 50000,
+                    "deut": 20000,
+                    "energy": "",
+                    "priceFactor": 1.2,
+                    "energyFactor": "",
+                    "baseBonus1": 0.6,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 6000
+                },
+                "14209": {
+                    "name": "Overclocking (Heavy Fighter)",
+                    "type": "Tech 9",
+                    "lifeform": "Kaelesh",
+                    "metal": 320000,
+                    "crystal": 240000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 6500
+                },
+                "14210": {
+                    "name": "Telekinetic Drive",
+                    "type": "Tech 10",
+                    "lifeform": "Kaelesh",
+                    "metal": 85000,
+                    "crystal": 40000,
+                    "deut": 35000,
+                    "energy": "",
+                    "priceFactor": 1.2,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.2,
+                    "duration": 7000
+                },
+                "14211": {
+                    "name": "Sixth Sense",
+                    "type": "Tech 11",
+                    "lifeform": "Kaelesh",
+                    "metal": 120000,
+                    "crystal": 30000,
+                    "deut": 25000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 7500
+                },
+                "14212": {
+                    "name": "Psychoharmoniser",
+                    "type": "Tech 12",
+                    "lifeform": "Kaelesh",
+                    "metal": 100000,
+                    "crystal": 40000,
+                    "deut": 30000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.06,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 8000
+                },
+                "14213": {
+                    "name": "Efficient Swarm Intelligence",
+                    "type": "Tech 13",
+                    "lifeform": "Kaelesh",
+                    "metal": 200000,
+                    "crystal": 100000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.99,
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 8500
+                },
+                "14214": {
+                    "name": "Overclocking (Large Cargo)",
+                    "type": "Tech 14",
+                    "lifeform": "Kaelesh",
+                    "metal": 160000,
+                    "crystal": 120000,
+                    "deut": 50000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 1,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 9000
+                },
+                "14215": {
+                    "name": "Gravitation Sensors",
+                    "type": "Tech 15",
+                    "lifeform": "Kaelesh",
+                    "metal": 240000,
+                    "crystal": 120000,
+                    "deut": 120000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.1,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 9500
+                },
+                "14216": {
+                    "name": "Overclocking (Battleship)",
+                    "type": "Tech 16",
+                    "lifeform": "Kaelesh",
+                    "metal": 320000,
+                    "crystal": 240000,
+                    "deut": 100000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.3,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 10000
+                },
+                "14217": {
+                    "name": "Psionic Shield Matrix",
+                    "type": "Tech 17",
+                    "lifeform": "Kaelesh",
+                    "metal": 500000,
+                    "crystal": 300000,
+                    "deut": 200000,
+                    "energy": "",
+                    "priceFactor": 1.5,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": 0.5,
+                    "baseBonus2": 0.2,
+                    "factorBonus2": 1,
+                    "maxBonus2": 0.99,
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.3,
+                    "duration": 13000
+                },
+                "14218": {
+                    "name": "Kaelesh Discoverer Enhancement",
+                    "type": "Tech 18",
+                    "lifeform": "Kaelesh",
+                    "metal": 300000,
+                    "crystal": 180000,
+                    "deut": 120000,
+                    "energy": "",
+                    "priceFactor": 1.7,
+                    "energyFactor": "",
+                    "baseBonus1": 0.2,
+                    "factorBonus1": 1,
+                    "maxBonus1": "",
+                    "baseBonus2": "",
+                    "factorBonus2": "",
+                    "maxBonus2": "",
+                    "baseBonus3": "",
+                    "factorBonus3": "",
+                    "maxBonus3": "",
+                    "durationFactor": 1.4,
+                    "duration": 11000
+                }
             }
 
         return tech[parseInt(id)];
     }
 }
 
-class Util
-{
-    static importToPTRE(apiKey, ogl)
-    {
-        Util.getJSON(`https://ptre.chez.gg/scripts/oglight_import.php?tool=oglight&team_key=${ogl.ptre}&sr_id=${apiKey}`, result =>
-        {
+class Util {
+    static importToPTRE(apiKey, ogl) {
+        Util.getJSON(`https://ptre.chez.gg/scripts/oglight_import.php?tool=oglight&team_key=${ogl.ptre}&sr_id=${apiKey}`, result => {
             fadeBox(result.message_verbose, result.code != 1);
         });
     }
 
-    static genTrashsimLink(apiKey, ogl)
-    {
+    static genTrashsimLink(apiKey, ogl) {
         let coords = ogl.current.coords;
 
-        let jsonTechs = {"0":
+        let jsonTechs = {
+            "0":
                 [{
                     planet:
                         {
-                            galaxy:coords[0],
-                            system:coords[1],
-                            position:coords[2],
+                            galaxy: coords[0],
+                            system: coords[1],
+                            position: coords[2],
                         },
                     class: ogl.account.class,
                     characterClassesEnabled: true,
                     "research": {}
-                }]};
+                }]
+        };
 
-        for(let [key, value] of Object.entries(ogl.db.me.techs))
-        {
-            jsonTechs[0][0].research[key] = {"level":value};
+        for (let [key, value] of Object.entries(ogl.db.me.techs)) {
+            jsonTechs[0][0].research[key] = {"level": value};
         }
 
         jsonTechs = btoa(JSON.stringify(jsonTechs));
@@ -12972,15 +14957,13 @@ class Util
         return 'https://trashsim.universeview.be/' + lang + '?SR_KEY=' + apiKey + '#prefill=' + jsonTechs;
     }
 
-    static getXML(url, callback)
-    {
+    static getXML(url, callback) {
         let cancelController = new AbortController();
         let signal = cancelController.signal;
 
-        fetch(url, {signal:signal})
+        fetch(url, {signal: signal})
             .then(response => response.text())
-            .then(data =>
-            {
+            .then(data => {
                 let xml = new DOMParser().parseFromString(data, 'text/html');
                 callback(xml);
             })
@@ -12989,12 +14972,11 @@ class Util
         window.addEventListener('beforeunload', () => cancelController.abort());
     }
 
-    static getJSON(url, callback)
-    {
+    static getJSON(url, callback) {
         let cancelController = new AbortController();
         let signal = cancelController.signal;
 
-        fetch(url, {signal:signal})
+        fetch(url, {signal: signal})
             .then(response => response.json())
             .then(data => callback(data))
             .catch(error => console.log(`Failed to fetch ${url} : ${error}`));
@@ -13002,12 +14984,11 @@ class Util
         window.addEventListener('beforeunload', () => cancelController.abort());
     }
 
-    static getRaw(url, callback)
-    {
+    static getRaw(url, callback) {
         let cancelController = new AbortController();
         let signal = cancelController.signal;
 
-        fetch(url, {method:'get', signal:signal, headers:{'Accept':'application/json'}})
+        fetch(url, {method: 'get', signal: signal, headers: {'Accept': 'application/json'}})
             .then(response => response.text())
             .then(data => callback(data))
             .catch(error => console.log(`Failed to fetch ${url} : ${error}`));
@@ -13015,8 +14996,7 @@ class Util
         window.addEventListener('beforeunload', () => cancelController.abort());
     }
 
-    static createDom(element, params, content)
-    {
+    static createDom(element, params, content) {
         params = params || {};
         content = content ?? '';
 
@@ -13027,37 +15007,34 @@ class Util
         return dom;
     }
 
-    static updateCheckIntInput(callback)
-    {
+    static updateCheckIntInput(callback) {
         let old = checkIntInput;
 
-        checkIntInput = function(id, minVal, maxVal)
-        {
+        checkIntInput = function (id, minVal, maxVal) {
             old.call(window, id, minVal, maxVal);
             callback();
         }
     }
 
-    static formatToUnits(value, forced, offset)
-    {
-        if(!value) return 0;
+    static formatToUnits(value, forced, offset) {
+        if (!value) return 0;
 
         value = value.toString().replace(/[\,\. ]/g, '');
 
-        if(isNaN(value)) return value;
+        if (isNaN(value)) return value;
 
         let precision = 0;
 
         value = parseInt(value);
 
-        if(value == 0 || forced == 0 || value < 1000) precision = 0;
-        else if(value < 1000000 || forced == 1) precision = 1;
+        if (value == 0 || forced == 0 || value < 1000) precision = 0;
+        else if (value < 1000000 || forced == 1) precision = 1;
         else precision = 2;
 
         // const abbrev = ['', LocalizationStrings.unitKilo, LocalizationStrings.unitMega, LocalizationStrings.unitMilliard];
         const abbrev = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'];
         const unrangifiedOrder = Math.floor(Math.log10(Math.abs(value)) / 3);
-        const order = Math.max(0, Math.min(unrangifiedOrder, abbrev.length-1));
+        const order = Math.max(0, Math.min(unrangifiedOrder, abbrev.length - 1));
         const suffix = abbrev[order];
 
         let result = (value / Math.pow(10, order * 3)).toFixed(precision);
@@ -13074,82 +15051,65 @@ class Util
         return suffix ? result + ' ' + suffix : result;
     }
 
-    static formatFromUnits(value)
-    {
-        if(!value) return 0;
+    static formatFromUnits(value) {
+        if (!value) return 0;
         let offset = (value.split(LocalizationStrings.thousandSeperator).length - 1) * 3;
 
-        if(LocalizationStrings.thousandSeperator == LocalizationStrings.decimalPoint) offset = 0;
+        if (LocalizationStrings.thousandSeperator == LocalizationStrings.decimalPoint) offset = 0;
 
         let splitted = value.match(/\d+/g)[0].length;
         //let splitted = value.split(/[\,\.]/g)[0].length;
         //if(value.match(/\d+/g) && value.match(/\d+/g).map(Number).length == 1) splitted -= 1;
 
-        if(value.indexOf(LocalizationStrings.unitMilliard) > -1)
-        {
+        if (value.indexOf(LocalizationStrings.unitMilliard) > -1) {
             //let padEnd = value.indexOf(LocalizationStrings.thousandSeperator) > -1 ? 12 : 9;
             value = value.replace(LocalizationStrings.unitMilliard, '');
             value = value.replace(/[\,\. ]/g, '');
             value = value.padEnd(9 + offset + splitted, '0');
-        }
-        else if(value.indexOf(LocalizationStrings.unitMega) > -1)
-        {
+        } else if (value.indexOf(LocalizationStrings.unitMega) > -1) {
             value = value.replace(LocalizationStrings.unitMega, '');
             value = value.replace(/[\,\. ]/g, '');
             value = value.padEnd(6 + offset + splitted, '0');
-        }
-        else if(value.indexOf(LocalizationStrings.unitKilo) > -1)
-        {
+        } else if (value.indexOf(LocalizationStrings.unitKilo) > -1) {
             value = value.replace(LocalizationStrings.unitKilo, '');
             value = value.replace(/[\,\. ]/g, '');
             value = value.padEnd(3 + offset + splitted, '0');
-        }
-        else
-        {
+        } else {
             value = value.replace(/[\,\. ]/g, '');
         }
 
         return parseInt(value);
     }
 
-    static formatNumber(number)
-    {
+    static formatNumber(number) {
         return (number || '0').toLocaleString('de-DE');
     }
 
-    static findObjectByValue(object, value)
-    {
+    static findObjectByValue(object, value) {
         return Object.keys(object).find(key => object[key] === value);
     }
 
-    static logPtre(data, params)
-    {
-        params = params || { galaxy:0, system:0, id:0 };
+    static logPtre(data, params) {
+        params = params || {galaxy: 0, system: 0, id: 0};
 
         let source = params.galaxy && params.system ? `${params.galaxy}:${params.system}` : `#${params.playerID}`;
 
-        let div = document.querySelector('.ogl_ptreLogs') || (document.querySelector('#middle') || document.querySelector('#highscoreContent')).appendChild(Util.createDom('div', {'class':'ogl_ptreLogs'}, '<h3>PTRE Logs :</h3>'));
+        let div = document.querySelector('.ogl_ptreLogs') || (document.querySelector('#middle') || document.querySelector('#highscoreContent')).appendChild(Util.createDom('div', {'class': 'ogl_ptreLogs'}, '<h3>PTRE Logs :</h3>'));
         div.appendChild(Util.createDom('div', {}, `<span>${new Date(Date.now()).toLocaleTimeString('fr-FR')}</span> ➜ ${data.message} <b>[${source}]</b>`));
 
-        if(div.querySelectorAll('div').length > 5)  div.querySelectorAll('div')[0].remove();
+        if (div.querySelectorAll('div').length > 5) div.querySelectorAll('div')[0].remove();
     }
 
-    static takeScreenshot(element, button, name)
-    {
-        if(typeof html2canvas === 'undefined')
-        {
-            Util.getRaw('https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js', result =>
-            {
-                document.head.appendChild(Util.createDom('script', {'type':'text/javascript'}, result));
+    static takeScreenshot(element, button, name) {
+        if (typeof html2canvas === 'undefined') {
+            Util.getRaw('https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js', result => {
+                document.head.appendChild(Util.createDom('script', {'type': 'text/javascript'}, result));
                 Util.takeScreenshot(element, button, name);
             })
-        }
-        else
-        {
-            html2canvas(element, {backgroundColor:'#151f28'}).then(canvas =>
-            {
+        } else {
+            html2canvas(element, {backgroundColor: '#151f28'}).then(canvas => {
                 const dataURL = canvas.toDataURL();
-                const link = Util.createDom('a', {'download':name, 'href':dataURL});
+                const link = Util.createDom('a', {'download': name, 'href': dataURL});
                 link.click();
 
                 button.innerHTML = '<i class="material-icons">file_download</i>Download (.jpg)';
@@ -13158,17 +15118,14 @@ class Util
         }
     }
 
-    static redirect(url, ogl)
-    {
-        if(ogl) ogl.component.popup.load(true);
+    static redirect(url, ogl) {
+        if (ogl) ogl.component.popup.load(true);
         setTimeout(() => window.location.href = url, 200);
     }
 }
 
-class MessageManager
-{
-    constructor(ogl)
-    {
+class MessageManager {
+    constructor(ogl) {
         this.ogl = ogl;
         this.spyTable;
         this.dataList = [];
@@ -13176,18 +15133,15 @@ class MessageManager
         this.reportList = [];
         this.trashQueue = [];
 
-        if(this.ogl.page == 'messages')
-        {
+        if (this.ogl.page == 'messages') {
             // check reports tab
             this.ogl.observeMutation(() => this.checkCurrentTab(), 'tablereport');
 
             // check opened message
-            this.ogl.observeMutation(() =>
-            {
+            this.ogl.observeMutation(() => {
                 let detail = document.querySelector('.detail_msg');
 
-                if(detail && detail.getAttribute('data-message-type') == 10 && !detail.classList.contains('ogl_detailReady'))
-                {
+                if (detail && detail.getAttribute('data-message-type') == 10 && !detail.classList.contains('ogl_detailReady')) {
                     detail.classList.add('ogl_detailReady');
 
                     let apiKey = Util.createDom('div', {});
@@ -13195,62 +15149,55 @@ class MessageManager
                     apiKey.innerHTML = detail.querySelector('.icon_apikey').getAttribute('title');
                     apiKey = apiKey.querySelector('input').value;
 
-                    let simButton = detail.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class':'icon_nf ogl_sim'}, 'S'));
+                    let simButton = detail.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim'}, 'S'));
                     simButton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
 
-                    if(this.ogl.ptre)
-                    {
-                        let ptreButton = detail.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class':'icon_nf ogl_sim tooltip', 'title':'import to PTRE'}, 'P'));
+                    if (this.ogl.ptre) {
+                        let ptreButton = detail.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim tooltip', 'title': 'import to PTRE'}, 'P'));
                         ptreButton.addEventListener('click', () => Util.importToPTRE(apiKey, this.ogl));
                     }
                 }
             }, 'simbutton');
 
-            this.ogl.performances.push(['Message',performance.now()]);
+            this.ogl.performances.push(['Message', performance.now()]);
         }
     }
 
-    checkCurrentTab()
-    {
+    checkCurrentTab() {
         this.trashQueueProcessing = false;
         this.trashQueue = [];
-        if(document.querySelectorAll('.msg').length < 1) return;
+        if (document.querySelectorAll('.msg').length < 1) return;
 
-        let tokenInterval = setInterval(() =>
-        {
+        let tokenInterval = setInterval(() => {
             this.tokenInput = document.querySelectorAll('[name="token"]')[0];
-            if(!this.tokenInput) return;
+            if (!this.tokenInput) return;
 
             clearInterval(tokenInterval);
 
             let self = this;
 
-            const { get, set } = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+            const {get, set} = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
 
-            try
-            {
+            try {
                 Object.defineProperty(this.tokenInput, "value",
                     {
-                        get() { return get.call(this); },
-                        set(newVal)
-                        {
-                            setTimeout(() =>
-                            {
-                                if(self.trashQueue.length > 0 && !self.trashQueueProcessing)
-                                {
+                        get() {
+                            return get.call(this);
+                        },
+                        set(newVal) {
+                            setTimeout(() => {
+                                if (self.trashQueue.length > 0 && !self.trashQueueProcessing) {
                                     self.trashQueueProcessing = true;
 
                                     let id = self.trashQueue[0];
                                     let buttonSelector = document.querySelector(`[data-msg-id="${id}"] .js_actionKill`);
 
-                                    if(buttonSelector && !buttonSelector.classList.contains('ogl_noPointer'))
-                                    {
+                                    if (buttonSelector && !buttonSelector.classList.contains('ogl_noPointer')) {
                                         buttonSelector.click();
 
                                         let line = self.spyTable?.querySelector(`[data-spy-id="${id}"]`);
-                                        if(line)
-                                        {
-                                            if(line.nextSibling?.tagName == 'ASIDE') line.nextSibling.remove();
+                                        if (line) {
+                                            if (line.nextSibling?.tagName == 'ASIDE') line.nextSibling.remove();
 
                                             self.sum = self.sum || 0;
                                             self.sum -= parseInt(line.getAttribute('data-renta'));
@@ -13265,71 +15212,60 @@ class MessageManager
 
                                             const isValid = e => e.id == id;
 
-                                            for(let i=0, len=self.dataList.length; i<len; i++)
-                                            {
+                                            for (let i = 0, len = self.dataList.length; i < len; i++) {
                                                 let item = self.dataList[i];
-                                                if(isValid(item))
-                                                {
+                                                if (isValid(item)) {
                                                     self.dataList.splice(i, 1);
                                                     break;
                                                 }
                                             }
                                         }
-                                    }
-                                    else this.value = newVal;
+                                    } else this.value = newVal;
 
                                     self.tokenReady = true;
                                     self.trashQueue.shift();
-                                }
-                                else self.trashQueueProcessing = false;
+                                } else self.trashQueueProcessing = false;
                             }, 50);
 
                             return set.call(this, newVal);
                         }
                     });
 
-                if(this.trashQueue.length > 0) this.tokenInput.value = this.tokenInput.value;
+                if (this.trashQueue.length > 0) this.tokenInput.value = this.tokenInput.value;
+            } catch (e) {
             }
-            catch(e) {};
+            ;
 
         }, 100);
 
         let tabID = ogame.messages.getCurrentMessageTab();
 
-        if(tabID == 21) this.checkRaid();
-        else if(tabID == 22) this.checkExpeditions();
-        else if(tabID == 23) this.checkTransports();
-        else if(tabID == 24) this.checkDebris();
-        else if(tabID == 25) this.checkTrash();
-        else if(tabID == 20) this.checkReports();
+        if (tabID == 21) this.checkRaid();
+        else if (tabID == 22) this.checkExpeditions();
+        else if (tabID == 23) this.checkTransports();
+        else if (tabID == 24) this.checkDebris();
+        else if (tabID == 25) this.checkTrash();
+        else if (tabID == 20) this.checkReports();
 
-        if(this.spyTable)
-        {
-            if(tabID == 20)
-            {
+        if (this.spyTable) {
+            if (tabID == 20) {
                 this.spyTable.classList.remove('ogl_hidden');
                 document.querySelector('#subtabs-nfFleetTrash .ogl_trash') && document.querySelector('#subtabs-nfFleetTrash .ogl_trash').classList.remove('ogl_hidden');
-            }
-            else
-            {
+            } else {
                 this.spyTable.classList.add('ogl_hidden');
                 document.querySelector('#subtabs-nfFleetTrash .ogl_trash') && document.querySelector('#subtabs-nfFleetTrash .ogl_trash').classList.add('ogl_hidden');
             }
         }
     }
 
-    checkTrash()
-    {
+    checkTrash() {
         this.reviveReady = true;
 
         // ogame bug fix
-        document.querySelectorAll('.msg .js_actionRevive').forEach(button =>
-        {
+        document.querySelectorAll('.msg .js_actionRevive').forEach(button => {
             button.classList.remove('js_actionRevive');
-            button.addEventListener('click', () =>
-            {
-                if(!this.reviveReady)
-                {
+            button.addEventListener('click', () => {
+                if (!this.reviveReady) {
                     setTimeout(() => button.click(), 150);
                     return;
                 }
@@ -13342,28 +15278,25 @@ class MessageManager
 
                 $.ajax(
                     {
-                        type:'POST',
-                        url:'?page=messages',
-                        dataType:'json',
+                        type: 'POST',
+                        url: '?page=messages',
+                        dataType: 'json',
                         data:
                             {
-                                ajax:1,
-                                token:tokenMsg,
-                                messageId:id,
-                                action:104
+                                ajax: 1,
+                                token: tokenMsg,
+                                messageId: id,
+                                action: 104
                             }
-                    }).done(result =>
-                {
-                    if(result[id] == true && result.newAjaxToken)
-                    {
+                    }).done(result => {
+                    if (result[id] == true && result.newAjaxToken) {
                         msg.remove();
                         document.querySelectorAll('[name="token"]').forEach(e => e.setAttribute('value', result.newAjaxToken));
                         ogame.messages.token = result.newAjaxToken;
 
                         this.reviveReady = true;
                     }
-                }).fail(result =>
-                {
+                }).fail(result => {
                     console.log('bug, please refresh');
                     this.reviveReady = true;
                 });
@@ -13371,12 +15304,10 @@ class MessageManager
         });
     }
 
-    checkRaid()
-    {
+    checkRaid() {
         let messages = document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_raidDone)');
 
-        if(messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_raidDone) .msg_date.ogl_timeZone').length)
-        {
+        if (messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_raidDone) .msg_date.ogl_timeZone').length) {
             setTimeout(() => this.checkRaid(), 100);
             return;
         }
@@ -13385,21 +15316,19 @@ class MessageManager
 
         this.ogl.cache.msg = this.ogl.cache.msg || {};
 
-        messages.forEach((message, index) =>
-        {
+        messages.forEach((message, index) => {
             let content = message.querySelector('.msg_content');
 
-            if(!message.querySelector('.ogl_timeZone')) return;
+            if (!message.querySelector('.ogl_timeZone')) return;
             message.classList.add('ogl_raidDone');
-            if(!content.querySelector('.msg_ctn2')) return;
+            if (!content.querySelector('.msg_ctn2')) return;
 
-            if(document.querySelector('#subtabs-nfFleetTrash.ui-state-active')) return;
+            if (document.querySelector('#subtabs-nfFleetTrash.ui-state-active')) return;
 
             let id = message.getAttribute('data-msg-id');
 
-            if(this.ogl.cache.msg[id]) this.loadRaidMessages(id);
-            else
-            {
+            if (this.ogl.cache.msg[id]) this.loadRaidMessages(id);
+            else {
                 console.log('fetch')
                 let groupID = Math.floor(index / 15) * 10;
 
@@ -13408,20 +15337,21 @@ class MessageManager
             }
         });
 
-        urls.forEach((group, index) =>
-        {
-            setTimeout(() =>
-            {
+        urls.forEach((group, index) => {
+            setTimeout(() => {
                 Promise.all(group.map(url =>
-                    fetch(url).then(response => { if(response.status == 503) { throw Error(response.status) } else return response.text() }).catch(err => { const mute = err })))
-                    .then(texts =>
-                    {
-                        texts.forEach(data =>
-                        {
+                    fetch(url).then(response => {
+                        if (response.status == 503) {
+                            throw Error(response.status)
+                        } else return response.text()
+                    }).catch(err => {
+                        const mute = err
+                    })))
+                    .then(texts => {
+                        texts.forEach(data => {
                             let result = new DOMParser().parseFromString(data, 'text/html');
 
-                            if(!result.querySelector('.detail_msg'))
-                            {
+                            if (!result.querySelector('.detail_msg')) {
                                 console.error("Can't fetch combat report : server data error | " + data);
                                 return;
                             }
@@ -13429,16 +15359,13 @@ class MessageManager
                             let id = result.querySelector('.detail_msg').getAttribute('data-msg-id');
                             let message = document.querySelector(`.msg[data-msg-id="${id}"]`);
 
-                            if(!message.querySelector('.msg_date'))
-                            {
+                            if (!message.querySelector('.msg_date')) {
                                 console.error("Can't fetch combat report : message date error | " + data);
                                 return;
                             }
 
                             let htmlReport = result.getElementsByClassName('detail_msg')[0].innerHTML;
-                            let json = JSON.parse(htmlReport.substring((htmlReport.search("var combatData") + 35),(htmlReport.search("var attackerJson") - 12)));
-
-                            this.ogl.cache.msg[id] = json;
+                            this.ogl.cache.msg[id] = JSON.parse(htmlReport.substring((htmlReport.search("var combatData") + 35), (htmlReport.search("var attackerJson") - 12)));
 
                             this.loadRaidMessages(id);
                         });
@@ -13451,17 +15378,16 @@ class MessageManager
         });
     }
 
-    loadRaidMessages(id)
-    {
+    loadRaidMessages(id) {
         let report = {};
         let json = this.ogl.cache.msg[id];
         let message = document.querySelector(`.msg[data-msg-id="${id}"]`);
         let date = new Date(parseInt(message.querySelector('.msg_date').getAttribute('data-servertime')));
         let midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0).getTime();
 
-        let loot = { metal:json.loot.metal, crystal:json.loot.crystal, deut:json.loot.deuterium, food:json.loot.food };
-        let renta = { metal:0, crystal:0, deut:0, food:0 };
-        let loss = { metal:0, crystal:0, deut:0, food:0 };
+        let loot = {metal: json.loot.metal, crystal: json.loot.crystal, deut: json.loot.deuterium, food: json.loot.food};
+        let renta = {metal: 0, crystal: 0, deut: 0, food: 0};
+        let loss = {metal: 0, crystal: 0, deut: 0, food: 0};
 
         /*let loot = [json.loot.metal, json.loot.crystal, json.loot.deuterium];
         let renta = [0,0,0];
@@ -13471,33 +15397,32 @@ class MessageManager
         let leftSide = false;
         let probesOnly = false;
 
-        Object.values(json.attackerJSON.member).forEach(v => { if(v && v.ownerID == this.ogl.account.id) fleetID.push(v.fleetID) });
-        if(fleetID.length > 0) leftSide = true;
+        Object.values(json.attackerJSON.member).forEach(v => {
+            if (v && v.ownerID == this.ogl.account.id) fleetID.push(v.fleetID)
+        });
+        if (fleetID.length > 0) leftSide = true;
 
-        Object.values(json.defenderJSON.member).forEach(v => { if(v && v.ownerID == this.ogl.account.id) fleetID.push(v.fleetID) });
+        Object.values(json.defenderJSON.member).forEach(v => {
+            if (v && v.ownerID == this.ogl.account.id) fleetID.push(v.fleetID)
+        });
 
         let atkRounds = json.attackerJSON.combatRounds;
         let defRounds = json.defenderJSON.combatRounds;
 
-        fleetID.forEach(fleet =>
-        {
-            if(Object.values(atkRounds[0].ships).length == 1 && Object.values(atkRounds[0].ships)[0]?.[210]) probesOnly = true;
+        fleetID.forEach(fleet => {
+            if (Object.values(atkRounds[0].ships).length == 1 && Object.values(atkRounds[0].ships)[0]?.[210]) probesOnly = true;
 
             // def
-            if(defRounds[defRounds.length-1].losses && defRounds[defRounds.length-1].losses[fleet])
-            {
-                for(let [k,v] of Object.entries(defRounds[defRounds.length-1].losses[fleet]))
-                {
+            if (defRounds[defRounds.length - 1].losses && defRounds[defRounds.length - 1].losses[fleet]) {
+                for (let [k, v] of Object.entries(defRounds[defRounds.length - 1].losses[fleet])) {
                     let shipData = Datafinder.getTech(k);
                     Object.keys(shipData).forEach(x => loss[x] = (loss[x] || 0) + shipData[x] * v);
                 }
             }
 
             // atk
-            if(atkRounds[atkRounds.length-1].losses && atkRounds[atkRounds.length-1].losses[fleet])
-            {
-                for(let [k,v] of Object.entries(atkRounds[atkRounds.length-1].losses[fleet]))
-                {
+            if (atkRounds[atkRounds.length - 1].losses && atkRounds[atkRounds.length - 1].losses[fleet]) {
+                for (let [k, v] of Object.entries(atkRounds[atkRounds.length - 1].losses[fleet])) {
                     let shipData = Datafinder.getTech(k);
                     Object.keys(shipData).forEach(x => loss[x] = (loss[x] || 0) + shipData[x] * v);
                 }
@@ -13505,30 +15430,27 @@ class MessageManager
         });
 
         // repaired
-        if(json.defender[0] && json.defender[0].ownerID == this.ogl.account.id)
-        {
-            for(let [k,v] of Object.entries(json.repairedDefense))
-            {
+        if (json.defender[0] && json.defender[0].ownerID == this.ogl.account.id) {
+            for (let [k, v] of Object.entries(json.repairedDefense)) {
                 let shipData = Datafinder.getTech(k);
                 Object.keys(shipData).forEach(x => loss[x] = (loss[x] || 0) - shipData[x] * v);
             }
         }
 
-        if(leftSide) Object.keys(loss).forEach(x => renta[x] = (renta[x] || 0) - loss[x] + loot[x]);
+        if (leftSide) Object.keys(loss).forEach(x => renta[x] = (renta[x] || 0) - loss[x] + loot[x]);
         else Object.keys(loss).forEach(x => renta[x] = (renta[x] || 0) - loss[x] - loot[x]);
 
-        let line = Util.createDom('div', {'class':'ogl_expeResult'});
-        Object.keys(renta).forEach(r =>
-        {
+        let line = Util.createDom('div', {'class': 'ogl_expeResult'});
+        Object.keys(renta).forEach(r => {
             report[r] = renta[r];
-            line.appendChild(Util.createDom('div', {'class':`ogl_${r}`}, Util.formatToUnits(renta[r] || '0')));
+            line.appendChild(Util.createDom('div', {'class': `ogl_${r}`}, Util.formatToUnits(renta[r] || '0')));
         });
 
         message.prepend(line);
 
         let target = json.coordinates.position == 16 ? 'expe' : 'raid';
 
-        this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || { idList:[], expe:{}, raid:{}, expeOccurences:{}, raidOccurences:0, consumption:0 };
+        this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
         this.ogl.db.stats.ignored = this.ogl.db.stats.ignored || {};
         this.ogl.db.stats.total = this.ogl.db.stats.total || {};
         this.ogl.db.stats.total.expeOccurences = this.ogl.db.stats.total.expeOccurences || {};
@@ -13537,40 +15459,32 @@ class MessageManager
         let newEntry = !this.ogl.db.stats[midnight].idList.includes(id) && !this.ogl.db.stats.ignored[id];
         //let totalRenta = renta.reduce((sum, x) => sum + x);
 
-        let saveReport = () =>
-        {
+        let saveReport = () => {
             this.ogl.db.stats.total[target] = this.ogl.db.stats.total[target] || {};
 
-            if(!this.ogl.db.stats[midnight].idList.includes(id) && !this.ogl.db.stats.ignored[id])
-            {
+            if (!this.ogl.db.stats[midnight].idList.includes(id) && !this.ogl.db.stats.ignored[id]) {
                 this.ogl.db.stats[midnight].idList.push(id);
 
-                for(let [k,v] of Object.entries(report))
-                {
+                for (let [k, v] of Object.entries(report)) {
                     this.ogl.db.stats[midnight][target][k] = (this.ogl.db.stats[midnight][target][k] || 0) + v;
                     this.ogl.db.stats.total[target][k] = (this.ogl.db.stats.total[target][k] || 0) + v;
                 }
 
-                if(target == 'expe')
-                {
+                if (target == 'expe') {
                     this.ogl.db.stats[midnight].expeOccurences['fight'] = (this.ogl.db.stats[midnight].expeOccurences['fight'] || 0) + 1;
                     this.ogl.db.stats.total.expeOccurences['fight'] = (this.ogl.db.stats.total.expeOccurences['fight'] || 0) + 1;
 
                     this.ogl.db.stats[midnight].expeOccurences['none'] = (this.ogl.db.stats[midnight].expeOccurences['none'] || 0) - 1;
                     this.ogl.db.stats.total.expeOccurences['none'] = (this.ogl.db.stats.total.expeOccurences['none'] || 0) - 1;
-                }
-                else
-                {
+                } else {
                     this.ogl.db.stats[midnight].raidOccurences = (this.ogl.db.stats[midnight].raidOccurences || 0) + 1;
                     this.ogl.db.stats.total.raidOccurences = (this.ogl.db.stats.total.raidOccurences || 0) + 1;
                 }
             }
         }
 
-        let deleteReport = () =>
-        {
-            if(target == 'raid')
-            {
+        let deleteReport = () => {
+            if (target == 'raid') {
                 this.ogl.db.stats.total[target] = this.ogl.db.stats.total[target] || {};
 
                 this.ogl.db.stats[midnight].raidOccurences = (this.ogl.db.stats[midnight].raidOccurences || 0) - 1;
@@ -13581,19 +15495,14 @@ class MessageManager
         saveReport();
 
         // ignore button
-        if(target == 'raid')
-        {
-            let ignore = line.appendChild(Util.createDom('div', {'class':'ogl_button ogl_ignoreRaid material-icons tooltip', 'title':this.ogl.component.lang.getText('ignoreRaid')}));
-            if(this.ogl.db.stats.ignored[id]) ignore.classList.add('ogl_active');
-            ignore.addEventListener('click', () =>
-            {
-                if(this.ogl.db.stats.ignored[id])
-                {
+        if (target == 'raid') {
+            let ignore = line.appendChild(Util.createDom('div', {'class': 'ogl_button ogl_ignoreRaid material-icons tooltip', 'title': this.ogl.component.lang.getText('ignoreRaid')}));
+            if (this.ogl.db.stats.ignored[id]) ignore.classList.add('ogl_active');
+            ignore.addEventListener('click', () => {
+                if (this.ogl.db.stats.ignored[id]) {
                     delete this.ogl.db.stats.ignored[id];
                     ignore.classList.remove('ogl_active');
-                }
-                else
-                {
+                } else {
                     ignore.classList.add('ogl_active');
                     let index = this.ogl.db.stats[midnight].idList.indexOf(id);
                     this.ogl.db.stats.ignored[id] = serverTime.getTime();
@@ -13601,8 +15510,7 @@ class MessageManager
                     this.ogl.db.stats[midnight].idList.splice(index, 1);
                     deleteReport();
 
-                    for(let [k,v] of Object.entries(report))
-                    {
+                    for (let [k, v] of Object.entries(report)) {
                         this.ogl.db.stats[midnight][target][k] = (this.ogl.db.stats[midnight][target][k] || 0) - v;
                         this.ogl.db.stats.total[target][k] = (this.ogl.db.stats.total[target][k] || 0) - v;
                     }
@@ -13614,76 +15522,66 @@ class MessageManager
             });
 
             // ignore spies fights
-            if(newEntry && probesOnly && !this.ogl.db.ships[210]?.capacity) ignore.click();
+            if (newEntry && probesOnly && !this.ogl.db.ships[210]?.capacity) ignore.click();
         }
     }
 
-    checkExpeditions()
-    {
+    checkExpeditions() {
         let messages = document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_expeditionDone)');
 
-        if(messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_expeditionDone) .msg_date.ogl_timeZone').length)
-        {
+        if (messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_expeditionDone) .msg_date.ogl_timeZone').length) {
             setTimeout(() => this.checkExpeditions(), 100);
             return;
         }
 
         this.messagePending = [];
 
-        messages.forEach((message, messageIndex) =>
-        {
-            if(!message.querySelector('.ogl_timeZone')) return;
+        messages.forEach((message, messageIndex) => {
+            if (!message.querySelector('.ogl_timeZone')) return;
             message.classList.add('ogl_expeditionDone');
 
-            if(document.querySelector('#subtabs-nfFleetTrash.ui-state-active')) return;
+            if (document.querySelector('#subtabs-nfFleetTrash.ui-state-active')) return;
 
-            setTimeout(() =>
-            {
+            setTimeout(() => {
                 let id = message.getAttribute('data-msg-id');
                 let date = new Date(parseInt(message.querySelector('.msg_date').getAttribute('data-servertime')));
                 let midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0).getTime();
                 let type = 'none';
-                let typeList = ['metal','crystal','deut','dm',202,203,204,205,206,207,208,209,210,211,213,214,215,217,218,219];
+                let typeList = ['metal', 'crystal', 'deut', 'dm', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
 
                 this.messagePending.push(id);
 
                 let result = {};
 
-                typeList.forEach(typeID =>
-                {
-                    if(message.textContent.indexOf(this.ogl.component.lang.getText(typeID)) > -1)
-                    {
-                        if(!isNaN(typeID)) type = 'ships';
-                        else if(typeID == 'metal' || typeID == 'crystal' || typeID == 'deut') type = 'resources';
-                        else if(typeID == 'dm') type = 'dm';
+                typeList.forEach(typeID => {
+                    if (message.textContent.indexOf(this.ogl.component.lang.getText(typeID)) > -1) {
+                        if (!isNaN(typeID)) type = 'ships';
+                        else if (typeID == 'metal' || typeID == 'crystal' || typeID == 'deut') type = 'resources';
+                        else if (typeID == 'dm') type = 'dm';
                         result[typeID] = this.getExpeValue(this.ogl.component.lang.getText(typeID), message);
                     }
 
-                    if(result[typeID] == -1)
-                    {
+                    if (result[typeID] == -1) {
                         type = 'none';
                         delete result[typeID];
                     }
                 });
 
-                if(message.querySelector('a.itemLink'))
-                {
+                if (message.querySelector('a.itemLink')) {
                     type = 'item';
                     result.item = 1;
                 }
 
-                message.querySelector('.msg_content').prepend(Util.createDom('div', {'class':'ogl_expeResult'}, type.replace('none', '-')));
+                message.querySelector('.msg_content').prepend(Util.createDom('div', {'class': 'ogl_expeResult'}, type.replace('none', '-')));
 
-                this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || { idList:[], expe:{}, raid:{}, expeOccurences:{}, raidOccurences:0, consumption:0 };
+                this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
 
-                if(this.ogl.db.stats[midnight].idList.indexOf(id) == -1)
-                {
+                if (this.ogl.db.stats[midnight].idList.indexOf(id) == -1) {
                     this.ogl.db.stats[midnight].idList.push(id);
                     this.ogl.db.stats.total.expe = this.ogl.db.stats.total.expe || {};
                     this.ogl.db.stats.total.expeOccurences = this.ogl.db.stats.total.expeOccurences || {};
 
-                    for(let [k,v] of Object.entries(result))
-                    {
+                    for (let [k, v] of Object.entries(result)) {
                         this.ogl.db.stats[midnight].expe[k] = (this.ogl.db.stats[midnight].expe[k] || 0) + v;
                         this.ogl.db.stats.total.expe[k] = (this.ogl.db.stats.total?.expe?.[k] || 0) + v;
                     }
@@ -13692,8 +15590,7 @@ class MessageManager
                     this.ogl.db.stats.total.expeOccurences[type] = (this.ogl.db.stats.total.expeOccurences[type] || 0) + 1;
                 }
 
-                if(this.messagePending.length == messages.length)
-                {
+                if (this.messagePending.length == messages.length) {
                     // this.ogl.saveAsync();
                     this.ogl.component.empire.addStats();
                 }
@@ -13701,25 +15598,22 @@ class MessageManager
         });
     }
 
-    checkDebris()
-    {
+    checkDebris() {
         let messages = document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_debrisDone)');
 
-        if(messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_debrisDone) .msg_date.ogl_timeZone').length)
-        {
+        if (messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_debrisDone) .msg_date.ogl_timeZone').length) {
             setTimeout(() => this.checkDebris(), 100);
             return;
         }
 
-        messages.forEach(message =>
-        {
-            if(!message.querySelector('.ogl_timeZone')) return;
+        messages.forEach(message => {
+            if (!message.querySelector('.ogl_timeZone')) return;
             message.classList.add('ogl_debrisDone');
 
-            if(!message.querySelector('.icon_apikey') && message.querySelector('.msg_head').textContent.indexOf(':17]') < 0) return;
+            if (!message.querySelector('.icon_apikey') && message.querySelector('.msg_head').textContent.indexOf(':17]') < 0) return;
 
             let content = message.querySelector('.msg_content');
-            let regex = new RegExp('\\'+LocalizationStrings.thousandSeperator, 'g');
+            let regex = new RegExp('\\' + LocalizationStrings.thousandSeperator, 'g');
 
             let id = message.getAttribute('data-msg-id');
             let date = new Date(parseInt(message.querySelector('.msg_date').getAttribute('data-servertime')));
@@ -13730,33 +15624,28 @@ class MessageManager
             let numList = content.textContent.replace(regex, '').match(/\d+/g);
             let target = parseInt(numList[numList.length - 3]) == 16 ? 'expe' : 'raid';
 
-            if(!message.querySelector('.icon_apikey'))
-            {
+            if (!message.querySelector('.icon_apikey')) {
                 report.dm = parseInt(numList[numList.length - 2]);
-                message.prepend(Util.createDom('div', {'class':'ogl_expeResult'}, `Renta: ${report.DM} ${this.ogl.component.lang.getText('DM')}`));
-            }
-            else
-            {
+                message.prepend(Util.createDom('div', {'class': 'ogl_expeResult'}, `Renta: ${report.DM} ${this.ogl.component.lang.getText('DM')}`));
+            } else {
                 report.metal = parseInt(numList[numList.length - 3]);
                 report.crystal = parseInt(numList[numList.length - 2]);
                 report.deut = parseInt(numList[numList.length - 1]);
-                message.prepend(Util.createDom('div', {'class':'ogl_expeResult'}, `Renta: ${Util.formatToUnits(report.metal)} | ${Util.formatToUnits(report.crystal)} | ${Util.formatToUnits(report.deut)}`));
+                message.prepend(Util.createDom('div', {'class': 'ogl_expeResult'}, `Renta: ${Util.formatToUnits(report.metal)} | ${Util.formatToUnits(report.crystal)} | ${Util.formatToUnits(report.deut)}`));
             }
 
             console.log(report)
 
-            this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || { idList:[], expe:{}, raid:{}, expeOccurences:{}, raidOccurences:0, consumption:0 };
+            this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
             this.ogl.db.stats.total = this.ogl.db.stats.total || {};
             this.ogl.db.stats.total[target] = this.ogl.db.stats.total[target] || {};
 
-            if(this.ogl.db.stats[midnight].idList.indexOf(id) == -1)
-            {
+            if (this.ogl.db.stats[midnight].idList.indexOf(id) == -1) {
                 this.ogl.db.stats[midnight].idList.push(id);
                 this.ogl.db.stats.total.expe = this.ogl.db.stats.total.expe || {};
                 this.ogl.db.stats.total.expeOccurences = this.ogl.db.stats.total.expeOccurences || {};
 
-                for(let [k,v] of Object.entries(report))
-                {
+                for (let [k, v] of Object.entries(report)) {
                     this.ogl.db.stats[midnight][target][k] = (this.ogl.db.stats[midnight][target][k] || 0) + v;
                     this.ogl.db.stats.total[target][k] = (this.ogl.db.stats.total[target][k] || 0) + v;
                 }
@@ -13767,46 +15656,41 @@ class MessageManager
         this.ogl.component.empire.addStats();
     }
 
-    checkReports()
-    {
-        if(document.querySelector('#subtabs-nfFleetTrash.ui-state-active')) return;
-        if(this.ogl.db.options.togglesOff.indexOf('spytable') > -1) return;
+    checkReports() {
+        if (document.querySelector('#subtabs-nfFleetTrash.ui-state-active')) return;
+        if (this.ogl.db.options.togglesOff.indexOf('spytable') > -1) return;
 
         this.dataList = [];
         this.reportList = [];
-        if(this.spyTable) this.spyTable.remove();
+        if (this.spyTable) this.spyTable.remove();
 
-        if(!document.querySelector('#subtabs-nfFleetTrash .ogl_trash'))
-        {
-            let deleteSpyDef = document.querySelector('#subtabs-nfFleetTrash').appendChild(Util.createDom('div', {'class':'material-icons ogl_button ogl_trash tooltip', 'title':this.ogl.component.lang.getText('deleteSpyDef')}, 'visibility_off'));
-            deleteSpyDef.addEventListener('click', () =>
-            {
-                document.querySelectorAll('.msg').forEach(e =>
-                {
+        if (!document.querySelector('#subtabs-nfFleetTrash .ogl_trash')) {
+            let deleteSpyDef = document.querySelector('#subtabs-nfFleetTrash').appendChild(Util.createDom('div', {
+                'class': 'material-icons ogl_button ogl_trash tooltip',
+                'title': this.ogl.component.lang.getText('deleteSpyDef')
+            }, 'visibility_off'));
+            deleteSpyDef.addEventListener('click', () => {
+                document.querySelectorAll('.msg').forEach(e => {
                     let id = e.getAttribute('data-msg-id');
-                    if(e.querySelector('.espionageDefText') && this.trashQueue.indexOf(id) == -1) this.trashQueue.push(id);
-                    if(this.trashQueue.length == 1) this.tokenInput.value = this.tokenInput.value;
+                    if (e.querySelector('.espionageDefText') && this.trashQueue.indexOf(id) == -1) this.trashQueue.push(id);
+                    if (this.trashQueue.length == 1) this.tokenInput.value = this.tokenInput.value;
                 });
             });
         }
 
         let messages = document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_ready)');
-        if(messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_ready) .msg_date.ogl_timeZone').length)
-        {
+        if (messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_ready) .msg_date.ogl_timeZone').length) {
             setTimeout(() => this.checkReports(), 100);
             return;
         }
 
         let positionsList = this.ogl.getPositionsByCoords();
 
-        if(this.ogl.ptre)
-        {
+        if (this.ogl.ptre) {
             let ptreJSON = {};
 
-            messages.forEach(report =>
-            {
-                if(report.querySelector('.espionageDefText'))
-                {
+            messages.forEach(report => {
+                if (report.querySelector('.espionageDefText')) {
                     let id = report.getAttribute('data-msg-id');
                     let tmpHTML = Util.createDom('div', {}, report.querySelector('span.player').getAttribute('title') || report.querySelector('span.player').getAttribute('data-title'));
                     let playerID = tmpHTML.querySelector('[data-playerId]').getAttribute('data-playerId');
@@ -13825,34 +15709,28 @@ class MessageManager
                     ptreJSON[id].spy_message_ts = timestamp;
                     ptreJSON[id].moon = {};
 
-                    if(type == 1)
-                    {
+                    if (type == 1) {
                         ptreJSON[id].activity = '*';
                         ptreJSON[id].moon.activity = '60';
-                    }
-                    else
-                    {
+                    } else {
                         ptreJSON[id].activity = '60';
                         ptreJSON[id].moon.activity = '*';
                     }
                 }
             });
 
-            if(Object.keys(ptreJSON).length > 0)
-            {
-                fetch('https://ptre.chez.gg/scripts/oglight_import_player_activity.php?tool=oglight', { method:'POST', body:JSON.stringify(ptreJSON) })
+            if (Object.keys(ptreJSON).length > 0) {
+                fetch('https://ptre.chez.gg/scripts/oglight_import_player_activity.php?tool=oglight', {method: 'POST', body: JSON.stringify(ptreJSON)})
                     .then(response => response.json())
-                    .then(data =>
-                    {
-                        if(data.code != 1)
-                        {
+                    .then(data => {
+                        if (data.code != 1) {
                             console.log('error', data);
-                        }
-                        else
-                        {
-                            Object.keys(ptreJSON).forEach(id =>
-                            {
-                                document.querySelector(`.msg[data-msg-id="${id}"] .msg_title`).appendChild(Util.createDom('div', {'class':'material-icons ogl_checked tooltipLeft', 'title':'activities imported to PTRE'}, 'check_circle'));
+                        } else {
+                            Object.keys(ptreJSON).forEach(id => {
+                                document.querySelector(`.msg[data-msg-id="${id}"] .msg_title`).appendChild(Util.createDom('div', {
+                                    'class': 'material-icons ogl_checked tooltipLeft',
+                                    'title': 'activities imported to PTRE'
+                                }, 'check_circle'));
                             });
                         }
                     });
@@ -13860,33 +15738,27 @@ class MessageManager
         }
 
         // prevent the user to spam click on the same delete button
-        document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_ready) .js_actionKill').forEach(button =>
-        {
-            button.addEventListener('click', () =>  button.classList.add('ogl_noPointer'));
+        document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_ready) .js_actionKill').forEach(button => {
+            button.addEventListener('click', () => button.classList.add('ogl_noPointer'));
         });
 
-        messages.forEach((report, index) =>
-        {
+        messages.forEach((report, index) => {
             let id = report.getAttribute('data-msg-id');
             report.classList.add('ogl_ready');
-            if(this.reportList.indexOf(id) > -1) return;
-            if(report.closest('#fleettrashmessagespage')) return;
+            if (this.reportList.indexOf(id) > -1) return;
+            if (report.closest('#fleettrashmessagespage')) return;
 
             let params = new URLSearchParams(report.querySelector('.msg_head a')?.href);
             let compacting = report.querySelectorAll('.compacting');
 
-            if((compacting.length > 0 && !compacting[3].querySelector('.resspan')) || !report.querySelector('.msg_title a'))
-            {
-                if(this.trashQueue.indexOf(id) == -1) this.trashQueue.push(id);
-            }
-            else if(compacting.length > 0 && compacting[3].querySelector('.resspan'))
-            {
+            if ((compacting.length > 0 && !compacting[3].querySelector('.resspan')) || !report.querySelector('.msg_title a')) {
+                if (this.trashQueue.indexOf(id) == -1) this.trashQueue.push(id);
+            } else if (compacting.length > 0 && compacting[3].querySelector('.resspan')) {
                 this.reportList.push(id);
 
-                let typeList = ['metal','crystal','deut','dm'];
+                let typeList = ['metal', 'crystal', 'deut', 'dm'];
 
-                typeList.forEach(typeID =>
-                {
+                typeList.forEach(typeID => {
                     let regex = new RegExp(`<span class="resspan">${this.ogl.component.lang.getText(typeID)}:`, 'g');
                     report.querySelector('.msg_content').innerHTML = report.querySelector('.msg_content').innerHTML.replace(regex, `<span class="resspan" data-type="${typeID}"><span>${this.ogl.component.lang.getText(typeID)}:</span>`);
                 });
@@ -13896,7 +15768,7 @@ class MessageManager
                 data.date = report.querySelector('.msg_date').getAttribute('data-servertime');
                 data.clientDate = report.querySelector('.msg_date').getAttribute('data-clienttime');
                 data.status = compacting[0].querySelectorAll('span[class^="status"]')[0].className;
-                data.name = compacting[0].querySelectorAll('span[class^="status"]')[0].textContent.replace(/&nbsp;/g,'').trim();
+                data.name = compacting[0].querySelectorAll('span[class^="status"]')[0].textContent.replace(/&nbsp;/g, '').trim();
                 data.coords = [params.get('galaxy') || "0", params.get('system') || "0", params.get('position') || "0"];
                 data.tmpCoords = data.coords.map(x => x.padStart(3, '0')).join('');
                 data.type = report.querySelector('.msg_head figure.moon') ? 3 : 1;
@@ -13923,39 +15795,32 @@ class MessageManager
                 data.api = report.querySelector('.icon_apikey');
                 data.dom = report;
 
-                if(data.renta < this.ogl.db.options.rval && data.fleet == 0 && this.ogl.db.options.togglesOff.indexOf('autoclean') == -1)
-                {
-                    if(this.trashQueue.indexOf(data.id) == -1) this.trashQueue.push(data.id);
-                }
-                else
-                {
+                if (data.renta < this.ogl.db.options.rval && data.fleet == 0 && this.ogl.db.options.togglesOff.indexOf('autoclean') == -1) {
+                    if (this.trashQueue.indexOf(data.id) == -1) this.trashQueue.push(data.id);
+                } else {
                     this.dataList.push(data);
                 }
             }
         });
 
-        if(this.dataList.length > 0)
-        {
+        if (this.dataList.length > 0) {
             setTimeout(() => this.buildSpyTable());
         }
     }
 
-    checkTransports()
-    {
+    checkTransports() {
         let messages = document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_transpoDone)');
 
-        if(messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_transpoDone) .msg_date.ogl_timeZone').length)
-        {
+        if (messages.length > 0 && messages.length != document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg:not(.ogl_transpoDone) .msg_date.ogl_timeZone').length) {
             setTimeout(() => this.checkTransports(), 100);
             return;
         }
 
-        messages.forEach(message =>
-        {
-            if(!message.querySelector('.ogl_timeZone')) return;
+        messages.forEach(message => {
+            if (!message.querySelector('.ogl_timeZone')) return;
             message.classList.add('ogl_transpoDone');
 
-            let typeList = ['metal','crystal','deut','dm'];
+            let typeList = ['metal', 'crystal', 'deut', 'dm'];
             let regex = new RegExp(`${this.ogl.component.lang.getText(typeList[0])}[ ]?:[ ]?(.*?) ${this.ogl.component.lang.getText(typeList[1])}`, 'g');
             message.innerHTML = message.innerHTML.replace(/&nbsp;/g, ' ').trim().replace(regex, `${this.ogl.component.lang.getText(typeList[0])}: <span class="ogl_metal">$1</span> ${this.ogl.component.lang.getText(typeList[1])}`);
 
@@ -13968,86 +15833,78 @@ class MessageManager
         });
     }
 
-    cleanString(str)
-    {
-        ['.', '(', ')', ':', ','].forEach(car => str = str.replace(new RegExp('\\'+car, 'g'), '')); // remove caracter(s)
-        [' de '].forEach(car => str = str.replace(new RegExp('\\'+car, 'g'), ' ')); // replace caracter(s) with a space
+    cleanString(str) {
+        ['.', '(', ')', ':', ','].forEach(car => str = str.replace(new RegExp('\\' + car, 'g'), '')); // remove caracter(s)
+        [' de '].forEach(car => str = str.replace(new RegExp('\\' + car, 'g'), ' ')); // replace caracter(s) with a space
         return str;
     }
 
-    getExpeValue(locaAttr, message)
-    {
+    getExpeValue(locaAttr, message) {
         let regex;
         let isResource;
-        ['metal', 'crystal', 'deut'].forEach(res => { if(this.ogl.component.lang.getText(res) == locaAttr) isResource = true; });
+        ['metal', 'crystal', 'deut'].forEach(res => {
+            if (this.ogl.component.lang.getText(res) == locaAttr) isResource = true;
+        });
 
-        let regexBefore = new RegExp('(\\d+) '+this.cleanString(locaAttr), 'g');
-        let regexAfter = new RegExp(this.cleanString(locaAttr)+' (\\d+)', 'g');
+        let regexBefore = new RegExp('(\\d+) ' + this.cleanString(locaAttr), 'g');
+        let regexAfter = new RegExp(this.cleanString(locaAttr) + ' (\\d+)', 'g');
 
         let stringResult = regexBefore.exec(this.cleanString(message.innerHTML))?.[1] || regexAfter.exec(this.cleanString(message.innerHTML))?.[1] || -1;
 
         return parseInt(stringResult);
     }
 
-    buildSpyTable()
-    {
+    buildSpyTable() {
         let highlightIndex;
 
-        this.dataList.sort((a, b) =>
-        {
-            if(this.ogl.db.options.spyFilter == "$") return b.renta - a.renta;
-            else if(this.ogl.db.options.spyFilter == "COORDS") return a.tmpCoords - b.tmpCoords;
-            else if(this.ogl.db.options.spyFilter == "FLEET") return b.fleet - a.fleet;
-            else if(this.ogl.db.options.spyFilter == "DEF") return b.defense - a.defense;
-            else if(this.ogl.db.options.spyFilter == "DATE") return b.date - a.date;
-            else if(this.ogl.db.options.spyFilter == "R_$") return a.renta - b.renta;
-            else if(this.ogl.db.options.spyFilter == "R_COORDS") return b.tmpCoords - a.tmpCoords;
-            else if(this.ogl.db.options.spyFilter == "R_FLEET") return a.fleet - b.fleet;
-            else if(this.ogl.db.options.spyFilter == "R_DEF") return a.defense - b.defense;
-            else if(this.ogl.db.options.spyFilter == "R_DATE") return a.date - b.date;
+        this.dataList.sort((a, b) => {
+            if (this.ogl.db.options.spyFilter == "$") return b.renta - a.renta;
+            else if (this.ogl.db.options.spyFilter == "COORDS") return a.tmpCoords - b.tmpCoords;
+            else if (this.ogl.db.options.spyFilter == "FLEET") return b.fleet - a.fleet;
+            else if (this.ogl.db.options.spyFilter == "DEF") return b.defense - a.defense;
+            else if (this.ogl.db.options.spyFilter == "DATE") return b.date - a.date;
+            else if (this.ogl.db.options.spyFilter == "R_$") return a.renta - b.renta;
+            else if (this.ogl.db.options.spyFilter == "R_COORDS") return b.tmpCoords - a.tmpCoords;
+            else if (this.ogl.db.options.spyFilter == "R_FLEET") return a.fleet - b.fleet;
+            else if (this.ogl.db.options.spyFilter == "R_DEF") return a.defense - b.defense;
+            else if (this.ogl.db.options.spyFilter == "R_DATE") return a.date - b.date;
         });
 
-        if(this.spyTable) this.spyTable.remove();
+        if (this.spyTable) this.spyTable.remove();
 
-        let tmpTable = Util.createDom('div', {'class':'ogl_spyTable'});
+        let tmpTable = Util.createDom('div', {'class': 'ogl_spyTable'});
         let thead = tmpTable.appendChild(Util.createDom('div'));
         let tbody = tmpTable.appendChild(Util.createDom('div'));
 
         let header = thead.appendChild(Util.createDom('div'));
         //header.appendChild(Util.createDom('th', {}, ''));
-        header.appendChild(Util.createDom('th', {'data-filter':'DATE'}, 'age'));
-        header.appendChild(Util.createDom('th', {'data-filter':'COORDS'}, 'coords'));
+        header.appendChild(Util.createDom('th', {'data-filter': 'DATE'}, 'age'));
+        header.appendChild(Util.createDom('th', {'data-filter': 'COORDS'}, 'coords'));
         header.appendChild(Util.createDom('th', {}, 'name'));
-        header.appendChild(Util.createDom('th', {'data-filter':'$'}, 'renta'));
-        header.appendChild(Util.createDom('th', {'data-filter':'FLEET'}, 'fleet'));
-        header.appendChild(Util.createDom('th', {'data-filter':'DEF'}, 'def'));
+        header.appendChild(Util.createDom('th', {'data-filter': '$'}, 'renta'));
+        header.appendChild(Util.createDom('th', {'data-filter': 'FLEET'}, 'fleet'));
+        header.appendChild(Util.createDom('th', {'data-filter': 'DEF'}, 'def'));
         //header.appendChild(Util.createDom('th', {'class':'ogl_shipIcon ogl_'+this.ogl.db.options.defaultShip}));
-        let headerActions = header.appendChild(Util.createDom('th', {'class':'ogl_headerActions'}));
+        let headerActions = header.appendChild(Util.createDom('th', {'class': 'ogl_headerActions'}));
 
-        let clean = headerActions.appendChild(Util.createDom('div', {'class':'material-icons ogl_button tooltip', 'title':this.ogl.component.lang.getText('cleanReport')}, 'cleaning_services'));
-        clean.addEventListener('click', () =>
-        {
-            this.spyTable.querySelectorAll('div[data-coords]').forEach(line =>
-            {
-                if(!line.querySelector('.ogl_renta.ogl_important') && !line.querySelector('.ogl_refleet.ogl_important'))
-                {
+        let clean = headerActions.appendChild(Util.createDom('div', {'class': 'material-icons ogl_button tooltip', 'title': this.ogl.component.lang.getText('cleanReport')}, 'cleaning_services'));
+        clean.addEventListener('click', () => {
+            this.spyTable.querySelectorAll('div[data-coords]').forEach(line => {
+                if (!line.querySelector('.ogl_renta.ogl_important') && !line.querySelector('.ogl_refleet.ogl_important')) {
                     (line.querySelector('.ogl_reportOptions div[data-title="delete"]') || line.querySelector('.ogl_reportOptions div[title="delete"]')).click();
                 }
             });
         });
 
-        header.querySelectorAll('th[data-filter]').forEach(filter =>
-        {
-            if(this.ogl.db.options.spyFilter.indexOf(filter.getAttribute('data-filter')) > -1)
-            {
+        header.querySelectorAll('th[data-filter]').forEach(filter => {
+            if (this.ogl.db.options.spyFilter.indexOf(filter.getAttribute('data-filter')) > -1) {
                 filter.classList.add('ogl_active');
                 highlightIndex = [].indexOf.call(filter.parentNode.children, filter);
             }
 
-            filter.addEventListener('click', () =>
-            {
+            filter.addEventListener('click', () => {
                 highlightIndex = [].indexOf.call(filter.parentNode.children, filter);
-                this.ogl.db.options.spyFilter = this.ogl.db.options.spyFilter.indexOf('R_') > -1 ? filter.getAttribute('data-filter') : 'R_'+filter.getAttribute('data-filter');
+                this.ogl.db.options.spyFilter = this.ogl.db.options.spyFilter.indexOf('R_') > -1 ? filter.getAttribute('data-filter') : 'R_' + filter.getAttribute('data-filter');
                 // this.ogl.saveAsync();
 
                 this.spyTable.remove();
@@ -14059,150 +15916,143 @@ class MessageManager
 
         let sum = 0;
         let sumTotal = 0;
-        let sumDetail = [0,0,0];
+        let sumDetail = [0, 0, 0];
 
-        for(let r=0, len=this.dataList.length; r<len; r++)
-        {
+        for (let r = 0, len = this.dataList.length; r < len; r++) {
             let report = this.dataList[r];
 
-            if(report.coords.join(':') == '0:0:0') return;
-            let content = tbody.appendChild(Util.createDom('div', {'data-coords':report.coords.join(':'), 'data-color':report.color, 'data-spy-id':report.id, 'data-renta':report.renta, 'data-metal':report.resources[0], 'data-crystal':report.resources[1] ,'data-deut':report.resources[2]}));
+            if (report.coords.join(':') == '0:0:0') return;
+            let content = tbody.appendChild(Util.createDom('div', {
+                'data-coords': report.coords.join(':'),
+                'data-color': report.color,
+                'data-spy-id': report.id,
+                'data-renta': report.renta,
+                'data-metal': report.resources[0],
+                'data-crystal': report.resources[1],
+                'data-deut': report.resources[2]
+            }));
             let expanded = tbody.appendChild(Util.createDom('aside'));
-            if(report.attacked) content.classList.add('ogl_attacked');
+            if (report.attacked) content.classList.add('ogl_attacked');
 
             // index
             //let indexContent = content.appendChild(Util.createDom('td'));
 
             // date
-            let deltaDate =  serverTime.getTime() - report.date;
+            let deltaDate = serverTime.getTime() - report.date;
             let dateObj = new Date(parseInt(report.clientDate));
             let formatedDate = `${dateObj.toLocaleDateString('fr-FR')} ${dateObj.toLocaleTimeString('fr-FR')}`;
-            let dateContent = content.appendChild(Util.createDom('td', {'class':'ogl_reportDate tooltip', 'title':formatedDate}));
+            let dateContent = content.appendChild(Util.createDom('td', {'class': 'ogl_reportDate tooltip', 'title': formatedDate}));
             let date = dateContent.appendChild(Util.createDom('div'));
 
-            if(deltaDate < 3600000) date.textContent = Math.max(0, (Math.floor(deltaDate / 60000) || 0)).toString() + LocalizationStrings.timeunits.short.minute;
-            else if(deltaDate < 86400000) date.textContent = Math.max(0, (Math.floor(deltaDate / 3600000) || 0)).toString() + LocalizationStrings.timeunits.short.hour;
+            if (deltaDate < 3600000) date.textContent = Math.max(0, (Math.floor(deltaDate / 60000) || 0)).toString() + LocalizationStrings.timeunits.short.minute;
+            else if (deltaDate < 86400000) date.textContent = Math.max(0, (Math.floor(deltaDate / 3600000) || 0)).toString() + LocalizationStrings.timeunits.short.hour;
             else date.textContent = Math.max(0, (Math.floor(deltaDate / 86400000) || 0)).toString() + LocalizationStrings.timeunits.short.day;
 
-            if(report.activity > 0 && report.activity < 16 && report.activityColor != '#FFFF00') date.classList.add('ogl_danger');
-            else if(report.activity > 0 && report.activity < 60) date.classList.add('ogl_warning');
+            if (report.activity > 0 && report.activity < 16 && report.activityColor != '#FFFF00') date.classList.add('ogl_danger');
+            else if (report.activity > 0 && report.activity < 60) date.classList.add('ogl_warning');
 
             // coords
-            let coords = content.appendChild(Util.createDom('td', {'class':'ogl_coords'}));
+            let coords = content.appendChild(Util.createDom('td', {'class': 'ogl_coords'}));
             let coordsA = Util.createDom('a',
-                { 'href': `https://${window.location.host}/game/index.php?page=ingame&component=galaxy&galaxy=${report.coords[0]}&system=${report.coords[1]}&position=${report.coords[2]}`}, `<span>${report.coords.join(':')}</span>`);
+                {'href': `https://${window.location.host}/game/index.php?page=ingame&component=galaxy&galaxy=${report.coords[0]}&system=${report.coords[1]}&position=${report.coords[2]}`}, `<span>${report.coords.join(':')}</span>`);
             coords.appendChild(coordsA);
 
             // type
-            coordsA.appendChild(Util.createDom('div', {'class':'material-icons ogl_type'}, report.type == 1 ? 'language' : 'brightness_2'))
-            if(report.attacked) coords.appendChild(Util.createDom('div', {'class':'ogl_inFlight'}));
+            coordsA.appendChild(Util.createDom('div', {'class': 'material-icons ogl_type'}, report.type == 1 ? 'language' : 'brightness_2'))
+            if (report.attacked) coords.appendChild(Util.createDom('div', {'class': 'ogl_inFlight'}));
 
             // player
-            let detail = content.appendChild(Util.createDom('td', {'class':'ogl_name '+report.status}));
-            detail.appendChild(Util.createDom('a', {'class':'msg_action_link overlay', 'href':report.detail}, report.name));
+            let detail = content.appendChild(Util.createDom('td', {'class': 'ogl_name ' + report.status}));
+            detail.appendChild(Util.createDom('a', {'class': 'msg_action_link overlay', 'href': report.detail}, report.name));
 
             // ships
             let shipsA;
             //shipList = [this.ogl.db.options.defaultShip, this.ogl.db.options.secondShip];
 
-            [this.ogl.db.options.defaultShip].forEach(shipID =>
-            {
+            [this.ogl.db.options.defaultShip].forEach(shipID => {
                 let shipsCount = this.ogl.component.fleet.calcRequiredShips(shipID, Math.round(report.renta * 1.07)); // 7% more resources
                 shipsA = Util.createDom('a',
                     {
                         'href': `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${
                             report.coords[0]}&system=${report.coords[1]}&position=${report.coords[2]}&type=${report.type == 3 ? 3 : 1}&mission=1&am${shipID}=${shipsCount}&ogl_mode=2&oglLazy=true`
                     }, '<span>' + Util.formatToUnits(shipsCount, 1) + ' ' + this.ogl.component.lang.getText('abbr' + this.ogl.db.options.defaultShip) + '</span>');
-                if(!this.ogl.current.techs[this.ogl.db.options.defaultShip] || this.ogl.current.techs[this.ogl.db.options.defaultShip] < shipsCount) shipsA.classList.add('ogl_danger');
+                if (!this.ogl.current.techs[this.ogl.db.options.defaultShip] || this.ogl.current.techs[this.ogl.db.options.defaultShip] < shipsCount) shipsA.classList.add('ogl_danger');
             });
 
             // renta
-            let renta = content.appendChild(Util.createDom('td', {'class':'tooltip ogl_renta'}));
+            let renta = content.appendChild(Util.createDom('td', {'class': 'tooltip ogl_renta'}));
             shipsA.innerHTML += `<div>${Util.formatNumber(report.renta) || '0'}</div>`;
             renta.appendChild(shipsA);
 
-            if(report.renta >= this.ogl.db.options.rval) renta.classList.add('ogl_important');
+            if (report.renta >= this.ogl.db.options.rval) renta.classList.add('ogl_important');
             let resources = ['metal', 'crystal', 'deut'];
             let resourcesName = [this.ogl.component.lang.getText('metal'), this.ogl.component.lang.getText('crystal'), this.ogl.component.lang.getText('deut')];
-            resources.forEach((res, index) =>
-            {
+            resources.forEach((res, index) => {
                 renta.title += `<div>${resourcesName[index]}:&nbsp;<span class="ogl_${resources[index]} float_right">${Util.formatToUnits(report.resources[index])}</span></div>`;
             });
             renta.title += `<hr><div>Total:&nbsp;<span class="float_right">${Util.formatToUnits(report.total)}</span></div>`;
 
             let currentRes = report.total;
             let currentRenta = report.renta;
-            let shipList = [202,203,219,210];
+            let shipList = [202, 203, 219, 210];
 
             expanded.appendChild(Util.createDom('ul'));
-            shipList.forEach(ship => expanded.appendChild(Util.createDom('ul', {'data-ship':ship}, `<div class="ogl_shipIcon ogl_${ship} tooltipUp" data-title="${this.ogl.component.lang.getText('ship'+ship)}"></div>`)));
+            shipList.forEach(ship => expanded.appendChild(Util.createDom('ul', {'data-ship': ship}, `<div class="ogl_shipIcon ogl_${ship} tooltipUp" data-title="${this.ogl.component.lang.getText('ship' + ship)}"></div>`)));
 
-            for(let i=0; i<6; i++)
-            {
+            for (let i = 0; i < 6; i++) {
                 currentRenta = Math.ceil(currentRes * report.loot);
                 currentRes = currentRes - currentRenta;
 
                 expanded.querySelector('ul').appendChild(Util.createDom('li', {}, Util.formatToUnits(currentRenta)));
 
-                shipList.forEach(ship =>
-                {
+                shipList.forEach(ship => {
                     let shipsCount = this.ogl.component.fleet.calcRequiredShips(ship, Math.round(currentRenta * 1.07));
 
                     let a = Util.createDom('a',
                         {
-                            'class' : 'ogl_added',
+                            'class': 'ogl_added',
                             'href': `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${
                                 report.coords[0]}&system=${report.coords[1]}&position=${report.coords[2]}&type=${report.type == 3 ? 3 : 1}&mission=1&am${ship}=${shipsCount}&ogl_mode=2&oglLazy=true`
                         }, shipsCount.toLocaleString('de-DE') || '0');
 
                     expanded.querySelector(`[data-ship="${ship}"]`).appendChild(a);
-                    if(shipsCount === Infinity) a.classList.add('ogl_disabled');
+                    if (shipsCount === Infinity) a.classList.add('ogl_disabled');
                 });
             }
 
             // fleet
-            let fleet = content.appendChild(Util.createDom('td', {'class':'ogl_refleet'}, (Util.formatToUnits(report.fleet, 1) || '0').replace('-1', '?')))
-            if(report.fleet >= this.ogl.db.options.rval || report.fleet == -1)
-            {
+            let fleet = content.appendChild(Util.createDom('td', {'class': 'ogl_refleet'}, (Util.formatToUnits(report.fleet, 1) || '0').replace('-1', '?')))
+            if (report.fleet >= this.ogl.db.options.rval || report.fleet == -1) {
                 fleet.classList.add('ogl_important');
                 content.classList.add('ogl_caution');
             }
 
             // def
-            let def = content.appendChild(Util.createDom('td', {'class':'ogl_redef'}, (Util.formatToUnits(report.defense, 1) || '0').replace('-1', '?')));
-            if(report.defense > 0 || report.defense == -1)
-            {
+            let def = content.appendChild(Util.createDom('td', {'class': 'ogl_redef'}, (Util.formatToUnits(report.defense, 1) || '0').replace('-1', '?')));
+            if (report.defense > 0 || report.defense == -1) {
                 def.classList.add('ogl_important');
                 content.classList.add('ogl_caution');
             }
 
             // color
-            let colorContent = coords.appendChild(Util.createDom('div', {'class':'ogl_colorButton tooltipClose'}));
-            colorContent.addEventListener('click', event =>
-            {
-                if(report.coords[2] <= 15)
-                {
-                    let colors = Util.createDom('div', {'class':'ogl_colorAll ogl_tooltipColor'});
+            let colorContent = coords.appendChild(Util.createDom('div', {'class': 'ogl_colorButton tooltipClose'}));
+            colorContent.addEventListener('click', event => {
+                if (report.coords[2] <= 15) {
+                    let colors = Util.createDom('div', {'class': 'ogl_colorAll ogl_tooltipColor'});
 
                     let planetIndexes = this.ogl.find(this.ogl.db.positions, 'coords', report.coords.join(':'));
                     let playerIndex = this.ogl.find(this.ogl.db.players, 'name', report.name)[0];
 
-                    if(planetIndexes.length == 0 && !playerIndex)
-                    {
+                    if (planetIndexes.length == 0 && !playerIndex) {
                         console.log(`This player doesn't exist in OGL database, please check the galaxy`);
-                    }
-                    else if(planetIndexes.length == 0 && playerIndex)
-                    {
-                        this.ogl.component.crawler.checkPlayerApi(this.ogl.db.players[playerIndex].id, () =>
-                        {
+                    } else if (planetIndexes.length == 0 && playerIndex) {
+                        this.ogl.component.crawler.checkPlayerApi(this.ogl.db.players[playerIndex].id, () => {
                             planetIndexes = this.ogl.find(this.ogl.db.positions, 'coords', report.coords.join(':'));
 
                             this.ogl.component.color.addColorUI(colorContent, colors, planetIndexes, event, color => report.color = color);
                             this.ogl.component.tooltip.open(colorContent, false, colors);
                         });
-                    }
-                    else
-                    {
+                    } else {
                         this.ogl.component.color.addColorUI(colorContent, colors, planetIndexes, event, color => report.color = color);
                         this.ogl.component.tooltip.open(colorContent, false, colors);
                     }
@@ -14210,42 +16060,37 @@ class MessageManager
             });
 
             //actions
-            let actions = content.appendChild(Util.createDom('td', {'class':'ogl_reportOptions'}));
-            actions.appendChild(Util.createDom('div', {'class':'material-icons tooltip', 'onclick':report.spy, 'title':'spy this planet'}, 'visibility'));
+            let actions = content.appendChild(Util.createDom('td', {'class': 'ogl_reportOptions'}));
+            actions.appendChild(Util.createDom('div', {'class': 'material-icons tooltip', 'onclick': report.spy, 'title': 'spy this planet'}, 'visibility'));
 
-            let more = actions.appendChild(Util.createDom('div', {'class':'material-icons tooltip ogl_expand', 'title':'expand'}));
-            more.addEventListener('click', () =>
-            {
+            let more = actions.appendChild(Util.createDom('div', {'class': 'material-icons tooltip ogl_expand', 'title': 'expand'}));
+            more.addEventListener('click', () => {
                 expanded.classList.toggle('ogl_active');
             });
 
             // attack
-            let attack = actions.appendChild(Util.createDom('a', {'class':'material-icons tooltip', 'href':report.attack, 'title':'attack this planet'}, 'adjust'));
+            let attack = actions.appendChild(Util.createDom('a', {'class': 'material-icons tooltip', 'href': report.attack, 'title': 'attack this planet'}, 'adjust'));
 
             let apiKey = Util.createDom('div', {});
             apiKey.innerHTML = report.api.getAttribute('title') || report.api.getAttribute('data-title');
 
-            if(!apiKey.querySelector('input')) console.log(report);
+            if (!apiKey.querySelector('input')) console.log(report);
             apiKey = apiKey.querySelector('input').value;
 
-            if(report.api && report.coords[2] <= 15)
-            {
-                let simButton = actions.appendChild(Util.createDom('div', {'class':'tooltip', 'title':'trashsim'}, 'S'));
+            if (report.api && report.coords[2] <= 15) {
+                let simButton = actions.appendChild(Util.createDom('div', {'class': 'tooltip', 'title': 'trashsim'}, 'S'));
                 simButton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
 
-                if(this.ogl.ptre)
-                {
-                    let ptreButton = actions.appendChild(Util.createDom('div', {'class':'ogl_smallPTRE tooltip', 'title':'import to PTRE'}, 'P'));
+                if (this.ogl.ptre) {
+                    let ptreButton = actions.appendChild(Util.createDom('div', {'class': 'ogl_smallPTRE tooltip', 'title': 'import to PTRE'}, 'P'));
                     ptreButton.addEventListener('click', () => Util.importToPTRE(apiKey, this.ogl));
                 }
             }
 
-            let trash = actions.appendChild(Util.createDom('div', {'class':'material-icons tooltip', 'title':'delete'}, 'clear'));
-            trash.addEventListener('click', () =>
-            {
-                if(this.trashQueue.indexOf(report.id) == -1) this.trashQueue.push(report.id);
-                if(this.trashQueue.length == 1 && !this.trashQueueProcessing)
-                {
+            let trash = actions.appendChild(Util.createDom('div', {'class': 'material-icons tooltip', 'title': 'delete'}, 'clear'));
+            trash.addEventListener('click', () => {
+                if (this.trashQueue.indexOf(report.id) == -1) this.trashQueue.push(report.id);
+                if (this.trashQueue.length == 1 && !this.trashQueueProcessing) {
                     this.tokenInput.value = this.tokenInput.value;
                 }
                 /*let token = document.querySelectorAll('[name="token"]')[0].getAttribute('value');
@@ -14278,26 +16123,23 @@ class MessageManager
                 report.trash?.click();*/
             });
 
-            if(report.api && !report.dom.querySelector('.ogl_sim'))
-            {
-                let otherSimbutton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class':'icon_nf ogl_sim'}, 'S'));
+            if (report.api && !report.dom.querySelector('.ogl_sim')) {
+                let otherSimbutton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim'}, 'S'));
                 otherSimbutton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
 
-                if(this.ogl.ptre)
-                {
-                    let otherPtreButton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class':'icon_nf ogl_sim tooltip', 'title':'import to PTRE'}, 'P'));
+                if (this.ogl.ptre) {
+                    let otherPtreButton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim tooltip', 'title': 'import to PTRE'}, 'P'));
                     otherPtreButton.addEventListener('click', () => Util.importToPTRE(apiKey, this.ogl));
                 }
             }
 
-            if(highlightIndex) content.querySelectorAll(`td`)[highlightIndex].classList.add('highlighted');
+            if (highlightIndex) content.querySelectorAll(`td`)[highlightIndex].classList.add('highlighted');
 
             sumTotal += report.total;
             sum += report.renta;
-            for(let i=0; i<3; i++) sumDetail[i] += report.resources[i];
+            for (let i = 0; i < 3; i++) sumDetail[i] += report.resources[i];
 
-            if(r == this.dataList.length - 1)
-            {
+            if (r == this.dataList.length - 1) {
                 this.spyTable = tmpTable;
                 document.querySelector('ul.subtabs').after(this.spyTable);
 
@@ -14310,63 +16152,51 @@ class MessageManager
         //document.querySelector('.ogl_key.material-icons') && document.querySelector('.ogl_key.material-icons').classList.remove('ogl_hidden');
     }
 
-    calcTotal(sumValue, sumDetail, sumTotal)
-    {
+    calcTotal(sumValue, sumDetail, sumTotal) {
         document.querySelector('.ogl_spyTable .ogl_totalSum') && document.querySelector('.ogl_spyTable .ogl_totalSum').remove();
-        let total = this.spyTable.appendChild(Util.createDom('div', {'class':'ogl_totalSum'}));
+        let total = this.spyTable.appendChild(Util.createDom('div', {'class': 'ogl_totalSum'}));
 
         total.appendChild(Util.createDom('th', {}, ''));
         total.appendChild(Util.createDom('th', {}, ''));
         total.appendChild(Util.createDom('th', {}, ''));
-        let cell = total.appendChild(Util.createDom('th', {'class':'tooltip'}, Util.formatToUnits(sumValue)));
+        let cell = total.appendChild(Util.createDom('th', {'class': 'tooltip'}, Util.formatToUnits(sumValue)));
         total.appendChild(Util.createDom('th', {}, ''));
         total.appendChild(Util.createDom('th', {}, ''));
         total.appendChild(Util.createDom('th', {}, ''));
 
         let resources = ['metal', 'crystal', 'deut'];
         let resourcesName = [this.ogl.component.lang.getText('metal'), this.ogl.component.lang.getText('crystal'), this.ogl.component.lang.getText('deut')];
-        sumDetail.forEach((res, index) =>
-        {
+        sumDetail.forEach((res, index) => {
             cell.title += `<div>${resourcesName[index]}:&nbsp;<span class="ogl_${resources[index]} float_right">${Util.formatToUnits(sumDetail[index])}</span></div>`;
         });
         cell.title += `<hr><div>Total:&nbsp;<span class="float_right">${Util.formatToUnits(sumTotal)}</span></div>`;
     }
 }
 
-class KeyboardManager
-{
-    constructor(ogl)
-    {
+class KeyboardManager {
+    constructor(ogl) {
         this.ogl = ogl;
-        this.dom = (document.querySelector('#cutty') || document.querySelector('#norm')).appendChild(Util.createDom('div', {'class':'ogl_keyList'}));
+        this.dom = (document.querySelector('#cutty') || document.querySelector('#norm')).appendChild(Util.createDom('div', {'class': 'ogl_keyList'}));
 
         this.sent = false;
 
-        document.addEventListener('keypress', event =>
-        {
-            if(!this.sent && (!document.querySelector('.ui-dialog') || document.querySelector('.ui-dialog').style.display == 'none')
-                && !document.querySelector('.chat_box_textarea:focus') && document.activeElement.tagName != 'INPUT' && document.activeElement.tagName != 'TEXTAREA')
-            {
+        document.addEventListener('keypress', event => {
+            if (!this.sent && (!document.querySelector('.ui-dialog') || document.querySelector('.ui-dialog').style.display == 'none')
+                && !document.querySelector('.chat_box_textarea:focus') && document.activeElement.tagName != 'INPUT' && document.activeElement.tagName != 'TEXTAREA') {
                 this.sent = true;
 
                 let keycode = event.keyCode ? event.keyCode : event.which;
                 let keyNumber = parseInt(String.fromCharCode(keycode));
                 let charList = Object.keys(this.ogl.keyboardActionsList).map(x => x.split('|'));
 
-                if(keycode == 91 || keycode == 17) return; // windows key
+                if (keycode == 91 || keycode == 17) return; // windows key
 
-                charList.forEach(c =>
-                {
-                    if(c.indexOf(String.fromCharCode(keycode).toLowerCase()) > -1)
-                    {
+                charList.forEach(c => {
+                    if (c.indexOf(String.fromCharCode(keycode).toLowerCase()) > -1) {
                         this.ogl.keyboardActionsList[c.join('|')](event);
-                    }
-                    else if(keyNumber > 1 && keyNumber <= 9 && keycode)
-                    {
+                    } else if (keyNumber > 1 && keyNumber <= 9 && keycode) {
                         this.ogl.keyboardActionsList['2-9'] && this.ogl.keyboardActionsList['2-9'](keyNumber);
-                    }
-                    else if(keycode == 13 && this.ogl.keyboardActionsList['enter'])
-                    {
+                    } else if (keycode == 13 && this.ogl.keyboardActionsList['enter']) {
                         this.ogl.keyboardActionsList['enter']();
                     }
                 });
@@ -14378,69 +16208,57 @@ class KeyboardManager
         this.addKey('i', this.ogl.component.lang.getText('prevPlanet'), () => this.goToNextPlanet(this.ogl.prevLink));
         this.addKey('o', this.ogl.component.lang.getText('nextPlanet'), () => this.goToNextPlanet(this.ogl.nextLink));
 
-        if(this.ogl.page == 'fleetdispatch')
-        {
+        if (this.ogl.page == 'fleetdispatch') {
 
-            this.addKey('r', this.ogl.component.lang.getText('reverseAllShipsRes'), () =>
-            {
-                if(fleetDispatcher.currentPage == 'fleet1') document.querySelectorAll('#fleet1 li[data-status="on"] .ogl_delta').forEach(e => e.click());
-                if(fleetDispatcher.currentPage == 'fleet2') document.querySelectorAll('#fleet2 .res .ogl_delta').forEach(e => e.click());
+            this.addKey('r', this.ogl.component.lang.getText('reverseAllShipsRes'), () => {
+                if (fleetDispatcher.currentPage == 'fleet1') document.querySelectorAll('#fleet1 li[data-status="on"] .ogl_delta').forEach(e => e.click());
+                if (fleetDispatcher.currentPage == 'fleet2') document.querySelectorAll('#fleet2 .res .ogl_delta').forEach(e => e.click());
             });
 
-            this.addKey('s', this.ogl.component.lang.getText('scExpe'), () =>
-            {
-                if(fleetDispatcher.currentPage == 'fleet1') this.ogl.component.fleet.expedition(202);
+            this.addKey('s', this.ogl.component.lang.getText('scExpe'), () => {
+                if (fleetDispatcher.currentPage == 'fleet1') this.ogl.component.fleet.expedition(202);
             });
 
-            this.addKey('l', this.ogl.component.lang.getText('lcExpe'), () =>
-            {
-                if(fleetDispatcher.currentPage == 'fleet1') this.ogl.component.fleet.expedition(203);
+            this.addKey('l', this.ogl.component.lang.getText('lcExpe'), () => {
+                if (fleetDispatcher.currentPage == 'fleet1') this.ogl.component.fleet.expedition(203);
             });
 
-            this.addKey('f', this.ogl.component.lang.getText('pfExpe'), () =>
-            {
-                if(fleetDispatcher.currentPage == 'fleet1') this.ogl.component.fleet.expedition(219);
+            this.addKey('f', this.ogl.component.lang.getText('pfExpe'), () => {
+                if (fleetDispatcher.currentPage == 'fleet1') this.ogl.component.fleet.expedition(219);
             });
 
-            this.addKey('a', this.ogl.component.lang.getText('allShipsRes'), event =>
-            {
-                if(fleetDispatcher.currentPage == 'fleet1') fleetDispatcher.selectAllShips();
-                if(fleetDispatcher.currentPage == 'fleet2')
-                {
-                    if(event.shiftKey) fleetDispatcher.selectForcedMaxAll();
+            this.addKey('a', this.ogl.component.lang.getText('allShipsRes'), event => {
+                if (fleetDispatcher.currentPage == 'fleet1') fleetDispatcher.selectAllShips();
+                if (fleetDispatcher.currentPage == 'fleet2') {
+                    if (event.shiftKey) fleetDispatcher.selectForcedMaxAll();
                     else fleetDispatcher.selectMaxAll();
                 }
                 fleetDispatcher.refresh();
             });
 
-            this.addKey('2-9', this.ogl.component.lang.getText('splitShipsRes'), keyNumber =>
-            {
+            this.addKey('2-9', this.ogl.component.lang.getText('splitShipsRes'), keyNumber => {
                 this.keyNumberClickFleet1 = this.keyNumberClickFleet1 || 0;
                 this.keyNumberClickFleet2 = this.keyNumberClickFleet2 || 0;
 
-                if(fleetDispatcher.currentPage == 'fleet1')
-                {
-                    if(isNaN(keyNumber)) keyNumber = 2 + this.keyNumberClickFleet1;
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    if (isNaN(keyNumber)) keyNumber = 2 + this.keyNumberClickFleet1;
                     this.keyNumberClickFleet2 = this.keyNumberClickFleet1;
                     this.keyNumberClickFleet1++;
-                    if(this.keyNumberClickFleet1 > 7) this.keyNumberClickFleet1 = 0;
+                    if (this.keyNumberClickFleet1 > 7) this.keyNumberClickFleet1 = 0;
 
                     fleetDispatcher.shipsOnPlanet.forEach(ship => fleetDispatcher.selectShip(ship.id, Math.ceil(ship.number / keyNumber)));
-                }
-                else if(fleetDispatcher.currentPage == 'fleet2')
-                {
-                    if(isNaN(keyNumber)) keyNumber = 2 + this.keyNumberClickFleet2;
+                } else if (fleetDispatcher.currentPage == 'fleet2') {
+                    if (isNaN(keyNumber)) keyNumber = 2 + this.keyNumberClickFleet2;
                     this.keyNumberClickFleet2++;
-                    if(this.keyNumberClickFleet2 > 7) this.keyNumberClickFleet2 = 0;
+                    if (this.keyNumberClickFleet2 > 7) this.keyNumberClickFleet2 = 0;
 
                     let fleetDispatcherResources = ['metalOnPlanet', 'crystalOnPlanet', 'deuteriumOnPlanet'];
 
-                    document.querySelectorAll('#fleet2 #resources .res_wrap').forEach((resource, index) =>
-                    {
+                    document.querySelectorAll('#fleet2 #resources .res_wrap').forEach((resource, index) => {
                         let cargoType = ['cargoMetal', 'cargoCrystal', 'cargoDeuterium'];
 
                         let currentMax = fleetDispatcher[fleetDispatcherResources[index]];
-                        if(index == 2) currentMax -= fleetDispatcher.getConsumption();
+                        if (index == 2) currentMax -= fleetDispatcher.getConsumption();
 
                         fleetDispatcher[cargoType[index]] = Math.max(Math.ceil(currentMax / keyNumber), 0);
                         resource.querySelector('input').value = fleetDispatcher[cargoType[index]];
@@ -14451,16 +16269,14 @@ class KeyboardManager
                 fleetDispatcher.refresh();
             });
 
-            this.addKey('p', this.ogl.component.lang.getText('prevFleet'), () =>
-            {
-                if(fleetDispatcher.currentPage != 'fleet1' || !this.ogl.component.fleet.sliderSpeed || !fleetDispatcher) return;
-                if(!this.ogl.db.lastFleet) return;
+            this.addKey('p', this.ogl.component.lang.getText('prevFleet'), () => {
+                if (fleetDispatcher.currentPage != 'fleet1' || !this.ogl.component.fleet.sliderSpeed || !fleetDispatcher) return;
+                if (!this.ogl.db.lastFleet) return;
 
                 fleetDispatcher.resetShips();
-                if(this.ogl.db.lastFleet.shipsToSend) Object.values(this.ogl.db.lastFleet.shipsToSend).forEach(ship => fleetDispatcher.selectShip(ship.id, ship.number));
+                if (this.ogl.db.lastFleet.shipsToSend) Object.values(this.ogl.db.lastFleet.shipsToSend).forEach(ship => fleetDispatcher.selectShip(ship.id, ship.number));
 
-                if(this.ogl.db.lastFleet.targetPlanet)
-                {
+                if (this.ogl.db.lastFleet.targetPlanet) {
                     document.querySelector('#galaxy').value = this.ogl.db.lastFleet.targetPlanet.galaxy;
                     document.querySelector('#system').value = this.ogl.db.lastFleet.targetPlanet.system;
                     document.querySelector('#position').value = this.ogl.db.lastFleet.targetPlanet.position;
@@ -14473,8 +16289,7 @@ class KeyboardManager
                     fleetDispatcher.cargoDeuterium = Math.min(this.ogl.db.lastFleet.cargoDeuterium, fleetDispatcher.deuteriumOnPlanet, fleetDispatcher.getFreeCargoSpace());
                     fleetDispatcher.speedPercent = this.ogl.db.lastFleet.speedPercent;
 
-                    if(fleetDispatcher.mission == 15)
-                    {
+                    if (fleetDispatcher.mission == 15) {
                         fleetDispatcher.expeditionTime = this.ogl.db.lastFleet.expeditionTime;
                         fleetDispatcher.updateExpeditionTime();
                     }
@@ -14486,22 +16301,19 @@ class KeyboardManager
                 this.ogl.component.fleet.updatePlanetList();
             });
 
-            this.addKey('t', this.ogl.component.lang.getText('attackCurrentTarget'), () =>
-            {
-                if(!fleetDispatcher) return;
+            this.addKey('t', this.ogl.component.lang.getText('attackCurrentTarget'), () => {
+                if (!fleetDispatcher) return;
 
                 new Promise(resolve => resolve(this.ogl.component.sidebar.displayTargetList(true)))
-                    .then(() =>
-                    {
-                        if(this.ogl.db.options.nextTargets[0])
-                        {
+                    .then(() => {
+                        if (this.ogl.db.options.nextTargets[0]) {
                             fleetDispatcher.resetShips();
 
                             let shipID = this.ogl.db.options.defaultShip;
                             let shipCount = this.ogl.component.fleet.calcRequiredShips(shipID, this.ogl.db.options.rval);
                             fleetDispatcher.selectShip(shipID, shipCount);
 
-                            let coords =  this.ogl.db.options.nextTargets[0].split(':');
+                            let coords = this.ogl.db.options.nextTargets[0].split(':');
                             fleetDispatcher.targetPlanet.galaxy = coords[0];
                             fleetDispatcher.targetPlanet.system = coords[1];
                             fleetDispatcher.targetPlanet.position = coords[2];
@@ -14509,68 +16321,57 @@ class KeyboardManager
                             fleetDispatcher.targetPlanet.name = '-';
                             fleetDispatcher.mission = 1;
                             fleetDispatcher.refresh();
-                            if(fleetDispatcher.currentPage == 'fleet2') fleetDispatcher.updateTarget();
+                            if (fleetDispatcher.currentPage == 'fleet2') fleetDispatcher.updateTarget();
 
                             this.ogl.component.fleet.targetSelected = true;
 
-                            if(!this.ogl.db.options.nextTargets[0] && !this.ogl.db.options.nextTargets[1])
-                            {
+                            if (!this.ogl.db.options.nextTargets[0] && !this.ogl.db.options.nextTargets[1]) {
                                 fadeBox(this.ogl.component.lang.getText('targetListEnd'), true);
                                 fleetDispatcher.resetShips();
                                 fleetDispatcher.refresh();
                                 return;
                             }
-                        }
-                        else
-                        {
+                        } else {
                             fadeBox(this.ogl.component.lang.getText('noTargetSelected'), true);
                         }
                     });
             });
         }
 
-        if(this.ogl.page == 'galaxy')
-        {
+        if (this.ogl.page == 'galaxy') {
             this.addKey('s', 'Previous galaxy', () => submitOnKey('ArrowDown'));
             this.addKey('z|w', 'Next galaxy', () => submitOnKey('ArrowUp'));
             this.addKey('q|a', 'Previous system', () => submitOnKey('ArrowLeft'));
             this.addKey('d', 'Next system', () => submitOnKey('ArrowRight'));
         }
 
-        if(this.ogl.page == 'messages')
-        {
-            this.addKey('enter', 'Send fleet on next spies table line', () =>
-            {
+        if (this.ogl.page == 'messages') {
+            this.addKey('enter', 'Send fleet on next spies table line', () => {
                 let nextRaidDom = document.querySelectorAll('.ogl_spyTable div[data-coords]:not(.ogl_attacked):not(.ogl_caution)')[0];
 
-                if(document.querySelector('.ogl_spyTable') && nextRaidDom)
-                {
+                if (document.querySelector('.ogl_spyTable') && nextRaidDom) {
                     nextRaidDom.querySelector('.ogl_renta a').click();
                 }
             });
         }
 
-        this.ogl.performances.push(['Keyboard',performance.now()]);
+        this.ogl.performances.push(['Keyboard', performance.now()]);
     }
 
-    addKey(key, text, callback)
-    {
+    addKey(key, text, callback) {
         this.ogl.keyboardActionsList = this.ogl.keyboardActionsList || {};
         this.ogl.keyboardActionsList[key] = callback;
 
-        let tip = this.dom.appendChild(Util.createDom('div', {'class':'ogl_button tooltipLeft', 'title':text, 'data-trigger':key.toUpperCase()}, key.toUpperCase()));
-        if(key == 'enter')
-        {
+        let tip = this.dom.appendChild(Util.createDom('div', {'class': 'ogl_button tooltipLeft', 'title': text, 'data-trigger': key.toUpperCase()}, key.toUpperCase()));
+        if (key == 'enter') {
             tip.classList.add('material-icons');
             tip.textContent = 'subdirectory_arrow_left';
         }
         tip.addEventListener('click', event => callback(event));
     }
 
-    goToNextPlanet(link)
-    {
-        if((this.ogl.mode != 1 && this.ogl.mode != 4) || this.ogl.component.fleet.linksUpdated)
-        {
+    goToNextPlanet(link) {
+        if ((this.ogl.mode != 1 && this.ogl.mode != 4) || this.ogl.component.fleet.linksUpdated) {
             Util.redirect(link, this.ogl);
             /*fetch(`https://${window.location.host}/game/index.php?page=fetchResources&ajax=1`)
             .then(() =>
@@ -14582,13 +16383,11 @@ class KeyboardManager
     }
 }
 
-class SidebarManager
-{
-    constructor(ogl)
-    {
+class SidebarManager {
+    constructor(ogl) {
         this.ogl = ogl;
-        this.dom = document.body.appendChild(Util.createDom('div', {'class':'ogl_sideView'}));
-        this.cross = this.dom.appendChild(Util.createDom('div', {'class':'ogl_close material-icons'}, 'clear'));
+        this.dom = document.body.appendChild(Util.createDom('div', {'class': 'ogl_sideView'}));
+        this.cross = this.dom.appendChild(Util.createDom('div', {'class': 'ogl_close material-icons'}, 'clear'));
         this.content = this.dom.appendChild(Util.createDom('div'));
         this.ogl.db.sidebarView = this.ogl.db.sidebarView || false;
 
@@ -14596,18 +16395,15 @@ class SidebarManager
         this.init();
     }
 
-    init()
-    {
-        if(this.ogl.db.sidebarView == 'pinned') this.displayPinnedTarget();
-        if(this.ogl.db.sidebarView == 'targetList') this.displayTargetList();
+    init() {
+        if (this.ogl.db.sidebarView == 'pinned') this.displayPinnedTarget();
+        if (this.ogl.db.sidebarView == 'targetList') this.displayTargetList();
 
-        this.ogl.performances.push(['Sidebar',performance.now()]);
+        this.ogl.performances.push(['Sidebar', performance.now()]);
     }
 
-    displayPinnedTarget()
-    {
-        if(this.ogl.db.sidebarView != 'pinned')
-        {
+    displayPinnedTarget() {
+        if (this.ogl.db.sidebarView != 'pinned') {
             this.ogl.db.sidebarView = 'pinned';
             // this.ogl.saveAsync();
         }
@@ -14615,8 +16411,7 @@ class SidebarManager
         this.oldContent = Util.createDom('div', {}, this.content.innerHTML);
         this.content.textContent = '';
 
-        if(this.ogl.db.pinnedList.length > 0)
-        {
+        if (this.ogl.db.pinnedList.length > 0) {
             let player = this.ogl.db.players[this.ogl.find(this.ogl.db.players, 'id', this.ogl.db.pinnedList[0])[0]];
 
             let container = Util.createDom('div');
@@ -14646,78 +16441,67 @@ class SidebarManager
             let positionsList = this.ogl.getPositionsByPlayerId(this.ogl.db.pinnedList[0]);
             let buttonsContainer;
 
-            if(positionsList && this.ogl.db.pinnedList[0] && positionsList[this.ogl.db.pinnedList[0]])
-            {
-                positionsList[this.ogl.db.pinnedList[0]].sort((a, b) => a.rawCoords - b.rawCoords).forEach(planetIndex =>
-                {
+            if (positionsList && this.ogl.db.pinnedList[0] && positionsList[this.ogl.db.pinnedList[0]]) {
+                positionsList[this.ogl.db.pinnedList[0]].sort((a, b) => a.rawCoords - b.rawCoords).forEach(planetIndex => {
                     let planet = planetIndex;
                     let splitted = planet.coords.split(':');
 
-                    let item = Util.createDom('div', {'data-coords':planet.coords});
+                    let item = Util.createDom('div', {'data-coords': planet.coords});
                     let coordsDiv = item.appendChild(Util.createDom('span', {}, planet.coords));
-                    coordsDiv.addEventListener('click', () =>
-                    {
+                    coordsDiv.addEventListener('click', () => {
                         this.scroll = document.querySelector('.ogl_pinnedContent').scrollTop;
                         this.ogl.component.tooltip.close();
                         this.ogl.component.galaxy.goToPosition(splitted[0], splitted[1], splitted[2]);
                     });
 
-                    if(this.ogl.page == 'galaxy' && document.querySelector('#galaxy_input').value == splitted[0] && document.querySelector('#system_input').value == splitted[1])
-                    {
+                    if (this.ogl.page == 'galaxy' && document.querySelector('#galaxy_input').value == splitted[0] && document.querySelector('#system_input').value == splitted[1]) {
                         coordsDiv.classList.add('ogl_currentSystem');
                     }
 
-                    if(this.oldContent.querySelector(`[data-coords="${planet.coords}"] .ogl_checked`))
-                    {
-                        item.appendChild(Util.createDom('div', {'class':'material-icons ogl_checked'}, 'check_circle'));
+                    if (this.oldContent.querySelector(`[data-coords="${planet.coords}"] .ogl_checked`)) {
+                        item.appendChild(Util.createDom('div', {'class': 'material-icons ogl_checked'}, 'check_circle'));
                     }
 
-                    if(this.oldContent.textContent.trim() && !this.oldContent.querySelector(`[data-coords="${planet.coords}"]`))
-                    {
+                    if (this.oldContent.textContent.trim() && !this.oldContent.querySelector(`[data-coords="${planet.coords}"]`)) {
                         item.classList.add('ogl_new');
                     }
 
-                    if(planet.main) coordsDiv.appendChild(Util.createDom('div', {'class':'material-icons ogl_mainPlanet'}, 'star'));
+                    if (planet.main) coordsDiv.appendChild(Util.createDom('div', {'class': 'material-icons ogl_mainPlanet'}, 'star'));
 
-                    let mSpy = item.appendChild(Util.createDom('div', {'class':'ogl_moonIcon material-icons', 'data-type':3}, 'brightness_2'));
+                    let mSpy = item.appendChild(Util.createDom('div', {'class': 'ogl_moonIcon material-icons', 'data-type': 3}, 'brightness_2'));
                     mSpy.addEventListener('click', () => this.ogl.component.fleet.sendSpyProbe([splitted[0], splitted[1], splitted[2], 3], this.ogl.db.spyProbesCount, mSpy, true));
-                    if(serverTime.getTime() - planet.lastMoonSpy < 60 * 60 * 1000) mSpy.classList.add('ogl_done');
+                    if (serverTime.getTime() - planet.lastMoonSpy < 60 * 60 * 1000) mSpy.classList.add('ogl_done');
 
-                    let pSpy = item.appendChild(Util.createDom('div', {'class':'ogl_planetIcon material-icons', 'data-type':1}, 'language'));
+                    let pSpy = item.appendChild(Util.createDom('div', {'class': 'ogl_planetIcon material-icons', 'data-type': 1}, 'language'));
                     pSpy.addEventListener('click', () => this.ogl.component.fleet.sendSpyProbe([splitted[0], splitted[1], splitted[2], 1], this.ogl.db.spyProbesCount, pSpy, true));
-                    if(serverTime.getTime() - planet.lastSpy < 60 * 60 * 1000) pSpy.classList.add('ogl_done');
+                    if (serverTime.getTime() - planet.lastSpy < 60 * 60 * 1000) pSpy.classList.add('ogl_done');
 
-                    if(planet.moonID == -1) mSpy.classList.add('ogl_noPointer');
+                    if (planet.moonID == -1) mSpy.classList.add('ogl_noPointer');
                     planet.color ? item.setAttribute('data-color', planet.color) : item.removeAttribute('data-color');
 
                     // refresh old activities after 3h
-                    if(planet.activity && serverTime.getTime() - planet.lastUpdate > 3 * 60 * 60 * 1000) planet.activity = false;
-                    if(planet.moonActivity && serverTime.getTime() - planet.lastUpdate > 3 * 60 * 60 * 1000) planet.moonActivity = false;
+                    if (planet.activity && serverTime.getTime() - planet.lastUpdate > 3 * 60 * 60 * 1000) planet.activity = false;
+                    if (planet.moonActivity && serverTime.getTime() - planet.lastUpdate > 3 * 60 * 60 * 1000) planet.moonActivity = false;
 
-                    let pActivityDom = item.appendChild(Util.createDom('div', {'class':'ogl_planetActivity', 'data-activity':planet.activity}, planet.activity || '?'));
-                    let mActivityDom = item.appendChild(Util.createDom('div', {'class':'ogl_moonActivity', 'data-activity':planet.moonActivity}, planet.moonActivity || '?'));
+                    let pActivityDom = item.appendChild(Util.createDom('div', {'class': 'ogl_planetActivity', 'data-activity': planet.activity}, planet.activity || '?'));
+                    let mActivityDom = item.appendChild(Util.createDom('div', {'class': 'ogl_moonActivity', 'data-activity': planet.moonActivity}, planet.moonActivity || '?'));
 
-                    if(planet.activity)
-                    {
+                    if (planet.activity) {
                         pActivityDom.textContent = planet.activity;
-                        if(planet.activity == '*') pActivityDom.classList.add('ogl_short');
+                        if (planet.activity == '*') pActivityDom.classList.add('ogl_short');
                     }
 
-                    if(planet.moonID > -1 && planet.moonActivity)
-                    {
+                    if (planet.moonID > -1 && planet.moonActivity) {
                         mActivityDom.textContent = planet.moonActivity;
-                        if(planet.moonActivity == '*') mActivityDom.classList.add('ogl_short');
+                        if (planet.moonActivity == '*') mActivityDom.classList.add('ogl_short');
                     }
 
-                    if(planet.moonID == -1) mActivityDom.classList.add('ogl_hidden');
+                    if (planet.moonID == -1) mActivityDom.classList.add('ogl_hidden');
 
-                    if(rawStart == planet.rawCoords.slice(0, -3))
-                    {
+                    if (rawStart == planet.rawCoords.slice(0, -3)) {
                         item.setAttribute('data-multi', multi);
                         isMulti = true;
-                    }
-                    else if(isMulti)
-                    {
+                    } else if (isMulti) {
                         multi++;
                         isMulti = false;
                     }
@@ -14729,24 +16513,20 @@ class SidebarManager
 
                 buttonsContainer = container.querySelector('.ogl_actionsContainer');
 
-                let ptreAction = frame =>
-                {
+                let ptreAction = frame => {
                     frame = frame || 'week';
 
                     this.ogl.component.popup.load();
-                    let container = Util.createDom('div', {'class':'ptreContent'});
+                    let container = Util.createDom('div', {'class': 'ptreContent'});
 
-                    if(!this.ogl.ptre)
-                    {
+                    if (!this.ogl.ptre) {
                         container.innerHTML = `Error: no teamkey registered`;
                         this.ogl.component.popup.open(container);
                         return;
                     }
 
-                    Util.getJSON(`https://ptre.chez.gg/scripts/oglight_get_player_infos.php?tool=oglight&team_key=${this.ogl.ptre}&pseudo=${player.name}&player_id=${player.id}&input_frame=${frame}`, result =>
-                    {
-                        if(result.code == 1 && result.activity_array.activity_array && result.activity_array.check_array)
-                        {
+                    Util.getJSON(`https://ptre.chez.gg/scripts/oglight_get_player_infos.php?tool=oglight&team_key=${this.ogl.ptre}&pseudo=${player.name}&player_id=${player.id}&input_frame=${frame}`, result => {
+                        if (result.code == 1 && result.activity_array.activity_array && result.activity_array.check_array) {
                             let arrData = JSON.parse(result.activity_array.activity_array);
                             let checkData = JSON.parse(result.activity_array.check_array);
 
@@ -14775,21 +16555,17 @@ class SidebarManager
                                 </ul>-->
                             `;
 
-                            ['last24h', '2days', '3days', 'week', '2weeks', 'month'].forEach(f =>
-                            {
-                                let btn = container.querySelector('.ptreFrames').appendChild(Util.createDom('div', {'class':'ogl_button'}, f));
+                            ['last24h', '2days', '3days', 'week', '2weeks', 'month'].forEach(f => {
+                                let btn = container.querySelector('.ptreFrames').appendChild(Util.createDom('div', {'class': 'ogl_button'}, f));
                                 btn.addEventListener('click', () => ptreAction(f));
                             });
 
-                            if(result.activity_array.succes == 1)
-                            {
-                                arrData.forEach((line, index) =>
-                                {
-                                    if(!isNaN(line[1]))
-                                    {
-                                        let div = Util.createDom('div', {'class':'tooltip'}, `<div>${line[0]}</div>`);
-                                        let span = div.appendChild(Util.createDom('span', {'class':'ptreDotStats'}));
-                                        let dot = span.appendChild(Util.createDom('div', {'data-acti':line[1], 'data-check':checkData[index][1]}));
+                            if (result.activity_array.succes == 1) {
+                                arrData.forEach((line, index) => {
+                                    if (!isNaN(line[1])) {
+                                        let div = Util.createDom('div', {'class': 'tooltip'}, `<div>${line[0]}</div>`);
+                                        let span = div.appendChild(Util.createDom('span', {'class': 'ptreDotStats'}));
+                                        let dot = span.appendChild(Util.createDom('div', {'data-acti': line[1], 'data-check': checkData[index][1]}));
 
                                         let dotValue = line[1] / result.activity_array.max_acti_per_slot * 100 * 7;
                                         dotValue = Math.ceil(dotValue / 30) * 30;
@@ -14801,66 +16577,54 @@ class SidebarManager
                                         let title;
                                         let checkValue = Math.max(0, 100 - dotValue);
 
-                                        if(checkValue === 100) title = '- No activity detected';
-                                        else if(checkValue >= 60) title = '- A few activities detected';
-                                        else if(checkValue >= 40) title = '- Some activities detected';
+                                        if (checkValue === 100) title = '- No activity detected';
+                                        else if (checkValue >= 60) title = '- A few activities detected';
+                                        else if (checkValue >= 40) title = '- Some activities detected';
                                         else title = '- A lot of activities detected';
 
-                                        if(checkData[index][1] == 100) title += '<br>- Perfectly checked';
-                                        else if(checkData[index][1] >= 75) title += '<br>- Nicely checked';
-                                        else if(checkData[index][1] >= 50) title += '<br>- Decently checked';
-                                        else if(checkData[index][1] > 0) title = 'Poorly checked';
+                                        if (checkData[index][1] == 100) title += '<br>- Perfectly checked';
+                                        else if (checkData[index][1] >= 75) title += '<br>- Nicely checked';
+                                        else if (checkData[index][1] >= 50) title += '<br>- Decently checked';
+                                        else if (checkData[index][1] > 0) title = 'Poorly checked';
                                         else title = 'Not checked';
 
                                         div.setAttribute('title', title);
 
-                                        if(checkData[index][1] === 100 && line[1] == 0) dot.classList.add('ogl_active');
+                                        if (checkData[index][1] === 100 && line[1] == 0) dot.classList.add('ogl_active');
 
                                         container.querySelector('.ptreActivities > div').appendChild(div);
                                     }
                                 });
-                            }
-                            else
-                            {
+                            } else {
                                 container.querySelector('.ptreActivities > span').textContent = result.activity_array.message;
                             }
-                        }
-                        else if(result.code == 1)
-                        {
+                        } else if (result.code == 1) {
                             container.textContent = result.activity_array.message;
-                        }
-                        else container.textContent = result.message;
+                        } else container.textContent = result.message;
                         this.ogl.component.popup.open(container);
                     });
                 }
 
-                let ptreBtn = buttonsContainer.appendChild(Util.createDom('div', {'class':'ogl_button ptrePinned tooltip', 'title':'Display PTRE data'}, 'PTRE'));
+                let ptreBtn = buttonsContainer.appendChild(Util.createDom('div', {'class': 'ogl_button ptrePinned tooltip', 'title': 'Display PTRE data'}, 'PTRE'));
                 ptreBtn.addEventListener('click', () => ptreAction());
 
-                let ptreSyncBtn = buttonsContainer.appendChild(Util.createDom('div', {'class':'material-icons ogl_button tooltip', 'title':'Sync data with OGame API and PTRE'}, 'sync'));
-                ptreSyncBtn.addEventListener('click', () =>
-                {
-                    this.ogl.component.crawler.checkPlayerApi(this.ogl.db.pinnedList[0], () =>
-                    {
+                let ptreSyncBtn = buttonsContainer.appendChild(Util.createDom('div', {'class': 'material-icons ogl_button tooltip', 'title': 'Sync data with OGame API and PTRE'}, 'sync'));
+                ptreSyncBtn.addEventListener('click', () => {
+                    this.ogl.component.crawler.checkPlayerApi(this.ogl.db.pinnedList[0], () => {
                         fadeBox('Data synced successfully');
                     }, true);
                 });
-            }
-            else
-            {
+            } else {
                 buttonsContainer = container.querySelector('.ogl_actionsContainer');
             }
 
-            let historyBtn = buttonsContainer.appendChild(Util.createDom('div', {'class':'material-icons ogl_button tooltip', 'title':'History list'}, 'history'));
+            let historyBtn = buttonsContainer.appendChild(Util.createDom('div', {'class': 'material-icons ogl_button tooltip', 'title': 'History list'}, 'history'));
             historyBtn.addEventListener('click', () => this.displayPinnedList());
 
-            let deleteBtn = buttonsContainer.appendChild(Util.createDom('div', {'class':'material-icons ogl_button tooltip', 'title':'Remove'}, 'delete'));
-            deleteBtn.addEventListener('click', () =>
-            {
-                this.ogl.db.pinnedList.forEach((e, index) =>
-                {
-                    if(e && e == player.id)
-                    {
+            let deleteBtn = buttonsContainer.appendChild(Util.createDom('div', {'class': 'material-icons ogl_button tooltip', 'title': 'Remove'}, 'delete'));
+            deleteBtn.addEventListener('click', () => {
+                this.ogl.db.pinnedList.forEach((e, index) => {
+                    if (e && e == player.id) {
                         this.ogl.db.pinnedList.splice(index, 1);
                         this.ogl.db.pinnedList.length > 0 ? historyBtn.click() : this.ogl.component.sidebar.close();
                     }
@@ -14870,31 +16634,27 @@ class SidebarManager
             this.open(container, true);
         }
 
-        if(this.scroll) document.querySelector('.ogl_pinnedContent').scrollTo(0, this.scroll);
+        if (this.scroll) document.querySelector('.ogl_pinnedContent').scrollTo(0, this.scroll);
     }
 
-    displayPinnedList()
-    {
-        let content = Util.createDom('div', {'class':'ogl_historyList'});
-        this.ogl.db.pinnedList.forEach(playerID =>
-        {
+    displayPinnedList() {
+        let content = Util.createDom('div', {'class': 'ogl_historyList'});
+        this.ogl.db.pinnedList.forEach(playerID => {
             let historyPlayer = this.ogl.db.players[this.ogl.find(this.ogl.db.players, 'id', playerID)[0]];
-            let btn = content.appendChild(Util.createDom('div', {'class':`ogl_button ${historyPlayer.status}`}));
+            let btn = content.appendChild(Util.createDom('div', {'class': `ogl_button ${historyPlayer.status}`}));
             btn.appendChild(Util.createDom('b', {}, historyPlayer.name));
             btn.appendChild(Util.createDom('span', {}, '#' + (historyPlayer.rank?.toString().replace('-1', '(b)') || '?')));
-            btn.appendChild(Util.createDom('i', {'class':'float_right'}, `<i class="material-icons">military_tech</i>${Util.formatToUnits(historyPlayer.fleet)}`));
+            btn.appendChild(Util.createDom('i', {'class': 'float_right'}, `<i class="material-icons">military_tech</i>${Util.formatToUnits(historyPlayer.fleet)}`));
 
             this.open(content);
 
-            btn.addEventListener('click', () =>
-            {
-                this.ogl.db.pinnedList.forEach((e, index) =>
-                {
-                    if(e && e == playerID) this.ogl.db.pinnedList.splice(index, 1);
+            btn.addEventListener('click', () => {
+                this.ogl.db.pinnedList.forEach((e, index) => {
+                    if (e && e == playerID) this.ogl.db.pinnedList.splice(index, 1);
                 });
 
                 this.ogl.db.pinnedList.unshift(playerID);
-                if(this.ogl.db.pinnedList.length > this.ogl.maxPinnedTargets) this.ogl.db.pinnedList.length = this.ogl.maxPinnedTargets;
+                if (this.ogl.db.pinnedList.length > this.ogl.maxPinnedTargets) this.ogl.db.pinnedList.length = this.ogl.maxPinnedTargets;
 
                 // this.ogl.saveAsync();
                 this.ogl.component.sidebar.displayPinnedTarget();
@@ -14903,14 +16663,12 @@ class SidebarManager
         });
     }
 
-    displayTargetList(silencedMode)
-    {
-        if(!silencedMode && this.ogl.db.sidebarView != 'targetList')
-        {
+    displayTargetList(silencedMode) {
+        if (!silencedMode && this.ogl.db.sidebarView != 'targetList') {
             this.ogl.db.sidebarView = 'targetList';
             // this.ogl.saveAsync();
         }
-        if(!silencedMode) this.load();
+        if (!silencedMode) this.load();
 
         let ignoreVacation = this.ogl.db.options.togglesOff.indexOf('ignoreVacation') == -1;
         let playersList = this.ogl.getPlayersById();
@@ -14927,20 +16685,18 @@ class SidebarManager
         let nextTargetCoords;
         this.ogl.db.options.nextTargets = this.ogl.db.options.nextTargets || [0, 0];
 
-        let colors = container.appendChild(Util.createDom('div', {'class':'ogl_toggleColors'}));
-        let gMenu = container.appendChild(Util.createDom('div', {'class':'ogl_toggleGalaxies'}));
-        let sMenu = container.appendChild(Util.createDom('div', {'class':'ogl_toggleSystems'}));
-        let content = container.appendChild(Util.createDom('div', {'class':'ogl_stalkPlanets ogl_scrollable'}));
+        let colors = container.appendChild(Util.createDom('div', {'class': 'ogl_toggleColors'}));
+        let gMenu = container.appendChild(Util.createDom('div', {'class': 'ogl_toggleGalaxies'}));
+        let sMenu = container.appendChild(Util.createDom('div', {'class': 'ogl_toggleSystems'}));
+        let content = container.appendChild(Util.createDom('div', {'class': 'ogl_stalkPlanets ogl_scrollable'}));
 
-        ['red', 'halfred', 'yellow', 'halfyellow', 'green', 'halfgreen', 'blue', 'halfblue', 'violet', 'halfviolet', 'gray'].forEach(color =>
-        {
-            let toggle = colors.appendChild(Util.createDom('div', {'class':'ogl_toggle', 'data-toggle':color}));
-            if(this.ogl.db.options.excludedColors.indexOf(color) == -1) toggle.classList.add('ogl_active');
+        ['red', 'halfred', 'yellow', 'halfyellow', 'green', 'halfgreen', 'blue', 'halfblue', 'violet', 'halfviolet', 'gray'].forEach(color => {
+            let toggle = colors.appendChild(Util.createDom('div', {'class': 'ogl_toggle', 'data-toggle': color}));
+            if (this.ogl.db.options.excludedColors.indexOf(color) == -1) toggle.classList.add('ogl_active');
 
-            toggle.addEventListener('click', () =>
-            {
+            toggle.addEventListener('click', () => {
                 let colorIndex = this.ogl.db.options.excludedColors.indexOf(color);
-                if(colorIndex > -1) this.ogl.db.options.excludedColors.splice(colorIndex, 1);
+                if (colorIndex > -1) this.ogl.db.options.excludedColors.splice(colorIndex, 1);
                 else this.ogl.db.options.excludedColors.push(color);
 
                 // this.ogl.saveAsync();
@@ -14948,26 +16704,21 @@ class SidebarManager
             });
         });
 
-        for(let g=1; g<=12; g++)
-        {
-            let gDiv = gMenu.appendChild(Util.createDom('div', {'class':'ogl_disabled', 'data-galaxy':g}, g));
-            if(currentGalaxy == g) gDiv.classList.add('ogl_active');
-            gDiv.addEventListener('click', () =>
-            {
+        for (let g = 1; g <= 12; g++) {
+            let gDiv = gMenu.appendChild(Util.createDom('div', {'class': 'ogl_disabled', 'data-galaxy': g}, g));
+            if (currentGalaxy == g) gDiv.classList.add('ogl_active');
+            gDiv.addEventListener('click', () => {
                 this.ogl.db.options.targetFilter[0] = g;
                 // this.ogl.saveAsync();
                 this.displayTargetList();
             });
 
-            for(let s=0; s<500; s+=systemSteps)
-            {
+            for (let s = 0; s < 500; s += systemSteps) {
                 let planetsList = [];
 
-                if(g==1)
-                {
-                    let sDiv = sMenu.appendChild(Util.createDom('div', {'class':'ogl_disabled', 'data-system':s}, s.toString()));
-                    sDiv.addEventListener('click', () =>
-                    {
+                if (g == 1) {
+                    let sDiv = sMenu.appendChild(Util.createDom('div', {'class': 'ogl_disabled', 'data-system': s}, s.toString()));
+                    sDiv.addEventListener('click', () => {
                         this.ogl.db.options.targetFilter[1] = s;
                         // this.ogl.saveAsync();
                         this.displayTargetList();
@@ -14977,72 +16728,69 @@ class SidebarManager
                 /*let loopRawStart = parseInt(`${g}:${s}:1`.split(':').map(x => x.padStart(3, '0')).join(''));
                 let loopRawEnd = loopRawStart + systemSteps * 1000;*/
 
-                for(let sr=s; sr<s+systemSteps; sr++)
-                {
+                for (let sr = s; sr < s + systemSteps; sr++) {
                     let loopRawPosition = `${g}:${sr}:1`.split(':').map(x => x.padStart(3, '0')).join('').slice(0, -3);
-                    if(positionsList[loopRawPosition]) planetsList.push(positionsList[loopRawPosition]);
+                    if (positionsList[loopRawPosition]) planetsList.push(positionsList[loopRawPosition]);
                 }
 
                 let indexList = planetsList.flat();
 
                 //let indexList = this.ogl.findTargets(this.ogl.db.positions, 'rawCoords', loopRawStart, loopRawEnd);
-                if(indexList.length > 0)
-                {
+                if (indexList.length > 0) {
                     gDiv.classList.remove('ogl_disabled');
-                    if(g == currentGalaxy) sMenu.querySelector(`[data-system="${s}"]`).classList.remove('ogl_disabled');
+                    if (g == currentGalaxy) sMenu.querySelector(`[data-system="${s}"]`).classList.remove('ogl_disabled');
                 }
 
-                indexList.forEach(entry =>
-                {
+                indexList.forEach(entry => {
                     //let entry = this.ogl.db.positions[index];
                     let player = playersList[entry.playerID];
 
-                    if(ignoreVacation && player?.status?.indexOf('vacation') > -1) return;
+                    if (ignoreVacation && player?.status?.indexOf('vacation') > -1) return;
 
-                    if(targetCoords && !nextTargetCoords)
-                    {
+                    if (targetCoords && !nextTargetCoords) {
                         nextTargetCoords = entry.coords;
                         this.ogl.db.options.nextTargets[1] = entry.coords;
                     }
 
-                    if(this.ogl.db.options.nextTargets[0] == entry.coords)
-                    {
+                    if (this.ogl.db.options.nextTargets[0] == entry.coords) {
                         targetCoords = entry.coords;
                         nextTargetCoords = false;
                     }
 
-                    if(currentGalaxy == g && currentSystem == s)
-                    {
+                    if (currentGalaxy == g && currentSystem == s) {
                         gDiv.classList.add('ogl_active');
                         sMenu.querySelector(`[data-system="${s}"]`).classList.add('ogl_active');
 
                         let splitted = entry.coords.split(':');
-                        let div = content.appendChild(Util.createDom('div', {'data-color':entry.color, 'data-playerID':entry.playerID, 'data-planetID':entry.id, 'data-minicoords':`${splitted[0]}:${splitted[1]}`}));
+                        let div = content.appendChild(Util.createDom('div', {
+                            'data-color': entry.color,
+                            'data-playerID': entry.playerID,
+                            'data-planetID': entry.id,
+                            'data-minicoords': `${splitted[0]}:${splitted[1]}`
+                        }));
 
                         // coords
                         let coordsDiv = div.appendChild(Util.createDom('div', {}, entry.coords));
-                        coordsDiv.addEventListener('click', () =>
-                        {
+                        coordsDiv.addEventListener('click', () => {
                             this.ogl.component.tooltip.close();
                             this.ogl.component.galaxy.goToPosition(splitted[0], splitted[1], splitted[2]);
                         });
 
                         // player name
-                        div.appendChild(Util.createDom('div', {'class':player?.status}, player?.name || '?'));
+                        div.appendChild(Util.createDom('div', {'class': player?.status}, player?.name || '?'));
 
-                        let pSpy = div.appendChild(Util.createDom('div', {'class':'ogl_planetIcon material-icons', 'data-type':1}, 'language'));
+                        let pSpy = div.appendChild(Util.createDom('div', {'class': 'ogl_planetIcon material-icons', 'data-type': 1}, 'language'));
                         pSpy.addEventListener('click', () => this.ogl.component.fleet.sendSpyProbe([splitted[0], splitted[1], splitted[2], 1], this.ogl.db.spyProbesCount, pSpy, true));
-                        if(serverTime.getTime() - entry.lastSpy < 60 * 60 * 1000) pSpy.classList.add('ogl_done');
+                        if (serverTime.getTime() - entry.lastSpy < 60 * 60 * 1000) pSpy.classList.add('ogl_done');
 
-                        let mSpy = div.appendChild(Util.createDom('div', {'class':'ogl_moonIcon material-icons ogl_noPointer', 'data-type':3}, 'brightness_2'));
-                        if(entry.moonID && entry.moonID > -1) mSpy.classList.remove('ogl_noPointer');
+                        let mSpy = div.appendChild(Util.createDom('div', {'class': 'ogl_moonIcon material-icons ogl_noPointer', 'data-type': 3}, 'brightness_2'));
+                        if (entry.moonID && entry.moonID > -1) mSpy.classList.remove('ogl_noPointer');
                         mSpy.addEventListener('click', () => this.ogl.component.fleet.sendSpyProbe([splitted[0], splitted[1], splitted[2], 3], this.ogl.db.spyProbesCount, mSpy, true));
-                        if(serverTime.getTime() - entry.lastMoonSpy < 60 * 60 * 1000) mSpy.classList.add('ogl_done');
+                        if (serverTime.getTime() - entry.lastMoonSpy < 60 * 60 * 1000) mSpy.classList.add('ogl_done');
 
-                        let flag = div.appendChild(Util.createDom('div', {'class':'ogl_flagIcon material-icons'}, 'flag'));
-                        if(targetCoords == entry.coords) flag.classList.add('ogl_active');
-                        flag.addEventListener('click', () =>
-                        {
+                        let flag = div.appendChild(Util.createDom('div', {'class': 'ogl_flagIcon material-icons'}, 'flag'));
+                        if (targetCoords == entry.coords) flag.classList.add('ogl_active');
+                        flag.addEventListener('click', () => {
                             this.ogl.db.options.nextTargets = [entry.coords, 0];
                             this.displayTargetList();
                         });
@@ -15051,73 +16799,65 @@ class SidebarManager
             }
         }
 
-        if(!silencedMode) this.open(container);
+        if (!silencedMode) this.open(container);
     }
 
-    open(html, noLoad)
-    {
-        let update = () =>
-        {
+    open(html, noLoad) {
+        let update = () => {
             this.content.textContent = '';
             this.content.appendChild(html);
             this.dom.classList.add('ogl_active');
 
-            if(this.ogl.page == 'galaxy')
-            {
+            if (this.ogl.page == 'galaxy') {
                 document.querySelectorAll('.ogl_stalkPlanets.ogl_scrollable > div.ogl_currentSystem').forEach(item => item.classList.remove('ogl_currentSystem'));
                 document.querySelectorAll(`.ogl_stalkPlanets.ogl_scrollable > div[data-minicoords="${galaxy}:${system}"]`).forEach(item => item.classList.add('ogl_currentSystem'));
             }
         }
 
-        if(noLoad) update();
+        if (noLoad) update();
         else setTimeout(() => update(), 100);
     }
 
-    load()
-    {
+    load() {
         this.content.innerHTML = '<div class="ogl_loader"></div>';
         this.dom.classList.add('ogl_active');
     }
 
-    close()
-    {
+    close() {
         this.ogl.db.sidebarView = false;
         this.dom.classList.remove('ogl_active');
         // this.ogl.saveAsync();
     }
 }
 
-class PopupManager
-{
-    constructor(ogl)
-    {
+class PopupManager {
+    constructor(ogl) {
         this.ogl = ogl;
 
-        this.overlay = document.body.appendChild(Util.createDom('div', {'class':'ogl_overlay'}));
-        this.dom = this.overlay.appendChild(Util.createDom('div', {'class':'ogl_popup'}));
-        this.cross = this.dom.appendChild(Util.createDom('div', {'class':'ogl_close material-icons'}, 'clear'));
+        this.overlay = document.body.appendChild(Util.createDom('div', {'class': 'ogl_overlay'}));
+        this.dom = this.overlay.appendChild(Util.createDom('div', {'class': 'ogl_popup'}));
+        this.cross = this.dom.appendChild(Util.createDom('div', {'class': 'ogl_close material-icons'}, 'clear'));
         this.content = this.dom.appendChild(Util.createDom('div'));
 
         this.cross.addEventListener('click', () => this.close());
-        this.overlay.addEventListener('click', event => { if(event.target === this.overlay) this.close(); });
+        this.overlay.addEventListener('click', event => {
+            if (event.target === this.overlay) this.close();
+        });
 
-        this.ogl.performances.push(['Popup',performance.now()]);
+        this.ogl.performances.push(['Popup', performance.now()]);
     }
 
-    load()
-    {
+    load() {
         this.content.innerHTML = '';
-        this.content.appendChild(Util.createDom('div', {'class':'ogl_loader'}));
+        this.content.appendChild(Util.createDom('div', {'class': 'ogl_loader'}));
         document.body.classList.add('ogl_active');
         this.dom.classList.add('ogl_active');
         this.overlay.classList.add('ogl_active');
         this.dom.classList.add('ogl_cleaned');
     }
 
-    open(html, callback)
-    {
-        setTimeout(() =>
-        {
+    open(html, callback) {
+        setTimeout(() => {
             clearTimeout(this.ogl.component.tooltip.openTimer);
             clearTimeout(this.ogl.component.tooltip.updateTimer);
             this.ogl.component.tooltip.close();
@@ -15129,37 +16869,30 @@ class PopupManager
             this.dom.classList.add('ogl_active');
             this.overlay.classList.add('ogl_active');
 
-            if(callback) callback();
+            if (callback) callback();
         }, Math.random() * (400 - 100 + 1) + 100);
     }
 
-    close()
-    {
+    close() {
         document.body.classList.remove('ogl_active');
         this.dom.classList.remove('ogl_active');
         this.overlay.classList.remove('ogl_active');
     }
 }
 
-class JumpgateManager
-{
-    constructor(ogl)
-    {
+class JumpgateManager {
+    constructor(ogl) {
         this.ogl = ogl;
         this.ogl.db.jumpGateTimers = this.ogl.db.jumpGateTimers || {};
 
-        if(this.page == 'facilities' || this.ogl.current.type == 'moon')
-        {
-            let calcTimer = level =>
-            {
+        if (this.page == 'facilities' || this.ogl.current.type == 'moon') {
+            let calcTimer = level => {
                 return (0.25 * Math.pow(level, 2) - 7.57 * level + 67.34) / this.ogl.universe.fleetSpeedWar * 60000;
             }
 
-            jumpgateDone = a =>
-            {
-                var a = $.parseJSON(a);
-                if(a.status)
-                {
+            jumpgateDone = x => {
+                var a = $.parseJSON(x);
+                if (a.status) {
                     planet = a.targetMoon;
                     $(".overlayDiv").dialog("destroy");
 
@@ -15176,22 +16909,18 @@ class JumpgateManager
                     this.ogl.save();
                 }
                 errorBoxAsArray(a.errorbox);
-                if(typeof(a.newToken) != "undefined") setNewTokenData(a.newToken);
+                if (typeof (a.newToken) != "undefined") setNewTokenData(a.newToken);
             }
         }
 
-        this.ogl.observeMutation(() =>
-        {
-            if(document.querySelector('#jumpgateForm') && !document.querySelector('#jumpgateForm').classList.contains('ogl_ready'))
-            {
+        this.ogl.observeMutation(() => {
+            if (document.querySelector('#jumpgateForm') && !document.querySelector('#jumpgateForm').classList.contains('ogl_ready')) {
                 document.querySelector('#jumpgateForm').classList.add('ogl_ready');
-                document.querySelectorAll('#jumpgateForm .ship_txt_row:not(.tdInactive)').forEach(ship =>
-                {
+                document.querySelectorAll('#jumpgateForm .ship_txt_row:not(.tdInactive)').forEach(ship => {
                     ship.style.position = 'relative';
-                    let delta = ship.appendChild(Util.createDom('div',{'class':'ogl_delta'}, '<i class="material-icons">fiber_smart_record</i>'));
+                    let delta = ship.appendChild(Util.createDom('div', {'class': 'ogl_delta'}, '<i class="material-icons">fiber_smart_record</i>'));
 
-                    delta.addEventListener('click', event =>
-                    {
+                    delta.addEventListener('click', event => {
                         let input = ship.nextElementSibling.querySelector('input');
                         let selected = input.value.replace(/\./g, '') || 0;
                         let amount = parseInt(input.getAttribute('rel'));
@@ -15204,25 +16933,21 @@ class JumpgateManager
 
         this.addTimer();
 
-        this.ogl.performances.push(['Jumpgate',performance.now()]);
+        this.ogl.performances.push(['Jumpgate', performance.now()]);
     }
 
-    addTimer()
-    {
-        document.querySelectorAll('.smallplanet').forEach(planet =>
-        {
+    addTimer() {
+        document.querySelectorAll('.smallplanet').forEach(planet => {
             let coords = planet.querySelector('.planet-koords').textContent.slice(1, -1);
-            if(this.ogl.db.jumpGateTimers[coords] && this.ogl.db.jumpGateTimers[coords] > serverTime.getTime())
-            {
-                if(!planet.querySelector('.moonlink')) return;
+            if (this.ogl.db.jumpGateTimers[coords] && this.ogl.db.jumpGateTimers[coords] > serverTime.getTime()) {
+                if (!planet.querySelector('.moonlink')) return;
 
                 let updateTimer = () => new Date(this.ogl.db.jumpGateTimers[coords] - (serverTime.getTime() + 3600000)).toLocaleTimeString('fr-FR').substr(3);
 
                 let timer = updateTimer();
-                let div = planet.querySelector('.moonlink').appendChild(Util.createDom('div', {'class':'ogl_jumpGateTimer'}, timer));
-                let interval = setInterval(() =>
-                {
-                    if(this.ogl.db.jumpGateTimers[coords] <= serverTime.getTime()) clearInterval(interval);
+                let div = planet.querySelector('.moonlink').appendChild(Util.createDom('div', {'class': 'ogl_jumpGateTimer'}, timer));
+                let interval = setInterval(() => {
+                    if (this.ogl.db.jumpGateTimers[coords] <= serverTime.getTime()) clearInterval(interval);
                     else div.textContent = updateTimer();
                 }, 1000);
             }
@@ -15230,24 +16955,19 @@ class JumpgateManager
     }
 }
 
-class TimeManager
-{
-    constructor(ogl)
-    {
+class TimeManager {
+    constructor(ogl) {
         this.ogl = ogl;
         this.currentDetail;
 
-        let li = Util.createDom('li', {'class':'ogl_ping'}, `${Math.abs(timeDelta/1000)} s`);
+        let li = Util.createDom('li', {'class': 'ogl_ping'}, `${Math.abs(timeDelta / 1000)} s`);
         document.querySelector('#bar ul').appendChild(li);
-        if(timeDelta < -2000) li.classList.add('ogl_danger');
-        else if(timeDelta < -1000) li.classList.add('ogl_warning');
+        if (timeDelta < -2000) li.classList.add('ogl_danger');
+        else if (timeDelta < -1000) li.classList.add('ogl_warning');
 
-        if(this.ogl.page == 'messages')
-        {
-            this.ogl.observeMutation(() =>
-            {
-                document.querySelectorAll('.msg_date:not(.ogl_timeZone)').forEach(element =>
-                {
+        if (this.ogl.page == 'messages') {
+            this.ogl.observeMutation(() => {
+                document.querySelectorAll('.msg_date:not(.ogl_timeZone)').forEach(element => {
                     this.updateTime(element);
                 });
             }, 'messagesdate');
@@ -15262,59 +16982,52 @@ class TimeManager
         this.observe(clock);
 
         // update fleets timers
-        this.ogl.addToUpdateQueue(() =>
-        {
-            document.querySelectorAll('#arrivalTime:not(.ogl_ready), #returnTime:not(.ogl_ready)').forEach((element, index) =>
-            {
+        this.ogl.addToUpdateQueue(() => {
+            document.querySelectorAll('#arrivalTime:not(.ogl_ready), #returnTime:not(.ogl_ready)').forEach((element, index) => {
                 element.classList.add('ogl_ready');
-                if(element.closest('#rocketattack')) return;
+                if (element.closest('#rocketattack')) return;
                 this.updateTime(element);
                 this.observe(element);
             });
 
-            document.querySelectorAll('.allianceAttack .arrivalTime:not(.ogl_ready), .eventFleet .arrivalTime:not(.ogl_ready), .fleetDetails .absTime:not(.ogl_ready), .fleetDetails .nextabsTime:not(.ogl_ready)').forEach((element, index) =>
-            {
+            document.querySelectorAll('.allianceAttack .arrivalTime:not(.ogl_ready), .eventFleet .arrivalTime:not(.ogl_ready), .fleetDetails .absTime:not(.ogl_ready), .fleetDetails .nextabsTime:not(.ogl_ready)').forEach((element, index) => {
                 element.classList.add('ogl_ready');
-                if(element.closest('#rocketattack')) return;
+                if (element.closest('#rocketattack')) return;
                 this.updateTime(element);
             });
         });
 
         let pages = ['supplies', 'facilities', 'shipyard', 'defenses', 'research', 'lfbuildings', 'lfresearch'];
-        if(pages.indexOf(this.ogl.page) > -1)
-        {
+        if (pages.indexOf(this.ogl.page) > -1) {
             Util.updateCheckIntInput(() => this.checkDetail());
             this.ogl.observeMutation(() => this.checkDetail(), 'details');
         }
 
-        this.ogl.performances.push(['Time',performance.now()]);
+        this.ogl.performances.push(['Time', performance.now()]);
     }
 
-    observe(target)
-    {
+    observe(target) {
         let observer = new MutationObserver(() => this.updateTime(target));
-        observer.observe(target, {childList:true});
+        observer.observe(target, {childList: true});
     }
 
-    updateTime(domElement)
-    {
+    updateTime(domElement) {
         domElement.classList.add('ogl_hiddenContent');
         domElement.classList.add('ogl_timeZone');
 
         let serverRawTime = domElement.textContent;
-        if(!serverRawTime || serverRawTime.trim() == '') return;
+        if (!serverRawTime || serverRawTime.trim() == '') return;
 
         let timeMode = false;
         let splitted = serverRawTime.replace(/ \.$/, '').trim().replace(/[ \.]/g, ':').split(':');
 
-        if(splitted.length <= 5)
-        {
+        if (splitted.length <= 5) {
             timeMode = true;
-            splitted = ["01","01","2000"].concat(splitted);
+            splitted = ["01", "01", "2000"].concat(splitted);
         }
 
         splitted = splitted.map(e => e.padStart(2, '0'));
-        if(splitted[2].length == 2) splitted[2] = '20' + splitted[2]; // ex: 10.05.22 => 10.05.2022
+        if (splitted[2].length == 2) splitted[2] = '20' + splitted[2]; // ex: 10.05.22 => 10.05.2022
 
         let serverDate = new Date(`${splitted[2]}-${splitted[1]}-${splitted[0]}T${splitted[3]}:${splitted[4]}:${splitted[5]}`);
         let unixTimestamp = serverDate.getTime() + this.ogl.db.servertTimezone;
@@ -15327,12 +17040,9 @@ class TimeManager
         domElement.setAttribute('data-servertime', serverTimeMs);
         domElement.setAttribute('data-clienttime', clientTimeMs);
 
-        if(timeMode)
-        {
+        if (timeMode) {
             domElement.setAttribute('data-timezone', clientDate.toLocaleTimeString('fr-FR'));
-        }
-        else
-        {
+        } else {
             domElement.classList.add('ogl_fulldate');
             domElement.setAttribute('data-datezone', `${clientDate.toLocaleDateString('fr-FR').replace(/\//g, '.')} `);
             domElement.setAttribute('data-timezone', ` ${clientDate.toLocaleTimeString('fr-FR')}`);
@@ -15376,39 +17086,34 @@ class TimeManager
                 }*/
     }
 
-    checkCurrentBuilding()
-    {
+    checkCurrentBuilding() {
         let countDownID = ['buildingCountdown', 'researchCountdown', 'shipyardCountdown2', 'lfbuildingCountdown'];
-        ['restTimebuilding', 'restTimeresearch', 'restTimeship2', 'restTimelfbuilding '].forEach((building, index) =>
-        {
-            try
-            {
+        ['restTimebuilding', 'restTimeresearch', 'restTimeship2', 'restTimelfbuilding '].forEach((building, index) => {
+            try {
                 let time = new Date(serverTime - Math.round(timeDiff / 100000) * 100000 + eval(building) * 1000);
                 let parent = document.querySelector(`span#${countDownID[index]}`).closest('.content');
-                let div =  parent.appendChild(Util.createDom('div', {'class':'ogl_endTime'}));
+                let div = parent.appendChild(Util.createDom('div', {'class': 'ogl_endTime'}));
                 div.innerHTML = `${time.toLocaleDateString('fr-FR').replace(/\//g, '.')} <span>${time.toLocaleTimeString('fr-FR')}</span>`;
+            } catch (e) {
             }
-            catch(e){}
         });
     }
 
-    checkDetail()
-    {
+    checkDetail() {
         // fix an ogame bug when an user spam click
-        if(document.querySelectorAll('#technologydetails').length > 1)
-        {
-            document.querySelectorAll('#technologydetails').forEach((e, index) => { if(index > 0) e.remove() });
+        if (document.querySelectorAll('#technologydetails').length > 1) {
+            document.querySelectorAll('#technologydetails').forEach((e, index) => {
+                if (index > 0) e.remove()
+            });
         }
 
         this.currentDetail = document.querySelector('#technologydetails_content');
-        if(this.currentDetail && this.currentDetail.querySelector('.og-loading') && this.currentDetail.querySelector('.og-loading').style.display == 'none')
-        {
+        if (this.currentDetail && this.currentDetail.querySelector('.og-loading') && this.currentDetail.querySelector('.og-loading').style.display == 'none') {
             //let amount = parseInt(this.currentDetail.querySelector('#build_amount')?.value || 1) || 1;
             let domTime = this.currentDetail.querySelector('.build_duration time');
 
             // prev / next / lock buttons actions
-            if(!this.currentDetail.querySelector('.ogl_detailActions'))
-            {
+            if (!this.currentDetail.querySelector('.ogl_detailActions')) {
                 let isInitial = true;
 
                 let tech = {};
@@ -15445,38 +17150,38 @@ class TimeManager
                 let self = this;
 
                 let coords = this.ogl.current.coords.join(':');
-                if(this.ogl.current.type == 'moon') coords += ':M';
+                if (this.ogl.current.type == 'moon') coords += ':M';
 
                 let baseTechs =
                     {
                         // buildings
-                        robot:this.ogl.db.me?.planets?.[coords]?.techs?.[14] || 0,
-                        nanite:this.ogl.db.me?.planets?.[coords]?.techs?.[15] || 0,
-                        labo:this.ogl.db.me?.planets?.[coords]?.techs?.[31] || 0,
+                        robot: this.ogl.db.me?.planets?.[coords]?.techs?.[14] || 0,
+                        nanite: this.ogl.db.me?.planets?.[coords]?.techs?.[15] || 0,
+                        labo: this.ogl.db.me?.planets?.[coords]?.techs?.[31] || 0,
 
                         // researches
-                        energy:this.ogl.db.me?.planets?.[coords]?.techs?.[113] || 0,
-                        network:this.ogl.db.me?.planets?.[coords]?.techs?.[123] || 0,
+                        energy: this.ogl.db.me?.planets?.[coords]?.techs?.[113] || 0,
+                        network: this.ogl.db.me?.planets?.[coords]?.techs?.[123] || 0,
                     };
 
                 let humanTechs =
                     {
-                        center:this.ogl.db.me?.planets?.[coords]?.techs?.[11103] || 0,
+                        center: this.ogl.db.me?.planets?.[coords]?.techs?.[11103] || 0,
                     };
 
                 let rocktalTechs =
                     {
-                        center:this.ogl.db.me?.planets?.[coords]?.techs?.[12104] || 0,
+                        center: this.ogl.db.me?.planets?.[coords]?.techs?.[12104] || 0,
                     };
 
                 let mechanTechs =
                     {
-                        center:this.ogl.db.me?.planets?.[coords]?.techs?.[13103] || 0,
+                        center: this.ogl.db.me?.planets?.[coords]?.techs?.[13103] || 0,
                     };
 
                 let kaeleshTechs =
                     {
-                        center:this.ogl.db.me?.planets?.[coords]?.techs?.[14103] || 0,
+                        center: this.ogl.db.me?.planets?.[coords]?.techs?.[14103] || 0,
                     };
 
                 let currentRace = document.querySelector('#lifeform .lifeform-item-icon')?.className.replace(/\D/g, '') || 0;
@@ -15485,25 +17190,25 @@ class TimeManager
                 // best labs
                 let networkLevel = 0;
                 let laboList = [];
-                Object.entries(this.ogl.db.me.planets).forEach(p => { if(p[0] != coords && p[0].indexOf(':M') == -1) laboList.push(p[1].techs[31])});
+                Object.entries(this.ogl.db.me.planets).forEach(p => {
+                    if (p[0] != coords && p[0].indexOf(':M') == -1) laboList.push(p[1].techs[31])
+                });
                 laboList.sort((a, b) => b - a);
                 laboList.length = Math.min(laboList.length, baseTechs.network);
-                if(laboList.length) networkLevel = laboList.reduce((a, b) => a + b);
+                if (laboList.length) networkLevel = laboList.reduce((a, b) => a + b);
 
-                let updateFullDate = () =>
-                {
-                    let li = this.currentDetail.querySelector('.ogl_timeZone.ogl_fulldate') || this.currentDetail.querySelector('.build_duration').appendChild(Util.createDom('div', {'class':'ogl_timeZone ogl_fulldate'}));
+                let updateFullDate = () => {
+                    let li = this.currentDetail.querySelector('.ogl_timeZone.ogl_fulldate') || this.currentDetail.querySelector('.build_duration').appendChild(Util.createDom('div', {'class': 'ogl_timeZone ogl_fulldate'}));
                     let totalTime = 0;
 
                     let indexArr = domTime.getAttribute('datetime').replace('PT', '').replace('P', '').match(/\D+/g).map(String);
                     let valueArr = domTime.getAttribute('datetime').replace('PT', '').replace('P', '').match(/\d+/g).map(Number);
 
-                    valueArr.forEach((value, index) =>
-                    {
-                        if(indexArr[index] == "DT") totalTime += value * 86400;
-                        if(indexArr[index] == "H") totalTime += value * 3600;
-                        if(indexArr[index] == "M") totalTime += value * 60;
-                        if(indexArr[index] == "S") totalTime += value;
+                    valueArr.forEach((value, index) => {
+                        if (indexArr[index] == "DT") totalTime += value * 86400;
+                        if (indexArr[index] == "H") totalTime += value * 3600;
+                        if (indexArr[index] == "M") totalTime += value * 60;
+                        if (indexArr[index] == "S") totalTime += value;
                     });
 
                     let seconds = totalTime;
@@ -15512,152 +17217,126 @@ class TimeManager
                     li.setAttribute('data-timezone', ` ${newTime.toLocaleTimeString('fr-FR')}`);
                 }
 
-                let updateDomTime = () =>
-                {
+                let updateDomTime = () => {
                     let totalTime = 0;
 
                     let indexArr = tech.initial.time.replace('PT', '').replace('P', '').match(/\D+/g).map(String);
                     let valueArr = tech.initial.time.replace('PT', '').replace('P', '').match(/\d+/g).map(Number);
 
-                    valueArr.forEach((value, index) =>
-                    {
-                        if(indexArr[index] == "DT") totalTime += value * 86400;
-                        if(indexArr[index] == "H") totalTime += value * 3600;
-                        if(indexArr[index] == "M") totalTime += value * 60;
-                        if(indexArr[index] == "S") totalTime += value;
+                    valueArr.forEach((value, index) => {
+                        if (indexArr[index] == "DT") totalTime += value * 86400;
+                        if (indexArr[index] == "H") totalTime += value * 3600;
+                        if (indexArr[index] == "M") totalTime += value * 60;
+                        if (indexArr[index] == "S") totalTime += value;
                     });
 
-                    if(!isInitial)
-                    {
-                        if(this.currentDetail.querySelector('#build_amount')) totalTime = totalTime * parseInt(this.currentDetail.querySelector('#build_amount')?.value || 1) || 1;
+                    if (!isInitial) {
+                        if (this.currentDetail.querySelector('#build_amount')) totalTime = totalTime * parseInt(this.currentDetail.querySelector('#build_amount')?.value || 1) || 1;
 
                         // time formulas for each techs type
-                        if(tech.isLfBuilding)
-                        {
+                        if (tech.isLfBuilding) {
                             totalTime = Math.round(tech.current.level * tech.data.duration * Math.pow(tech.data.durationFactor, tech.current.level)) / (1 + baseTechs.robot) / (Math.pow(2, baseTechs.nanite)) / this.ogl.universe.ecoSpeed;
-                        }
-                        else if(tech.isLfResearch)
-                        {
+                        } else if (tech.isLfResearch) {
                             totalTime = Math.round(tech.current.level * tech.data.duration * Math.pow(tech.data.durationFactor, tech.current.level)) * (1 - 0.02 * center) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed);
-                        }
-                        else if(tech.isBaseBuilding && tech.id != 15)
-                        {
+                        } else if (tech.isBaseBuilding && tech.id != 15) {
                             let levelRatio = tech.id == 43 ? 1 : 4 - tech.current.level / 2;
                             totalTime = (tech.current.metal + tech.current.crystal) / (2500 * Math.max(levelRatio, 1) * (1 + baseTechs.robot) * (Math.pow(2, baseTechs.nanite))) / this.ogl.universe.ecoSpeed * 3600;
-                        }
-                        else if(tech.isBaseResearch)
-                        {
+                        } else if (tech.isBaseResearch) {
                             totalTime = (tech.current.metal + tech.current.crystal) / (1000 * (1 + baseTechs.labo + networkLevel)) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed) * 3600;
-                        }
-                        else if(tech.id != 15)
-                        {
+                        } else if (tech.id != 15) {
                             totalTime = totalTime * Math.pow(tech.data.durationFactor, tech.current.level - tech.initial.level);
                         }
 
                         let bonus = 0;
 
-                        if(tech.isBaseResearch && this.ogl.account.class == 3) bonus += 25;
-                        if(tech.isBaseResearch && document.querySelector(`[data-technology="${tech.id}"] .acceleration`)) bonus += parseInt(document.querySelector(`[data-technology="${tech.id}"] .acceleration`).getAttribute('data-value'));
-                        if(tech.isBaseResearch && document.querySelector('#officers .technocrat.on')) totalTime = totalTime - totalTime * 25 / 100;
+                        if (tech.isBaseResearch && this.ogl.account.class == 3) bonus += 25;
+                        if (tech.isBaseResearch && document.querySelector(`[data-technology="${tech.id}"] .acceleration`)) bonus += parseInt(document.querySelector(`[data-technology="${tech.id}"] .acceleration`).getAttribute('data-value'));
+                        if (tech.isBaseResearch && document.querySelector('#officers .technocrat.on')) totalTime = totalTime - totalTime * 25 / 100;
 
                         totalTime = totalTime - totalTime * bonus / 100;
                     }
 
                     let seconds = Math.ceil(totalTime || 1);
-                    let w = Math.floor(seconds / (3600*24*7));
-                    let d = Math.floor(seconds % (3600*24*7) / (3600*24));
-                    let h = Math.floor(seconds % (3600*24) / 3600);
+                    let w = Math.floor(seconds / (3600 * 24 * 7));
+                    let d = Math.floor(seconds % (3600 * 24 * 7) / (3600 * 24));
+                    let h = Math.floor(seconds % (3600 * 24) / 3600);
                     let m = Math.floor(seconds % 3600 / 60);
                     let s = Math.floor(seconds % 60);
 
-                    let wd = Math.floor(seconds / (3600*24));
+                    let wd = Math.floor(seconds / (3600 * 24));
 
                     domTime.setAttribute('datetime', `${wd}DT${h}H${m}M${s}S`);
 
                     domTime.textContent = '';
-                    if(w > 0) domTime.textContent += `${w}${LocalizationStrings.timeunits.short.week} `;
-                    if(d > 0) domTime.textContent += `${d}${LocalizationStrings.timeunits.short.day} `;
-                    if(h > 0) domTime.textContent += `${h}${LocalizationStrings.timeunits.short.hour} `;
-                    if(m > 0 && w <= 0) domTime.textContent += `${m}${LocalizationStrings.timeunits.short.minute} `;
-                    if(s > 0 && w <= 0 && d <= 0) domTime.textContent += `${s}${LocalizationStrings.timeunits.short.second}`;
+                    if (w > 0) domTime.textContent += `${w}${LocalizationStrings.timeunits.short.week} `;
+                    if (d > 0) domTime.textContent += `${d}${LocalizationStrings.timeunits.short.day} `;
+                    if (h > 0) domTime.textContent += `${h}${LocalizationStrings.timeunits.short.hour} `;
+                    if (m > 0 && w <= 0) domTime.textContent += `${m}${LocalizationStrings.timeunits.short.minute} `;
+                    if (s > 0 && w <= 0 && d <= 0) domTime.textContent += `${s}${LocalizationStrings.timeunits.short.second}`;
 
                     updateFullDate();
                 }
 
-                let updateLevel = function(newLevel, updateDom)
-                {
+                let updateLevel = function (newLevel, updateDom) {
                     isInitial = false;
 
                     tech.current.level = newLevel > 0 ? newLevel : 1;
-                    if(self.currentDetail.querySelector('.information .level')) self.currentDetail.querySelector('.information .level').setAttribute('data-step', tech.current.level - tech.initial.level);
+                    if (self.currentDetail.querySelector('.information .level')) self.currentDetail.querySelector('.information .level').setAttribute('data-step', tech.current.level - tech.initial.level);
 
-                    ['metal', 'crystal', 'deut', 'energy', 'energyConsumption', 'energyProduction'].forEach(res =>
-                    {
+                    ['metal', 'crystal', 'deut', 'energy', 'energyConsumption', 'energyProduction'].forEach(res => {
                         // cost
-                        if(res == 'energy' && tech.isLfBuilding) tech.current[res] = Math.ceil(tech.current.level * tech.data[res] * Math.pow(tech.data.energyFactor, tech.current.level));
-                        else if(tech.isLfBuilding || tech.isLfResearch) tech.current[res] = Math.ceil(tech.data[res] * Math.pow(tech.data.priceFactor, tech.current.level - 1) * tech.current.level);
-                        else if(!tech.isShip && !tech.isDef) tech.current[res] = Math.ceil(tech.initial[res] * Math.pow(tech.data.priceFactor, tech.current.level - tech.initial.level));
+                        if (res == 'energy' && tech.isLfBuilding) tech.current[res] = Math.ceil(tech.current.level * tech.data[res] * Math.pow(tech.data.energyFactor, tech.current.level));
+                        else if (tech.isLfBuilding || tech.isLfResearch) tech.current[res] = Math.ceil(tech.data[res] * Math.pow(tech.data.priceFactor, tech.current.level - 1) * tech.current.level);
+                        else if (!tech.isShip && !tech.isDef) tech.current[res] = Math.ceil(tech.initial[res] * Math.pow(tech.data.priceFactor, tech.current.level - tech.initial.level));
 
                         // consumption
-                        if(res == 'energyConsumption')
-                        {
+                        if (res == 'energyConsumption') {
                             let consumption = 0;
                             let prevConsumption = 0;
                             let domEnergy = document.querySelector('.additional_energy_consumption .value');
 
-                            if(tech.id == 1 || tech.id == 2)
-                            {
+                            if (tech.id == 1 || tech.id == 2) {
                                 consumption = Math.ceil(10 * tech.current.level * Math.pow(1.1, tech.current.level));
-                                prevConsumption = Math.ceil(10 * (tech.current.level-1) * Math.pow(1.1, (tech.current.level-1)));
-                            }
-                            else if(tech.id == 3)
-                            {
+                                prevConsumption = Math.ceil(10 * (tech.current.level - 1) * Math.pow(1.1, (tech.current.level - 1)));
+                            } else if (tech.id == 3) {
                                 consumption = Math.ceil(20 * tech.current.level * Math.pow(1.1, tech.current.level));
-                                prevConsumption = Math.ceil(20 * (tech.current.level-1) * Math.pow(1.1, (tech.current.level-1)));
+                                prevConsumption = Math.ceil(20 * (tech.current.level - 1) * Math.pow(1.1, (tech.current.level - 1)));
                             }
 
-                            if(consumption && prevConsumption && domEnergy)
-                            {
+                            if (consumption && prevConsumption && domEnergy) {
                                 domEnergy.textContent = Util.formatNumber(consumption - prevConsumption);
                             }
                         }
 
                         // production
-                        if(res == 'energyProduction')
-                        {
+                        if (res == 'energyProduction') {
                             let production = 0;
                             let prevProduction = 0;
                             let domEnergy = document.querySelector('.energy_production .value');
 
-                            if(tech.id == 4)
-                            {
+                            if (tech.id == 4) {
                                 production = Math.ceil(20 * tech.current.level * Math.pow(1.1, tech.current.level));
-                                prevProduction = Math.ceil(20 * (tech.current.level-1) * Math.pow(1.1, (tech.current.level-1)));
-                            }
-                            else if(tech.id == 12)
-                            {
+                                prevProduction = Math.ceil(20 * (tech.current.level - 1) * Math.pow(1.1, (tech.current.level - 1)));
+                            } else if (tech.id == 12) {
                                 production = Math.ceil(30 * tech.current.level * Math.pow((1.05 + baseTechs.energy * 0.01), tech.current.level));
-                                prevProduction = Math.ceil(30 * (tech.current.level-1) * Math.pow((1.05 + baseTechs.energy * 0.01), (tech.current.level-1)));
+                                prevProduction = Math.ceil(30 * (tech.current.level - 1) * Math.pow((1.05 + baseTechs.energy * 0.01), (tech.current.level - 1)));
                             }
 
-                            if(production && prevProduction && domEnergy)
-                            {
-                                domEnergy.innerHTML = `${Util.formatNumber(production)} <span class="bonus" data-value="${production-prevProduction}">(+${Util.formatNumber(production-prevProduction)})</span>`;
+                            if (production && prevProduction && domEnergy) {
+                                domEnergy.innerHTML = `${Util.formatNumber(production)} <span class="bonus" data-value="${production - prevProduction}">(+${Util.formatNumber(production - prevProduction)})</span>`;
                             }
                         }
 
-                        if(updateDom)
-                        {
+                        if (updateDom) {
                             let target = self.currentDetail.querySelector('.costs .' + res.replace('deut', 'deuterium'));
 
-                            if(target)
-                            {
+                            if (target) {
                                 target.textContent = Util.formatToUnits(tech.current[res]);
                                 target.setAttribute('data-total', tech.current[res]);
                                 target.setAttribute('title', `${Util.formatNumber(tech.current[res])} ${self.ogl.component.lang.getText(res)}`);
                                 self.currentDetail.querySelector('.information .level').innerHTML = `Level ${tech.current.level - 1} <i class="material-icons">arrow_forward</i> <span>${tech.current.level}</span>`;
 
-                                if(self.ogl.current[res] < tech.current[res]) target.classList.add('insufficient');
+                                if (self.ogl.current[res] < tech.current[res]) target.classList.add('insufficient');
                                 else target.classList.remove('insufficient');
                             }
                         }
@@ -15693,15 +17372,14 @@ class TimeManager
                     return tech;
                 }
 
-                let container = this.currentDetail.querySelector('.sprite_large').appendChild(Util.createDom('div', {'class':'ogl_detailActions'}));
+                let container = this.currentDetail.querySelector('.sprite_large').appendChild(Util.createDom('div', {'class': 'ogl_detailActions'}));
 
-                if(this.currentDetail.querySelector('.information .level'))
-                {
+                if (this.currentDetail.querySelector('.information .level')) {
                     this.currentDetail.querySelector('.information .level').setAttribute('data-ratio', tech.ratio);
 
-                    let prevButton = container.appendChild(Util.createDom('div', {'class':'ogl_button material-icons'}, 'chevron_left'));
-                    let initButton = container.appendChild(Util.createDom('div', {'class':'ogl_button  material-icons'}, 'cancel'));
-                    let nextButton = container.appendChild(Util.createDom('div', {'class':'ogl_button material-icons'}, 'chevron_right'));
+                    let prevButton = container.appendChild(Util.createDom('div', {'class': 'ogl_button material-icons'}, 'chevron_left'));
+                    let initButton = container.appendChild(Util.createDom('div', {'class': 'ogl_button  material-icons'}, 'cancel'));
+                    let nextButton = container.appendChild(Util.createDom('div', {'class': 'ogl_button material-icons'}, 'chevron_right'));
 
                     prevButton.addEventListener('click', () => updateLevel(tech.current.level - 1, true));
                     initButton.addEventListener('click', () => updateLevel(tech.initial.level, true));
@@ -15710,21 +17388,18 @@ class TimeManager
                     //initButton.click();
                 }
 
-                let lockButton = container.appendChild(Util.createDom('div', {'class':'ogl_button material-icons'}, 'lock'));
-                lockButton.addEventListener('click', () =>
-                {
+                let lockButton = container.appendChild(Util.createDom('div', {'class': 'ogl_button material-icons'}, 'lock'));
+                lockButton.addEventListener('click', () => {
                     let amount = 1;
                     let levelDiff = tech.current.level - tech.initial.level;
-                    if(levelDiff < 0) return;
+                    if (levelDiff < 0) return;
 
-                    if(this.currentDetail.querySelector('#build_amount'))
-                    {
+                    if (this.currentDetail.querySelector('#build_amount')) {
                         levelDiff = 0;
                         amount = parseInt(this.currentDetail.querySelector('#build_amount').value || 1);
                     }
 
-                    for(let i=0; i<=levelDiff; i++)
-                    {
+                    for (let i = 0; i <= levelDiff; i++) {
                         let tmpTech = updateLevel(tech.initial.level + i);
                         let lockedTech = {};
                         lockedTech.id = tmpTech.id;
@@ -15739,26 +17414,23 @@ class TimeManager
                     }
                 });
 
-                let checkInput = () =>
-                {
+                let checkInput = () => {
                     let currentAmount = parseInt(this.currentDetail.querySelector('#build_amount')?.value || 1) || 1;
                     let energyProd = parseInt(this.currentDetail.querySelector('.energy_production .bonus')?.getAttribute('data-value') || 0) * currentAmount;
                     let energyConso = parseInt(this.currentDetail.querySelector('.additional_energy_consumption .value')?.getAttribute('data-value') || 0) * currentAmount;
 
-                    if(energyProd) this.currentDetail.querySelector('.energy_production .value .bonus').textContent = `(+${Util.formatNumber(energyProd)})`;
-                    if(energyConso) this.currentDetail.querySelector('.additional_energy_consumption .value').textContent = Util.formatNumber(energyConso);
+                    if (energyProd) this.currentDetail.querySelector('.energy_production .value .bonus').textContent = `(+${Util.formatNumber(energyProd)})`;
+                    if (energyConso) this.currentDetail.querySelector('.additional_energy_consumption .value').textContent = Util.formatNumber(energyConso);
 
-                    ['metal', 'crystal', 'deut', 'energy'].forEach(res =>
-                    {
+                    ['metal', 'crystal', 'deut', 'energy'].forEach(res => {
                         let target = self.currentDetail.querySelector('.costs .' + res.replace('deut', 'deuterium'));
-                        if(target)
-                        {
+                        if (target) {
                             let newValue = tech.initial[res] * currentAmount;
                             target.textContent = Util.formatToUnits(newValue);
                             target.setAttribute('data-total', newValue);
                             target.setAttribute('title', `${Util.formatNumber(newValue)} ${self.ogl.component.lang.getText(res)}`);
 
-                            if(this.ogl.current[res] < newValue) target.classList.add('insufficient');
+                            if (this.ogl.current[res] < newValue) target.classList.add('insufficient');
                             else target.classList.remove('insufficient');
                         }
                     });
@@ -15769,9 +17441,9 @@ class TimeManager
                 updateDomTime();
                 Util.updateCheckIntInput(() => checkInput());
 
-                if(this.currentDetail.querySelector('.information .level')) this.currentDetail.querySelector('.information .level').innerHTML = `Level ${tech.current.level - 1} <i class="material-icons">arrow_forward</i> <span>${tech.current.level}</span>`;
+                if (this.currentDetail.querySelector('.information .level')) this.currentDetail.querySelector('.information .level').innerHTML = `Level ${tech.current.level - 1} <i class="material-icons">arrow_forward</i> <span>${tech.current.level}</span>`;
 
-                if(this.currentDetail.querySelector('#build_amount')) // ships or def
+                if (this.currentDetail.querySelector('#build_amount')) // ships or def
                 {
                     this.currentDetail.querySelector('#build_amount').setAttribute('onkeyup', 'checkIntInput(this, 1, 999999);event.stopPropagation();');
                     this.currentDetail.querySelector('#build_amount').addEventListener('click', () => checkInput());
@@ -15784,452 +17456,448 @@ class TimeManager
     }
 }
 
-class LangManager
-{
-    constructor(ogl)
-    {
+class LangManager {
+    constructor(ogl) {
         this.ogl = ogl;
 
         this.pt =
             {
                 mission3: 'Transportar',
                 mission4: 'Transferir',
-                ship202 : "Cargueiro Pequeno",
-                abbr202 : "CP",
-                ship203 : "Cargueiro Grande",
-                abbr203 : "CG",
-                ship204 : "Caça Ligeiro",
-                abbr204 : "CL",
-                ship205 : "Caça Pesado",
-                abbr205 : "CP",
-                ship206 : "Cruzador",
-                abbr206 : "Crz",
-                ship207 : "Nave de Batalha",
-                abbr207 : "NB",
-                ship208 : "Nave de Colonização",
-                abbr208 : "NC",
-                ship209 : "Reciclador",
-                abbr209 : "Rec",
-                ship210 : "Sonda de Espionagem",
-                abbr210 : "SP",
-                ship211 : "Bombardeiro",
-                abbr211 : "Bomb",
-                ship212 : "Satélite Solar",
-                abbr212 : "SS",
-                ship213 : "Destruidor",
-                abbr213 : "Dest",
-                ship214 : "Estrela da Morte",
-                abbr214 : "EdM",
-                ship215 : "Interceptor",
-                abbr215 : "Int",
-                ship217 : "Rastejador",
-                abbr217 : "Rast",
-                ship218 : "Ceifeira",
-                abbr218 : "Ceif",
-                ship219 : "Exploradora",
-                abbr219 : "EX",
-                planets : "planetas",
-                ships : "Naves",
-                items : "Items",
-                other : "Outros",
-                resources : "Recursos",
-                fight : "Combates",
-                noMoonError : "Erro, lua inexistente",
-                capacityPicker : "Recursos a enviar",
-                scExpe : "Expedição - Cargueiros Pequenos",
-                lcExpe : "Expedição - Cargueiros Grandes",
-                pfExpe : "Expedição - Exploradoras",
-                allShipsRes : "Seleccionar todas as naves (pagina 1) <br>ou todos os recursos (pagina 2)",
-                splitShipsRes : "Dividir todas as naves (pagina 1) <br>ou todos os recursos (pagina 2)",
-                prevFleet : "Repetir frota anterior",
-                required : "req.",
-                reverseAllShipsRes : "Inverter todas as naves seleccionadas (pagina 1) <br>ou todos os recursos (pagina 2)",
-                nextPlanet : "Ir para o próximo planeta",
-                prevPlanet : "Ir para o planeta anterior",
-                gain : "Gain",
-                timeLimits : "Dia;Semana;Mês;Tudo",
-                spyPosition : "Espiar esta posição",
-                flagTarget : "Definir próximo alvo",
-                attackCurrentTarget : "Atacar próximo alvo",
-                noTargetSelected : "Nenhum alvo selecionado",
-                timerInfo : "Última Actualização",
-                blackhole : "Buraco Negro",
-                signalBlackhole : "Sinalizar um Buraco Negro",
-                moreStats : "Mais estatísticas",
-                eraseData : "Apagar Dados",
-                defaultView : "Ver Default",
-                economyView : "Ver Economia",
-                productionView : "Ver Produção",
-                pinnedView : "Alvo afixado",
-                targetView : "Lista de Alvos",
-                oglConfig : "Configurações OgLight",
-                defaultShip : "Nave Default",
-                defaultMission : "Missão Default",
-                autoCollect : "Recolher recursos",
-                minifyPictures : "Minimizar imagens grandes",
-                displayTimers : "Mostrar temporizadores de actualização",
-                rentaStats : "Mostrar Estatísticas",
-                excludeConso : "Excluir consumo de deutério das estatísticas",
-                spiesTable : "Mostrar tabela de espionagem",
-                autoClean : "Auto-Limpar tabela de espionagem",
-                cleanReport : "Limpar relatórios de espionagem",
-                inFlight : "Em voo",
-                linkedMoons : "Luas ligadas",
-                linkedPlanets : "Planetas Ligados",
-                kofi : "Estás a gostar do OgLight ? Buy me a ko-fi :)",
-                wrongTarget : "Atenção, o planeta alvo mudou e irá ser removido da lista !",
-                deleteSpyDef : "Apagar espionagem contra os meu planetas",
-                rentaPerDay : "Mean ($daysd)",
-                totalPerDay : "Mean+prod ($daysd)",
-                ignoreRaid : "Ignorar este ataque",
-                keepOnPlanet : "para manter no planeta",
-                switchNameCoords : "Trocar coords/nomes",
-                sendResources : "Enviar recursos",
-                sendMissingResources : "Deduzir recursos no planeta do total",
-                fleetDetailsName : "Mostrar nomes das naves nos detalhes da frota",
-                onPlanets : "Nos planetas",
-                reportFound : "Melhor Relatório",
-                topReportDetails : "Detalhes do Melhor Relatório",
-                playerProfile : "Perfil do Jogador",
-                rightMenuTooltips : "Esconder tooltips do menu direito",
-                bigShip : "Usar a melhor nave disponivel (expedições)",
-                targetListEnd : "Fim da lista de alvos",
-                ignoreVacation : "Esconder jogadores em modo de férias (lista de alvos)",
-                tooltipDelay : "Atraso na Tooltip (ms)",
-                timezoneMode : "Usar modo Fuso Horário",
-                ignoreExpeShips : "Ignorar naves encontradas em expedições",
+                ship202: "Cargueiro Pequeno",
+                abbr202: "CP",
+                ship203: "Cargueiro Grande",
+                abbr203: "CG",
+                ship204: "Caça Ligeiro",
+                abbr204: "CL",
+                ship205: "Caça Pesado",
+                abbr205: "CP",
+                ship206: "Cruzador",
+                abbr206: "Crz",
+                ship207: "Nave de Batalha",
+                abbr207: "NB",
+                ship208: "Nave de Colonização",
+                abbr208: "NC",
+                ship209: "Reciclador",
+                abbr209: "Rec",
+                ship210: "Sonda de Espionagem",
+                abbr210: "SP",
+                ship211: "Bombardeiro",
+                abbr211: "Bomb",
+                ship212: "Satélite Solar",
+                abbr212: "SS",
+                ship213: "Destruidor",
+                abbr213: "Dest",
+                ship214: "Estrela da Morte",
+                abbr214: "EdM",
+                ship215: "Interceptor",
+                abbr215: "Int",
+                ship217: "Rastejador",
+                abbr217: "Rast",
+                ship218: "Ceifeira",
+                abbr218: "Ceif",
+                ship219: "Exploradora",
+                abbr219: "EX",
+                planets: "planetas",
+                ships: "Naves",
+                items: "Items",
+                other: "Outros",
+                resources: "Recursos",
+                fight: "Combates",
+                noMoonError: "Erro, lua inexistente",
+                capacityPicker: "Recursos a enviar",
+                scExpe: "Expedição - Cargueiros Pequenos",
+                lcExpe: "Expedição - Cargueiros Grandes",
+                pfExpe: "Expedição - Exploradoras",
+                allShipsRes: "Seleccionar todas as naves (pagina 1) <br>ou todos os recursos (pagina 2)",
+                splitShipsRes: "Dividir todas as naves (pagina 1) <br>ou todos os recursos (pagina 2)",
+                prevFleet: "Repetir frota anterior",
+                required: "req.",
+                reverseAllShipsRes: "Inverter todas as naves seleccionadas (pagina 1) <br>ou todos os recursos (pagina 2)",
+                nextPlanet: "Ir para o próximo planeta",
+                prevPlanet: "Ir para o planeta anterior",
+                gain: "Gain",
+                timeLimits: "Dia;Semana;Mês;Tudo",
+                spyPosition: "Espiar esta posição",
+                flagTarget: "Definir próximo alvo",
+                attackCurrentTarget: "Atacar próximo alvo",
+                noTargetSelected: "Nenhum alvo selecionado",
+                timerInfo: "Última Actualização",
+                blackhole: "Buraco Negro",
+                signalBlackhole: "Sinalizar um Buraco Negro",
+                moreStats: "Mais estatísticas",
+                eraseData: "Apagar Dados",
+                defaultView: "Ver Default",
+                economyView: "Ver Economia",
+                productionView: "Ver Produção",
+                pinnedView: "Alvo afixado",
+                targetView: "Lista de Alvos",
+                oglConfig: "Configurações OgLight",
+                defaultShip: "Nave Default",
+                defaultMission: "Missão Default",
+                autoCollect: "Recolher recursos",
+                minifyPictures: "Minimizar imagens grandes",
+                displayTimers: "Mostrar temporizadores de actualização",
+                rentaStats: "Mostrar Estatísticas",
+                excludeConso: "Excluir consumo de deutério das estatísticas",
+                spiesTable: "Mostrar tabela de espionagem",
+                autoClean: "Auto-Limpar tabela de espionagem",
+                cleanReport: "Limpar relatórios de espionagem",
+                inFlight: "Em voo",
+                linkedMoons: "Luas ligadas",
+                linkedPlanets: "Planetas Ligados",
+                kofi: "Estás a gostar do OgLight ? Buy me a ko-fi :)",
+                wrongTarget: "Atenção, o planeta alvo mudou e irá ser removido da lista !",
+                deleteSpyDef: "Apagar espionagem contra os meu planetas",
+                rentaPerDay: "Mean ($daysd)",
+                totalPerDay: "Mean+prod ($daysd)",
+                ignoreRaid: "Ignorar este ataque",
+                keepOnPlanet: "para manter no planeta",
+                switchNameCoords: "Trocar coords/nomes",
+                sendResources: "Enviar recursos",
+                sendMissingResources: "Deduzir recursos no planeta do total",
+                fleetDetailsName: "Mostrar nomes das naves nos detalhes da frota",
+                onPlanets: "Nos planetas",
+                reportFound: "Melhor Relatório",
+                topReportDetails: "Detalhes do Melhor Relatório",
+                playerProfile: "Perfil do Jogador",
+                rightMenuTooltips: "Esconder tooltips do menu direito",
+                bigShip: "Usar a melhor nave disponivel (expedições)",
+                targetListEnd: "Fim da lista de alvos",
+                ignoreVacation: "Esconder jogadores em modo de férias (lista de alvos)",
+                tooltipDelay: "Atraso na Tooltip (ms)",
+                timezoneMode: "Usar modo Fuso Horário",
+                ignoreExpeShips: "Ignorar naves encontradas em expedições",
             }
 
         this.en =
             {
                 mission3: 'Transport',
                 mission4: 'Transfer',
-                ship202 : "Small Cargo",
-                abbr202 : "SC",
-                ship203 : "Large Cargo",
-                abbr203 : "LC",
-                ship204 : "Light Figther",
-                abbr204 : "LF",
-                ship205 : "Heavy Fighter",
-                abbr205 : "HF",
-                ship206 : "Cruiser",
-                abbr206 : "Crs",
-                ship207 : "Battleship",
-                abbr207 : "BS",
-                ship208 : "Colonization Ship",
-                abbr208 : "CS",
-                ship209 : "Recycler",
-                abbr209 : "Rec",
-                ship210 : "Spy Prob",
-                abbr210 : "SP",
-                ship211 : "Bomber",
-                abbr211 : "Bomb",
-                ship212 : "Solar Satelite",
-                abbr212 : "SS",
-                ship213 : "Destroyer",
-                abbr213 : "Dest",
-                ship214 : "Death Star",
-                abbr214 : "DS",
-                ship215 : "Interceptor",
-                abbr215 : "Int",
-                ship217 : "Crawler",
-                abbr217 : "Craw",
-                ship218 : "Riper",
-                abbr218 : "Riper",
-                ship219 : "Pathfinder",
-                abbr219 : "PF",
-                planets : "planets",
-                ships : "Ships",
-                items : "Items",
-                other : "Other",
-                resources : "Resources",
-                fight : "Fight",
-                noMoonError : "Error, there is no moon here",
-                capacityPicker : "Resources to send",
-                scExpe : "Small cargo expedition",
-                lcExpe : "Large cargo expedition",
-                pfExpe : "Pathfinder expedition",
-                allShipsRes : "Select all ships (page 1) <br>or all resources (page 2)",
-                splitShipsRes : "Split all ships (page 1) <br>or all resources (page 2)",
-                prevFleet : "Repeat previous fleet",
-                required : "req.",
-                reverseAllShipsRes : "Reverse all selected ships (page 1) <br>or all resources (page 2)",
-                nextPlanet : "Go to next planet",
-                prevPlanet : "Go to previous planet",
-                gain : "Gain",
-                timeLimits : "Day;Week;Month;All",
-                spyPosition : "Spy this position",
-                flagTarget : "Set next target",
-                attackCurrentTarget : "Attack next target",
-                noTargetSelected : "No target selected",
-                timerInfo : "Last refresh",
-                blackhole : "Black hole",
-                signalBlackhole : "Signal a blackhole",
-                moreStats : "More statistics",
-                eraseData : "Erase data",
-                defaultView : "Default view",
-                economyView : "Economy view",
-                productionView : "Production view",
-                pinnedView : "Pinned target",
-                targetView : "Targets list",
-                oglConfig : "OGLight settings",
-                defaultShip : "Default ship",
-                defaultMission : "Default mission",
-                autoCollect : "Collect resources",
-                minifyPictures : "Minify large pictures",
-                displayTimers : "Display refresh timers",
-                rentaStats : "Display stats",
-                excludeConso : "Exclude deut consumption from stats",
-                spiesTable : "Display spies table",
-                autoClean : "Autoclean spies table",
-                cleanReport : "Clean spies reports",
-                inFlight : "In flight",
-                linkedMoons : "Linked moons",
-                linkedPlanets : "Linked planets",
-                kofi : "Do you like OGLight ? Then support me :)",
-                wrongTarget : "Warning, the targeted planet has changed and will be removed from the list !",
-                deleteSpyDef : "Delete spies agaisnt my planets",
-                rentaPerDay : "Mean ($daysd)",
-                totalPerDay : "Mean+prod ($daysd)",
-                ignoreRaid : "Ignore this raid",
-                keepOnPlanet : "to keep on planet",
-                switchNameCoords : "switch coords/names",
-                sendResources : "Send resources",
-                sendMissingResources : "Deduct resources on the planet from the total",
-                fleetDetailsName : "Display ships name in fleet details",
-                onPlanets : "On planets",
-                reportFound : "Top report",
-                topReportDetails : "Top report details",
-                playerProfile : "Player profile",
-                rightMenuTooltips : "Hide right menu tooltips",
-                bigShip : "Use the biggest available ship (expeditions)",
-                targetListEnd : "End of targets list",
-                ignoreVacation : "Hide players in vacation mode (targets list)",
-                tooltipDelay : "Tooltip delay (ms)",
-                timezoneMode : "Use timezone mode",
-                ignoreExpeShips : "Ignore ships found in expeditions",
+                ship202: "Small Cargo",
+                abbr202: "SC",
+                ship203: "Large Cargo",
+                abbr203: "LC",
+                ship204: "Light Figther",
+                abbr204: "LF",
+                ship205: "Heavy Fighter",
+                abbr205: "HF",
+                ship206: "Cruiser",
+                abbr206: "Crs",
+                ship207: "Battleship",
+                abbr207: "BS",
+                ship208: "Colonization Ship",
+                abbr208: "CS",
+                ship209: "Recycler",
+                abbr209: "Rec",
+                ship210: "Spy Prob",
+                abbr210: "SP",
+                ship211: "Bomber",
+                abbr211: "Bomb",
+                ship212: "Solar Satelite",
+                abbr212: "SS",
+                ship213: "Destroyer",
+                abbr213: "Dest",
+                ship214: "Death Star",
+                abbr214: "DS",
+                ship215: "Interceptor",
+                abbr215: "Int",
+                ship217: "Crawler",
+                abbr217: "Craw",
+                ship218: "Riper",
+                abbr218: "Riper",
+                ship219: "Pathfinder",
+                abbr219: "PF",
+                planets: "planets",
+                ships: "Ships",
+                items: "Items",
+                other: "Other",
+                resources: "Resources",
+                fight: "Fight",
+                noMoonError: "Error, there is no moon here",
+                capacityPicker: "Resources to send",
+                scExpe: "Small cargo expedition",
+                lcExpe: "Large cargo expedition",
+                pfExpe: "Pathfinder expedition",
+                allShipsRes: "Select all ships (page 1) <br>or all resources (page 2)",
+                splitShipsRes: "Split all ships (page 1) <br>or all resources (page 2)",
+                prevFleet: "Repeat previous fleet",
+                required: "req.",
+                reverseAllShipsRes: "Reverse all selected ships (page 1) <br>or all resources (page 2)",
+                nextPlanet: "Go to next planet",
+                prevPlanet: "Go to previous planet",
+                gain: "Gain",
+                timeLimits: "Day;Week;Month;All",
+                spyPosition: "Spy this position",
+                flagTarget: "Set next target",
+                attackCurrentTarget: "Attack next target",
+                noTargetSelected: "No target selected",
+                timerInfo: "Last refresh",
+                blackhole: "Black hole",
+                signalBlackhole: "Signal a blackhole",
+                moreStats: "More statistics",
+                eraseData: "Erase data",
+                defaultView: "Default view",
+                economyView: "Economy view",
+                productionView: "Production view",
+                pinnedView: "Pinned target",
+                targetView: "Targets list",
+                oglConfig: "OGLight settings",
+                defaultShip: "Default ship",
+                defaultMission: "Default mission",
+                autoCollect: "Collect resources",
+                minifyPictures: "Minify large pictures",
+                displayTimers: "Display refresh timers",
+                rentaStats: "Display stats",
+                excludeConso: "Exclude deut consumption from stats",
+                spiesTable: "Display spies table",
+                autoClean: "Autoclean spies table",
+                cleanReport: "Clean spies reports",
+                inFlight: "In flight",
+                linkedMoons: "Linked moons",
+                linkedPlanets: "Linked planets",
+                kofi: "Do you like OGLight ? Then support me :)",
+                wrongTarget: "Warning, the targeted planet has changed and will be removed from the list !",
+                deleteSpyDef: "Delete spies agaisnt my planets",
+                rentaPerDay: "Mean ($daysd)",
+                totalPerDay: "Mean+prod ($daysd)",
+                ignoreRaid: "Ignore this raid",
+                keepOnPlanet: "to keep on planet",
+                switchNameCoords: "switch coords/names",
+                sendResources: "Send resources",
+                sendMissingResources: "Deduct resources on the planet from the total",
+                fleetDetailsName: "Display ships name in fleet details",
+                onPlanets: "On planets",
+                reportFound: "Top report",
+                topReportDetails: "Top report details",
+                playerProfile: "Player profile",
+                rightMenuTooltips: "Hide right menu tooltips",
+                bigShip: "Use the biggest available ship (expeditions)",
+                targetListEnd: "End of targets list",
+                ignoreVacation: "Hide players in vacation mode (targets list)",
+                tooltipDelay: "Tooltip delay (ms)",
+                timezoneMode: "Use timezone mode",
+                ignoreExpeShips: "Ignore ships found in expeditions",
             }
 
         this.fr =
             {
                 mission3: 'Transport',
                 mission4: 'Transfer',
-                ship202 : "Small Cargo",
-                abbr202 : "SC",
-                ship203 : "Large Cargo",
-                abbr203 : "LC",
-                ship204 : "Light Figther",
-                abbr204 : "LF",
-                ship205 : "Heavy Fighter",
-                abbr205 : "HF",
-                ship206 : "Cruiser",
-                abbr206 : "Crs",
-                ship207 : "Battleship",
-                abbr207 : "BS",
-                ship208 : "Colonization Ship",
-                abbr208 : "CS",
-                ship209 : "Recycler",
-                abbr209 : "Rec",
-                ship210 : "Spy Prob",
-                abbr210 : "SP",
-                ship211 : "Bomber",
-                abbr211 : "Bomb",
-                ship212 : "Solar Satelite",
-                abbr212 : "SS",
-                ship213 : "Destroyer",
-                abbr213 : "Dest",
-                ship214 : "Death Star",
-                abbr214 : "DS",
-                ship215 : "Interceptor",
-                abbr215 : "Int",
-                ship217 : "Crawler",
-                abbr217 : "Craw",
-                ship218 : "Riper",
-                abbr218 : "Riper",
-                ship219 : "Pathfinder",
-                abbr219 : "PF",
-                planets : "planètes",
-                ships : "Vaisseaux",
-                other : "Autre",
-                resources : "Ressources",
-                fight : "Combat",
-                noMoonError : "Erreur, il n'y a pas de lune ici",
-                capacityPicker : "Ressources à envoyer",
-                scExpe : "Expedition au PT",
-                lcExpe : "Expedition au GT",
-                allShipsRes : "Selectionner tous les vaisseux (page 1) <br>ou toutes les ressources (page2)",
-                splitShipsRes : "Diviser tous les vaisseux (page 1) <br>ou toutes les ressources (page2)",
-                prevFleet : "Répéter la flotte précédente",
-                reverseAllShipsRes : "Inverser tous les vaisseaux (page 1) <br>ou toutes ressources selectionné(e)s (page 2)",
-                nextPlanet : "Se rendre sur la planète suivante",
-                prevPlanet : "Se rendre sur la planète précédente",
-                gain : "Gain",
-                timeLimits : "Jour;Semaine;Mois;Tout",
-                spyPosition : "Espionner cette position",
-                flagTarget : "Définir la prochaine cible",
-                attackCurrentTarget : "Attaquer la prochaine cible",
-                noTargetSelected : "Aucune cible définie",
-                timerInfo : "Dernier refresh",
-                blackhole : 'Trou noir',
-                signalBlackhole : "Signaler un trou noir",
-                moreStats : "Plus de statistiques",
-                eraseData : "Supprimer les données",
-                defaultView : "Vue par défaut",
-                economyView : "Vue économie",
-                productionView : "Vue production",
-                pinnedView : "Cible épinglée",
-                targetView : "Liste des cibles",
-                oglConfig : "Configuration d'OGLight",
-                defaultShip : "Vaisseau par défaut",
-                defaultMission : "Mission par défaut",
-                autoCollect : "Collecter les ressources",
-                cleanReport : "Nettoyer les rapports",
-                minifyPictures : "Réduire les grandes images",
-                displayTimers : "Afficher les timers de refresh",
-                rentaStats : "Afficher les statistiques",
-                excludeConso : "Ignorer la conso de deut dans les stats",
-                spiesTable : "Afficher le tableau de RE",
-                autoClean : 'Suppression automatique des "mauvais" RE',
-                inFlight : "En vol",
-                linkedMoons : "Lunes associées",
-                linkedPlanets : "Planètes associées",
-                kofi : "Vous aimez OGLight ? Alors soutenez-moi :)",
-                wrongTarget : "Attention, la planète ciblée a changée et va être supprimée de la liste !",
-                deleteSpyDef : "Supprimer les espionnages contre mes planètes",
-                rentaPerDay : "Moyenne ($daysj)",
-                totalPerDay : "Moyenne+prod ($daysj)",
-                ignoreRaid : "Ignorer ce raid",
-                keepOnPlanet : "à garder sur la planète",
-                switchNameCoords : "alterner coords/noms",
-                sendResources : "Envoyer les ressources",
-                sendMissingResources : "Déduire les ressources à quai",
-                fleetDetailsName : "Afficher le nom des vaisseaux",
-                onPlanets : "A quai",
-                reportFound : "Meilleur rapport",
-                topReportDetails : "Détails du rapport",
-                playerProfile : "Profil de la cible",
-                rightMenuTooltips : "Cacher les tooltips du menu de droite",
-                bigShip : "Utiliser le plus gros vaisseau disponible (expeditions)",
-                targetListEnd : "Fin de la liste de cibles",
-                ignoreVacation : "Cacher les joueurs en MV (liste de cibles)",
-                tooltipDelay : "Délai d'ouverture des tooltips (ms)",
-                timezoneMode : "Utiliser le mode décalage horaire",
-                ignoreExpeShips : "Ignorer les vaisseaux trouvés lors des expéditions",
+                ship202: "Small Cargo",
+                abbr202: "SC",
+                ship203: "Large Cargo",
+                abbr203: "LC",
+                ship204: "Light Figther",
+                abbr204: "LF",
+                ship205: "Heavy Fighter",
+                abbr205: "HF",
+                ship206: "Cruiser",
+                abbr206: "Crs",
+                ship207: "Battleship",
+                abbr207: "BS",
+                ship208: "Colonization Ship",
+                abbr208: "CS",
+                ship209: "Recycler",
+                abbr209: "Rec",
+                ship210: "Spy Prob",
+                abbr210: "SP",
+                ship211: "Bomber",
+                abbr211: "Bomb",
+                ship212: "Solar Satelite",
+                abbr212: "SS",
+                ship213: "Destroyer",
+                abbr213: "Dest",
+                ship214: "Death Star",
+                abbr214: "DS",
+                ship215: "Interceptor",
+                abbr215: "Int",
+                ship217: "Crawler",
+                abbr217: "Craw",
+                ship218: "Riper",
+                abbr218: "Riper",
+                ship219: "Pathfinder",
+                abbr219: "PF",
+                planets: "planètes",
+                ships: "Vaisseaux",
+                other: "Autre",
+                resources: "Ressources",
+                fight: "Combat",
+                noMoonError: "Erreur, il n'y a pas de lune ici",
+                capacityPicker: "Ressources à envoyer",
+                scExpe: "Expedition au PT",
+                lcExpe: "Expedition au GT",
+                allShipsRes: "Selectionner tous les vaisseux (page 1) <br>ou toutes les ressources (page2)",
+                splitShipsRes: "Diviser tous les vaisseux (page 1) <br>ou toutes les ressources (page2)",
+                prevFleet: "Répéter la flotte précédente",
+                reverseAllShipsRes: "Inverser tous les vaisseaux (page 1) <br>ou toutes ressources selectionné(e)s (page 2)",
+                nextPlanet: "Se rendre sur la planète suivante",
+                prevPlanet: "Se rendre sur la planète précédente",
+                gain: "Gain",
+                timeLimits: "Jour;Semaine;Mois;Tout",
+                spyPosition: "Espionner cette position",
+                flagTarget: "Définir la prochaine cible",
+                attackCurrentTarget: "Attaquer la prochaine cible",
+                noTargetSelected: "Aucune cible définie",
+                timerInfo: "Dernier refresh",
+                blackhole: 'Trou noir',
+                signalBlackhole: "Signaler un trou noir",
+                moreStats: "Plus de statistiques",
+                eraseData: "Supprimer les données",
+                defaultView: "Vue par défaut",
+                economyView: "Vue économie",
+                productionView: "Vue production",
+                pinnedView: "Cible épinglée",
+                targetView: "Liste des cibles",
+                oglConfig: "Configuration d'OGLight",
+                defaultShip: "Vaisseau par défaut",
+                defaultMission: "Mission par défaut",
+                autoCollect: "Collecter les ressources",
+                cleanReport: "Nettoyer les rapports",
+                minifyPictures: "Réduire les grandes images",
+                displayTimers: "Afficher les timers de refresh",
+                rentaStats: "Afficher les statistiques",
+                excludeConso: "Ignorer la conso de deut dans les stats",
+                spiesTable: "Afficher le tableau de RE",
+                autoClean: 'Suppression automatique des "mauvais" RE',
+                inFlight: "En vol",
+                linkedMoons: "Lunes associées",
+                linkedPlanets: "Planètes associées",
+                kofi: "Vous aimez OGLight ? Alors soutenez-moi :)",
+                wrongTarget: "Attention, la planète ciblée a changée et va être supprimée de la liste !",
+                deleteSpyDef: "Supprimer les espionnages contre mes planètes",
+                rentaPerDay: "Moyenne ($daysj)",
+                totalPerDay: "Moyenne+prod ($daysj)",
+                ignoreRaid: "Ignorer ce raid",
+                keepOnPlanet: "à garder sur la planète",
+                switchNameCoords: "alterner coords/noms",
+                sendResources: "Envoyer les ressources",
+                sendMissingResources: "Déduire les ressources à quai",
+                fleetDetailsName: "Afficher le nom des vaisseaux",
+                onPlanets: "A quai",
+                reportFound: "Meilleur rapport",
+                topReportDetails: "Détails du rapport",
+                playerProfile: "Profil de la cible",
+                rightMenuTooltips: "Cacher les tooltips du menu de droite",
+                bigShip: "Utiliser le plus gros vaisseau disponible (expeditions)",
+                targetListEnd: "Fin de la liste de cibles",
+                ignoreVacation: "Cacher les joueurs en MV (liste de cibles)",
+                tooltipDelay: "Délai d'ouverture des tooltips (ms)",
+                timezoneMode: "Utiliser le mode décalage horaire",
+                ignoreExpeShips: "Ignorer les vaisseaux trouvés lors des expéditions",
             }
 
         this.gr =
             {
                 mission3: 'Transport',
                 mission4: 'Transfer',
-                ship202 : "Small Cargo",
-                abbr202 : "SC",
-                ship203 : "Large Cargo",
-                abbr203 : "LC",
-                ship204 : "Light Figther",
-                abbr204 : "LF",
-                ship205 : "Heavy Fighter",
-                abbr205 : "HF",
-                ship206 : "Cruiser",
-                abbr206 : "Crs",
-                ship207 : "Battleship",
-                abbr207 : "BS",
-                ship208 : "Colonization Ship",
-                abbr208 : "CS",
-                ship209 : "Recycler",
-                abbr209 : "Rec",
-                ship210 : "Spy Prob",
-                abbr210 : "SP",
-                ship211 : "Bomber",
-                abbr211 : "Bomb",
-                ship212 : "Solar Satelite",
-                abbr212 : "SS",
-                ship213 : "Destroyer",
-                abbr213 : "Dest",
-                ship214 : "Death Star",
-                abbr214 : "DS",
-                ship215 : "Interceptor",
-                abbr215 : "Int",
-                ship217 : "Crawler",
-                abbr217 : "Craw",
-                ship218 : "Riper",
-                abbr218 : "Riper",
-                ship219 : "Pathfinder",
-                abbr219 : "PF",
-                planets : "Πλανήτες",
-                ships : "Πλοία",
-                items : "Αντικέιμενα",
-                other : "Λοιπά",
-                resources : "Πόροι",
-                fight : "Μάχες",
-                noMoonError : "Σφάλμα, δεν υπάρχει φεγγάρι εδώ",
-                capacityPicker : "Πόροι για αποστολή",
-                scExpe : "Αποστολή με μικρά μεταγωγικά",
-                lcExpe : "Αποστολή με μεγάλα μεταγωγικά",
-                allShipsRes : "Επιλέξτε όλα τα πλοία (σελίδα 1) ή όλους τους πόρους (σελίδα 3))",
-                splitShipsRes : "Διαχωρίστε όλα τα πλοία (σελίδα 1) ή όλους τους πόρους (σελίδα 3) με την επιλεγμένη τιμή (2-9)",
-                prevFleet : "Επάληψη προηγούμενου στόλου",
-                required : "Απαιτ.",
-                reverseAllShipsRes : "Αντιστρέψτε όλα τα επιλεγμένα πλοία (σελίδα 1) ή όλους τους πόρους (σελίδα 3)",
-                nextPlanet : "Πηγαίνετε στον επόμενο πλανήτη",
-                gain : "Κέρδος",
-                timeLimits : "Ημέρα;Εβδομάδα;Μήνας;Σύνολο",
-                spyPosition : "Κατασκοπεύστε αυτήν τη θέση",
-                flagTarget : "Ορίστε τον επόμενο στόχο",
-                attackCurrentTarget : "Επίθεση στον επόμενο στόχο",
-                noTargetSelected : "Δεν έχει επιλεγεί στόχος",
-                timerInfo : "Τελευταία ανανέωση",
-                blackhole : "Μαύρη τρύπα",
-                signalBlackhole : "Σημειώστε μια μαύρη τρύπα",
-                moreStats : "Επιπλέον στατιστικά",
-                eraseData : "Διαγραφή δεδομένων",
-                defaultView : "Προεπιλεγμένη προβολή",
-                economyView : "Προβολή οικονομίας",
-                productionView : "Προβολή παραγωγής",
-                pinnedView : "Καρφιτσωμένος στόχος",
-                targetView : "Λίστα στόχων",
-                oglConfig : "OGLight ρυθμίσεις",
-                defaultShip : "Σκάφος προεπιλογής",
-                defaultMission : "Προεπιλεγμένη μετακίνηση",
-                autoCollect : "Συλλέξτε πόρους",
-                minifyPictures : "Ελαχιστοποίηση μεγάλων εικόνων",
-                displayTimers : "Προβολή χρονόμετρων ανανέωσης",
-                rentaStats : "Στατιστικά εσόδων",
-                excludeConso : "Εξαίρεση της κατανάλωσης δευτερίου από τα στατιστικά",
-                spiesTable : "Εμφάνιση πίνακα κατασκοπειών",
-                autoClean : "Αυτόματη εκκαθάριση πίνακα κατασκοπειών",
-                inFlight : "Εν πτήση",
-                linkedMoons : "Συνδεδεμένα φεγγάρια",
-                linkedPlanets : "Συνδεδεμένοι πλανήτες",
-                kofi : "Σας αρέσει το OGLight ; Τότε υποστηρίξτε με :)",
-                wrongTarget : "Προειδοποίηση, ο στοχευμένος πλανήτης δεν υπάρχει πλέον και θα αφαιρεθεί από τη λίστα!",
-                deleteSpyDef : "Διαγραφή κατασκ. αναφορών των πλανητών μου",
-                rentaPerDay : "Mean ($daysd)",
-                totalPerDay : "Mean+prod ($daysd)",
-                ignoreRaid : "Αγνόησε αυτή τη μάχη",
-                keepOnPlanet : "Να παραμείνουν στον πλανήτη",
-                switchNameCoords : "Εναλλαγή συντεταγμένων / ονομάτων",
-                sendResources : "Αποστολή πόρων",
-                sendMissingResources : "Αφαιρέστε τους πόρους στον πλανήτη από το σύνολο",
+                ship202: "Small Cargo",
+                abbr202: "SC",
+                ship203: "Large Cargo",
+                abbr203: "LC",
+                ship204: "Light Figther",
+                abbr204: "LF",
+                ship205: "Heavy Fighter",
+                abbr205: "HF",
+                ship206: "Cruiser",
+                abbr206: "Crs",
+                ship207: "Battleship",
+                abbr207: "BS",
+                ship208: "Colonization Ship",
+                abbr208: "CS",
+                ship209: "Recycler",
+                abbr209: "Rec",
+                ship210: "Spy Prob",
+                abbr210: "SP",
+                ship211: "Bomber",
+                abbr211: "Bomb",
+                ship212: "Solar Satelite",
+                abbr212: "SS",
+                ship213: "Destroyer",
+                abbr213: "Dest",
+                ship214: "Death Star",
+                abbr214: "DS",
+                ship215: "Interceptor",
+                abbr215: "Int",
+                ship217: "Crawler",
+                abbr217: "Craw",
+                ship218: "Riper",
+                abbr218: "Riper",
+                ship219: "Pathfinder",
+                abbr219: "PF",
+                planets: "Πλανήτες",
+                ships: "Πλοία",
+                items: "Αντικέιμενα",
+                other: "Λοιπά",
+                resources: "Πόροι",
+                fight: "Μάχες",
+                noMoonError: "Σφάλμα, δεν υπάρχει φεγγάρι εδώ",
+                capacityPicker: "Πόροι για αποστολή",
+                scExpe: "Αποστολή με μικρά μεταγωγικά",
+                lcExpe: "Αποστολή με μεγάλα μεταγωγικά",
+                allShipsRes: "Επιλέξτε όλα τα πλοία (σελίδα 1) ή όλους τους πόρους (σελίδα 3))",
+                splitShipsRes: "Διαχωρίστε όλα τα πλοία (σελίδα 1) ή όλους τους πόρους (σελίδα 3) με την επιλεγμένη τιμή (2-9)",
+                prevFleet: "Επάληψη προηγούμενου στόλου",
+                required: "Απαιτ.",
+                reverseAllShipsRes: "Αντιστρέψτε όλα τα επιλεγμένα πλοία (σελίδα 1) ή όλους τους πόρους (σελίδα 3)",
+                nextPlanet: "Πηγαίνετε στον επόμενο πλανήτη",
+                gain: "Κέρδος",
+                timeLimits: "Ημέρα;Εβδομάδα;Μήνας;Σύνολο",
+                spyPosition: "Κατασκοπεύστε αυτήν τη θέση",
+                flagTarget: "Ορίστε τον επόμενο στόχο",
+                attackCurrentTarget: "Επίθεση στον επόμενο στόχο",
+                noTargetSelected: "Δεν έχει επιλεγεί στόχος",
+                timerInfo: "Τελευταία ανανέωση",
+                blackhole: "Μαύρη τρύπα",
+                signalBlackhole: "Σημειώστε μια μαύρη τρύπα",
+                moreStats: "Επιπλέον στατιστικά",
+                eraseData: "Διαγραφή δεδομένων",
+                defaultView: "Προεπιλεγμένη προβολή",
+                economyView: "Προβολή οικονομίας",
+                productionView: "Προβολή παραγωγής",
+                pinnedView: "Καρφιτσωμένος στόχος",
+                targetView: "Λίστα στόχων",
+                oglConfig: "OGLight ρυθμίσεις",
+                defaultShip: "Σκάφος προεπιλογής",
+                defaultMission: "Προεπιλεγμένη μετακίνηση",
+                autoCollect: "Συλλέξτε πόρους",
+                minifyPictures: "Ελαχιστοποίηση μεγάλων εικόνων",
+                displayTimers: "Προβολή χρονόμετρων ανανέωσης",
+                rentaStats: "Στατιστικά εσόδων",
+                excludeConso: "Εξαίρεση της κατανάλωσης δευτερίου από τα στατιστικά",
+                spiesTable: "Εμφάνιση πίνακα κατασκοπειών",
+                autoClean: "Αυτόματη εκκαθάριση πίνακα κατασκοπειών",
+                inFlight: "Εν πτήση",
+                linkedMoons: "Συνδεδεμένα φεγγάρια",
+                linkedPlanets: "Συνδεδεμένοι πλανήτες",
+                kofi: "Σας αρέσει το OGLight ; Τότε υποστηρίξτε με :)",
+                wrongTarget: "Προειδοποίηση, ο στοχευμένος πλανήτης δεν υπάρχει πλέον και θα αφαιρεθεί από τη λίστα!",
+                deleteSpyDef: "Διαγραφή κατασκ. αναφορών των πλανητών μου",
+                rentaPerDay: "Mean ($daysd)",
+                totalPerDay: "Mean+prod ($daysd)",
+                ignoreRaid: "Αγνόησε αυτή τη μάχη",
+                keepOnPlanet: "Να παραμείνουν στον πλανήτη",
+                switchNameCoords: "Εναλλαγή συντεταγμένων / ονομάτων",
+                sendResources: "Αποστολή πόρων",
+                sendMissingResources: "Αφαιρέστε τους πόρους στον πλανήτη από το σύνολο",
             }
 
-        this.ogl.performances.push(['Lang',performance.now()]);
+        this.ogl.performances.push(['Lang', performance.now()]);
     }
 
     // get text by key. priority : library > local key > english key
-    getText(key)
-    {
-        if(this[this.ogl.universe.lang] && this[this.ogl.universe.lang][key]) return this[this.ogl.universe.lang][key];
-        else if(this.ogl.db.loca[key]) return this.ogl.db.loca[key];
-        else if(this.ogl.db.ships[key]?.name) return this.ogl.db.ships[key].name;
-        else if(this.en[key]) return this.en[key];
+    getText(key) {
+        if (this[this.ogl.universe.lang] && this[this.ogl.universe.lang][key]) return this[this.ogl.universe.lang][key];
+        else if (this.ogl.db.loca[key]) return this.ogl.db.loca[key];
+        else if (this.ogl.db.ships[key]?.name) return this.ogl.db.ships[key].name;
+        else if (this.en[key]) return this.en[key];
         else return 'TEXT_NOT_FOUND';
     }
 }
 
 let hash = new Date('2022', '12', '14', '14', '48', '12');
 
-if(localStorage.getItem('ogl-minipics'))
-{
+if (localStorage.getItem('ogl-minipics')) {
     GM_addStyle(`
         #supplies > header, #facilities > header, #research > header,
         #shipyard > header, #defense > header, #fleet1 .planet-header,
@@ -16261,8 +17929,7 @@ if(localStorage.getItem('ogl-minipics'))
 
 let oglcache;
 
-GM_getTab(obj =>
-{
+GM_getTab(obj => {
     oglcache = obj[0] || {};
 });
 
@@ -16270,18 +17937,16 @@ hash.setMonth(hash.getMonth() - 1);
 hash = (Math.ceil(hash.getTime() / 1000) - 1000000000).toString().match(/.{1,3}/g);
 hash = `${hash[hash.length - 2]}.${hash[hash.length - 1]}`;
 
-function initOGLight()
-{
-    try { unsafeWindow.ogl = new OGLight(oglcache); }
-    catch(e)
-    {
-        if(redirect && redirect.indexOf('https') > -1) return;
+function initOGLight() {
+    try {
+        unsafeWindow.ogl = new OGLight(oglcache);
+    } catch (e) {
+        if (redirect && redirect.indexOf('https') > -1) return;
 
-        setTimeout(() =>
-        {
-            let version = GM_info.script.version.indexOf('b') > -1 ? 'beta' : 'v'+GM_info.script.version;
+        setTimeout(() => {
+            let version = GM_info.script.version.indexOf('b') > -1 ? 'beta' : 'v' + GM_info.script.version;
 
-            console.group(`[OGL ${version == 'beta' ? version+'-'+hash : version}]`);
+            console.group(`[OGL ${version == 'beta' ? version + '-' + hash : version}]`);
             console.error(e);
             console.groupEnd();
             document.querySelector('.ogl_leftMenuIcon .material-icons').textContent = 'cancel';
@@ -16290,30 +17955,26 @@ function initOGLight()
             let errorList = [];
 
             let errors = e.stack.split('\n');
-            errors.forEach((error, index) =>
-            {
-                if(index > 1) return;
+            errors.forEach((error, index) => {
+                if (index > 1) return;
 
                 let splitted = error.split(':');
-                let line = splitted[splitted.length-2];
+                let line = splitted[splitted.length - 2];
 
-                if(line !== 'TypeError') errorList.push('<div> ➜' + error.replace(/ *\([^)]*\) */g, '') + ':<u>' + line + '</u></div>');
+                if (line !== 'TypeError') errorList.push('<div> ➜' + error.replace(/ *\([^)]*\) */g, '') + ':<u>' + line + '</u></div>');
                 else errorList.push(`<div>${error}</div>`);
             });
 
-            document.querySelector('#middle').appendChild(Util.createDom('div', {'class':'ogl_logs'}, `<h3>OGLight ${version} error :</h3><div>${errorList.join('')}</div>`));
+            document.querySelector('#middle').appendChild(Util.createDom('div', {'class': 'ogl_logs'}, `<h3>OGLight ${version} error :</h3><div>${errorList.join('')}</div>`));
         }, 100);
     }
 }
 
-if(new URL(window.location.href).searchParams.get('component') != 'empire')
-{
-    if(document.readyState !== 'loading') // safari mac OS fix
+if (new URL(window.location.href).searchParams.get('component') != 'empire') {
+    if (document.readyState !== 'loading') // safari mac OS fix
     {
         initOGLight();
-    }
-    else
-    {
+    } else {
         window.addEventListener("DOMContentLoaded", () => initOGLight());
     }
 }
