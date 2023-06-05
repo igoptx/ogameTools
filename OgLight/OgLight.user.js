@@ -7,6 +7,7 @@
 // @license      MIT
 // @copyright    2023, Igo
 // @match        https://*.ogame.gameforge.com/game/*
+// @updateURL    https://github.com/igoptx/ogameTools/raw/main/OgLight/OgLight.meta.js
 // @downloadURL  https://github.com/igoptx/ogameTools/raw/main/OgLight/OgLight.user.js
 // @grant        GM_addStyle
 // @grant        GM_getValue
@@ -15,6 +16,7 @@
 // @grant        GM_getTab
 // @grant        GM_saveTab
 // @run-at       document-start
+// @website      https://correia.red
 // ==/UserScript==
 'use strict';
 
