@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         OgLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5
-// @description  OGLight script for OGame
+// @version      4.2.5.2
+// @description  OgLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
 // @copyright    2023, Igo
@@ -7888,7 +7888,7 @@ class OGLight
         let leftMenu = document.querySelector('#menuTable').appendChild(Util.createDom('li', {},
             `
             <span class="menu_icon ogl_leftMenuIcon">
-                <a class="tooltipRight" data-title="Buy me a coffee <3" href="https://ko-fi.com/oglight" target="_blank"><i class="material-icons">local_cafe</i></a>
+                <a class="tooltipRight" data-title="Buy me a coffee <3" href="https://ko-fi.com/rodrigocorreia" target="_blank"><i class="material-icons">local_cafe</i></a>
             </span>
             <a class="menubutton tooltipRight" href="https://board.fr.ogame.gameforge.com/index.php?thread/722955-oglight/" target="_blank">
                 <span class="textlabel">OGLight ${this.version}</span>
@@ -9068,7 +9068,7 @@ class MenuManager
 
     addOptions()
     {
-        let button = this.mainDom.appendChild(Util.createDom('div', {'class':'material-icons ogl_manageData ogl_button'}, 'settings'));
+        let button = this.mainDom.appendChild(Util.createDom('div', {'class':'material-icons ogl_manageData ogl_button tooltipUp', 'data-title': this.ogl.component.lang.getText('oglConfig')}, 'settings'));
         button.addEventListener('click', () =>
         {
             this.ogl.component.popup.load();
@@ -9080,7 +9080,7 @@ class MenuManager
             sideContainer.appendChild(Util.createDom('h1', {'class':'ogl_scriptTitle'}, `OGLight <span>(${this.ogl.version == 'beta' ? `${this.ogl.version}-${hash}` : this.ogl.version})</span>`));
             sideContainer.appendChild(Util.createDom('hr'));
             sideContainer.appendChild(Util.createDom('p', {}, this.ogl.component.lang.getText('kofi')));
-            sideContainer.appendChild(Util.createDom('div', {}, "<a class='ogl_kofi' href='https://ko-fi.com/O4O22XV69' target='_blank'>Buy me a coffee</a>"));
+            sideContainer.appendChild(Util.createDom('div', {}, "<a class='ogl_kofi' href='https://ko-fi.com/rodrigocorreia' target='_blank'>Buy me a coffee</a>"));
 
             let rval = container.appendChild(Util.createDom('div', {}, '<span>Resources Value (RVal)</span>'));
             let rvalInput = rval.appendChild(Util.createDom('input', {'type':'text', 'class':'ogl_input'}));
@@ -9269,7 +9269,7 @@ class MenuManager
             let cargoChoice = Util.createDom('div', {'id':'ogl_defaultShipPicker', 'class':'ogl_shipList'});
             this.ogl.component.fleet.defaultShipsList.forEach(shipID =>
             {
-                let cargoType = cargoChoice.appendChild(Util.createDom('div', {'class':'ogl_shipIcon ogl_'+shipID}));
+                let cargoType = cargoChoice.appendChild(Util.createDom('div', {'class':'ogl_shipIcon ogl_'+shipID, 'title': this.ogl.component.lang.getText('ship'+shipID)}));
                 cargoType.addEventListener('click', () =>
                 {
                     this.ogl.db.options.defaultShip = shipID;
@@ -9285,7 +9285,7 @@ class MenuManager
     addMissions()
     {
         let mission = this.ogl.db.options.defaultMission;
-        this.mainDom.appendChild(Util.createDom('div', {'class':`material-icons ogl_missionPicker${this.ogl.db.options.defaultMission} ogl_button`}, this.ogl.db.options.defaultMission == 4 ? 'keyboard_tab' : 'swap_horiz'))
+        this.mainDom.appendChild(Util.createDom('div', {'class':`material-icons ogl_missionPicker${this.ogl.db.options.defaultMission} ogl_button tooltipUp`, 'data-title': this.ogl.component.lang.getText('mission'+this.ogl.db.options.defaultMission)}, this.ogl.db.options.defaultMission == 4 ? 'keyboard_tab' : 'swap_horiz'))
             .addEventListener('click', () =>
             {
                 this.ogl.db.options.defaultMission = this.ogl.db.options.defaultMission == 4 ? 3 : 4;
@@ -9297,7 +9297,7 @@ class MenuManager
 
     addHarvest()
     {
-        let button = this.mainDom.appendChild(Util.createDom('div', {'class':'material-icons ogl_harvest ogl_button'}, 'all_inclusive'));
+        let button = this.mainDom.appendChild(Util.createDom('div', {'class':'material-icons ogl_harvest ogl_button tooltipUp', 'data-title': 'Enviar Todos os Recursos Para...'}, 'all_inclusive'));
         let linkedButton = Util.createDom('div', {'class':'ogl_linkedHarvest ogl_button'}, this.ogl.current.type == 'moon' ? this.ogl.component.lang.getText('linkedPlanets') : this.ogl.component.lang.getText('linkedMoons'));
 
         button.addEventListener('click', () =>
@@ -12309,8 +12309,8 @@ class EmpireManager
                 }
             }
 
-            let withWithout = this.ogl.db.options.togglesOff.indexOf('ignoreExpeShips') == -1 ? 'w/o' : 'w/';
-            expeArea.appendChild(Util.createDom('h3', {}, `Expe (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut) / expeOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut))}">${Util.formatNumber(expeOccurences)}</u>) ${withWithout} ships`));
+            let withWithout = this.ogl.db.options.togglesOff.indexOf('ignoreExpeShips') == -1 ? 's/' : 'c/';
+            expeArea.appendChild(Util.createDom('h3', {}, `Expedições (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut) / expeOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut))}">${Util.formatNumber(expeOccurences)}</u>) ${withWithout} naves`));
             for (const [key, value] of Object.entries(cumulExpe))
             {
                 if(this.mainResources.includes(key))
@@ -12321,19 +12321,19 @@ class EmpireManager
             }
 
             let raidArea = firstCol.appendChild(Util.createDom('div'));
-            raidArea.appendChild(Util.createDom('h3', {}, `Raid (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut) / raidOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut))}">${Util.formatNumber(raidOccurences)}</u>)`));
+            raidArea.appendChild(Util.createDom('h3', {}, `Combates (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut) / raidOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut))}">${Util.formatNumber(raidOccurences)}</u>)`));
             for (const [key, value] of Object.entries(cumulRaid))
             {
                 raidArea.appendChild(Util.createDom('div', {'class':'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
             }
 
-            raidArea.appendChild(Util.createDom('h3', {}, 'ø / day'));
+            raidArea.appendChild(Util.createDom('h3', {}, 'ø / dia'));
             for (const [key, value] of Object.entries(cumul))
             {
                 if(this.mainResources.includes(key)) raidArea.appendChild(Util.createDom('div', {'class':'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(Math.round(value/rangeDate))}</div>`));
             }
 
-            raidArea.appendChild(Util.createDom('h3', {}, 'ø + prod  / day'));
+            raidArea.appendChild(Util.createDom('h3', {}, 'ø + prod  / dia'));
             for (const [key, value] of Object.entries(cumul))
             {
                 if(this.mainResources.includes(key))
@@ -15783,12 +15783,102 @@ class LangManager
     {
         this.ogl = ogl;
 
+        this.pt =
+            {
+                mission3: 'Transportar',
+                mission4: 'Transferir',
+                abbr202 : "CP",
+                ship202 : "Cargueiro Pequeno",
+                abbr203 : "CG",
+                ship203 : "Cargueiro Grand",
+                abbr219 : "EX",
+                ship219 : "Exploradora",
+                abbr210 : "SP",
+                ship210 : "Sonda de Espionagem",
+                planets : "planetas",
+                ships : "Naves",
+                items : "Items",
+                other : "Outros",
+                resources : "Recursos",
+                fight : "Combates",
+                noMoonError : "Erro, lua inexistente",
+                capacityPicker : "Recursos a enviar",
+                scExpe : "Expedição - Cargueiros Pequenos",
+                lcExpe : "Expedição - Cargueiros Grandes",
+                pfExpe : "Expedição - Exploradoras",
+                allShipsRes : "Seleccionar todas as naves (pagina 1) <br>ou todos os recursos (pagina 2)",
+                splitShipsRes : "Dividir todas as naves (pagina 1) <br>ou todos os recursos (pagina 2)",
+                prevFleet : "Repetir frota anterior",
+                required : "req.",
+                reverseAllShipsRes : "Inverter todas as naves seleccionadas (pagina 1) <br>ou todos os recursos (pagina 2)",
+                nextPlanet : "Ir para o próximo planeta",
+                prevPlanet : "Ir para o planeta anterior",
+                gain : "Gain",
+                timeLimits : "Dia;Semana;Mês;Tudo",
+                spyPosition : "Espiar esta posição",
+                flagTarget : "Definir próximo alvo",
+                attackCurrentTarget : "Atacar próximo alvo",
+                noTargetSelected : "Nenhum alvo selecionado",
+                timerInfo : "Última Actualização",
+                blackhole : "Buraco Negro",
+                signalBlackhole : "Sinalizar um Buraco Negro",
+                moreStats : "Mais estatísticas",
+                eraseData : "Apagar Dados",
+                defaultView : "Ver Default",
+                economyView : "Ver Economia",
+                productionView : "Ver Produção",
+                pinnedView : "Alvo afixado",
+                targetView : "Lista de Alvos",
+                oglConfig : "Configurações OgLight",
+                defaultShip : "Nave Default",
+                defaultMission : "Missão Default",
+                autoCollect : "Recolher recursos",
+                minifyPictures : "Minimizar imagens grandes",
+                displayTimers : "Mostrar temporizadores de actualização",
+                rentaStats : "Mostrar Estatísticas",
+                excludeConso : "Excluir consumo de deutério das estatísticas",
+                spiesTable : "Mostrar tabela de espionagem",
+                autoClean : "Auto-Limpar tabela de espionagem",
+                cleanReport : "Limpar relatórios de espionagem",
+                inFlight : "Em voo",
+                linkedMoons : "Luas ligadas",
+                linkedPlanets : "Planetas Ligados",
+                kofi : "Estás a gostar do OgLight ? Buy me a ko-fi :)",
+                wrongTarget : "Atenção, o planeta alvo mudou e irá ser removido da lista !",
+                deleteSpyDef : "Apagar espionagem contra os meu planetas",
+                rentaPerDay : "Mean ($daysd)",
+                totalPerDay : "Mean+prod ($daysd)",
+                ignoreRaid : "Ignorar este ataque",
+                keepOnPlanet : "para manter no planeta",
+                switchNameCoords : "Trocar coords/nomes",
+                sendResources : "Enviar recursos",
+                sendMissingResources : "Deduzir recursos no planeta do total",
+                fleetDetailsName : "Mostrar nomes das naves nos detalhes da frota",
+                onPlanets : "Nos planetas",
+                reportFound : "Melhor Relatório",
+                topReportDetails : "Detalhes do Melhor Relatório",
+                playerProfile : "Perfil do Jogador",
+                rightMenuTooltips : "Esconder tooltips do menu direito",
+                bigShip : "Usar a melhor nave disponivel (expedições)",
+                targetListEnd : "Fim da lista de alvos",
+                ignoreVacation : "Esconder jogadores em modo de férias (lista de alvos)",
+                tooltipDelay : "Atraso na Tooltip (ms)",
+                timezoneMode : "Usar modo Fuso Horário",
+                ignoreExpeShips : "Ignorar naves encontradas em expedições",
+            }
+
         this.en =
             {
+                mission3: 'Transport',
+                mission4: 'Transfer',
                 abbr202 : "SC",
+                ship202 : "Small Cargo",
                 abbr203 : "LC",
+                ship203 : "Large Cargo",
                 abbr219 : "PF",
+                ship219 : "Pathfinder",
                 abbr210 : "SP",
+                ship210 : "Spy Probe",
                 planets : "planets",
                 ships : "Ships",
                 items : "Items",
@@ -15863,10 +15953,16 @@ class LangManager
 
         this.fr =
             {
+                mission3: 'Transport',
+                mission4: 'Transfer',
                 abbr202 : "PT",
+                ship202 : "Small Cargo",
                 abbr203 : "GT",
+                ship203 : "Large Cargo",
                 abbr219 : "EC",
+                ship219 : "Pathfinder",
                 abbr210 : "SP",
+                ship210 : "Spy Probe",
                 planets : "planètes",
                 ships : "Vaisseaux",
                 other : "Autre",
@@ -15938,10 +16034,16 @@ class LangManager
 
         this.gr =
             {
+                mission3: 'Transport',
+                mission4: 'Transfer',
                 abbr202 : "μΜ",
+                ship202 : "Small Cargo",
                 abbr203 : "ΜΜ",
+                ship203 : "Large Cargo",
                 abbr219 : "PF",
+                ship219 : "Pathfinder",
                 abbr210 : "ΚΣ",
+                ship210 : "Spy Probe",
                 planets : "Πλανήτες",
                 ships : "Πλοία",
                 items : "Αντικέιμενα",
