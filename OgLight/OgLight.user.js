@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OgLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.3
+// @version      4.2.5.4
 // @description  OgLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7916,7 +7916,7 @@ class OGLight
         {
             leftMenu.querySelector('.menubutton').classList.add('ogl_active');
             leftMenu.querySelector('.menubutton').setAttribute('data-title', 'A new version is available !');
-            leftMenu.querySelector('.menubutton').setAttribute('href', 'https://openuserjs.org/scripts/nullNaN/OGLight');
+            leftMenu.querySelector('.menubutton').setAttribute('href', 'https://github.com/igoptx/ogameTools');
         }
 
         let isOldVersion = this.version.replace(/\D/g, "") != this.db.newVersion && this.version.indexOf('b') == -1;
@@ -7932,7 +7932,7 @@ class OGLight
             GM_xmlhttpRequest(
                 {
                     method:'GET',
-                    url:'https://openuserjs.org/meta/nullNaN/OGLight.meta.js/',
+                    url:'https://github.com/igoptx/ogameTools/raw/main/OgLight/OgLight.meta.js',
                     onload:result =>
                     {
                         let updateAvailable = (result.responseText.replace(/\D/g, "") != this.version.replace(/\D/g, "") && this.version.indexOf('b') == -1) ? true : false;
