@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OgLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.6
+// @version      4.2.5.7
 // @description  OgLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7841,8 +7841,6 @@ class OGLight {
             leftMenu.querySelector('.menubutton').setAttribute('href', 'https://github.com/igoptx/ogameTools');
         }
 
-        let isOldVersion = this.version.replace(/\D/g, "") != this.db.newVersion && this.version.indexOf('b') == -1;
-
         let target = document.querySelector('#siteFooter .fright');
         target.appendChild(Util.createDom('span', {}, '| '));
         target.appendChild(Util.createDom('a', {
@@ -7850,7 +7848,7 @@ class OGLight {
             'href': 'https://board.fr.ogame.gameforge.com/index.php?thread/740025-paye-ton-re-ptre-intégration-oglight/'
         }, this.ptre ? 'PTRE <span class="ogl_ok material-icons">done</span>' : 'PTRE <span class="ogl_danger material-icons">clear</span>'));
 
-        if (typeof GM_xmlhttpRequest !== 'undefined' && serverTime.getTime() > this.db.lastVersionCheck + 3600000 && !isOldVersion) {
+        if (typeof GM_xmlhttpRequest !== 'undefined' && serverTime.getTime() > this.db.lastVersionCheck + 3600000) {
             this.db.lastVersionCheck = serverTime.getTime();
 
             GM_xmlhttpRequest(
@@ -7866,7 +7864,7 @@ class OGLight {
                         }
                     }
                 });
-        } else if (isOldVersion && this.db.newVersion != 0) updateButton();
+        }
 
         this.checkOGLID();
     }
