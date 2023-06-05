@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OgLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.2
+// @version      4.2.5.3
 // @description  OgLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -9936,6 +9936,11 @@ class TooltipManager
                         line.querySelector('td').className = 'ogl_shipIcon ogl_'+id;
 
                         line.title = line.querySelector('.value').textContent;
+
+                        if (id > 0) {
+                            line.title = line.title + ' '+ this.ogl.component.lang.getText('ship'+id);
+                        }
+
                         line.querySelector('.value').textContent = Util.formatToUnits(line.querySelector('.value').textContent);
 
                         if(this.ogl.db.options.togglesOff.indexOf('fleetDetailsName') == -1)
@@ -12387,7 +12392,7 @@ class EmpireManager
             [202,203,204,205,206,207,208,209,210,211,213,214,215,218,219].forEach(shipID =>
             {
                 let content = container.appendChild(Util.createDom('div'));
-                content.appendChild(Util.createDom('div', {'class':'ogl_shipIcon ogl_'+shipID}));
+                content.appendChild(Util.createDom('div', {'class':'ogl_shipIcon ogl_'+shipID+' tooltipUp', 'data-title': this.ogl.component.lang.getText('ship'+shipID)}));
                 content.appendChild(Util.createDom('input', {'type':'text', 'class':'ogl_checkInput', 'data-ship':shipID}));
             });
 
@@ -14130,7 +14135,7 @@ class MessageManager
             let shipList = [202,203,219,210];
 
             expanded.appendChild(Util.createDom('ul'));
-            shipList.forEach(ship => expanded.appendChild(Util.createDom('ul', {'data-ship':ship}, `<div class="ogl_shipIcon ogl_${ship}"></div>`)));
+            shipList.forEach(ship => expanded.appendChild(Util.createDom('ul', {'data-ship':ship}, `<div class="ogl_shipIcon ogl_${ship} tooltipUp" data-title="${this.ogl.component.lang.getText('ship'+ship)}"></div>`)));
 
             for(let i=0; i<6; i++)
             {
@@ -15789,14 +15794,40 @@ class LangManager
             {
                 mission3: 'Transportar',
                 mission4: 'Transferir',
-                abbr202 : "CP",
                 ship202 : "Cargueiro Pequeno",
+                abbr202 : "CP",
+                ship203 : "Cargueiro Grande",
                 abbr203 : "CG",
-                ship203 : "Cargueiro Grand",
-                abbr219 : "EX",
-                ship219 : "Exploradora",
-                abbr210 : "SP",
+                ship204 : "Caça Ligeiro",
+                abbr204 : "CL",
+                ship205 : "Caça Pesado",
+                abbr205 : "CP",
+                ship206 : "Cruzador",
+                abbr206 : "Crz",
+                ship207 : "Nave de Batalha",
+                abbr207 : "NB",
+                ship208 : "Nave de Colonização",
+                abbr208 : "NC",
+                ship209 : "Reciclador",
+                abbr209 : "Rec",
                 ship210 : "Sonda de Espionagem",
+                abbr210 : "SP",
+                ship211 : "Bombardeiro",
+                abbr211 : "Bomb",
+                ship212 : "Satélite Solar",
+                abbr212 : "SS",
+                ship213 : "Destruidor",
+                abbr213 : "Dest",
+                ship214 : "Estrela da Morte",
+                abbr214 : "EdM",
+                ship215 : "Interceptor",
+                abbr215 : "Int",
+                ship217 : "Rastejador",
+                abbr217 : "Rast",
+                ship218 : "Ceifeira",
+                abbr218 : "Ceif",
+                ship219 : "Exploradora",
+                abbr219 : "EX",
                 planets : "planetas",
                 ships : "Naves",
                 items : "Items",
@@ -15873,14 +15904,40 @@ class LangManager
             {
                 mission3: 'Transport',
                 mission4: 'Transfer',
-                abbr202 : "SC",
                 ship202 : "Small Cargo",
-                abbr203 : "LC",
+                abbr202 : "SC",
                 ship203 : "Large Cargo",
-                abbr219 : "PF",
-                ship219 : "Pathfinder",
+                abbr203 : "LC",
+                ship204 : "Light Figther",
+                abbr204 : "LF",
+                ship205 : "Heavy Fighter",
+                abbr205 : "HF",
+                ship206 : "Cruiser",
+                abbr206 : "Crs",
+                ship207 : "Battleship",
+                abbr207 : "BS",
+                ship208 : "Colonization Ship",
+                abbr208 : "CS",
+                ship209 : "Recycler",
+                abbr209 : "Rec",
+                ship210 : "Spy Prob",
                 abbr210 : "SP",
-                ship210 : "Spy Probe",
+                ship211 : "Bomber",
+                abbr211 : "Bomb",
+                ship212 : "Solar Satelite",
+                abbr212 : "SS",
+                ship213 : "Destroyer",
+                abbr213 : "Dest",
+                ship214 : "Death Star",
+                abbr214 : "DS",
+                ship215 : "Interceptor",
+                abbr215 : "Int",
+                ship217 : "Crawler",
+                abbr217 : "Craw",
+                ship218 : "Riper",
+                abbr218 : "Riper",
+                ship219 : "Pathfinder",
+                abbr219 : "PF",
                 planets : "planets",
                 ships : "Ships",
                 items : "Items",
@@ -15957,14 +16014,40 @@ class LangManager
             {
                 mission3: 'Transport',
                 mission4: 'Transfer',
-                abbr202 : "PT",
                 ship202 : "Small Cargo",
-                abbr203 : "GT",
+                abbr202 : "SC",
                 ship203 : "Large Cargo",
-                abbr219 : "EC",
-                ship219 : "Pathfinder",
+                abbr203 : "LC",
+                ship204 : "Light Figther",
+                abbr204 : "LF",
+                ship205 : "Heavy Fighter",
+                abbr205 : "HF",
+                ship206 : "Cruiser",
+                abbr206 : "Crs",
+                ship207 : "Battleship",
+                abbr207 : "BS",
+                ship208 : "Colonization Ship",
+                abbr208 : "CS",
+                ship209 : "Recycler",
+                abbr209 : "Rec",
+                ship210 : "Spy Prob",
                 abbr210 : "SP",
-                ship210 : "Spy Probe",
+                ship211 : "Bomber",
+                abbr211 : "Bomb",
+                ship212 : "Solar Satelite",
+                abbr212 : "SS",
+                ship213 : "Destroyer",
+                abbr213 : "Dest",
+                ship214 : "Death Star",
+                abbr214 : "DS",
+                ship215 : "Interceptor",
+                abbr215 : "Int",
+                ship217 : "Crawler",
+                abbr217 : "Craw",
+                ship218 : "Riper",
+                abbr218 : "Riper",
+                ship219 : "Pathfinder",
+                abbr219 : "PF",
                 planets : "planètes",
                 ships : "Vaisseaux",
                 other : "Autre",
@@ -16038,14 +16121,40 @@ class LangManager
             {
                 mission3: 'Transport',
                 mission4: 'Transfer',
-                abbr202 : "μΜ",
                 ship202 : "Small Cargo",
-                abbr203 : "ΜΜ",
+                abbr202 : "SC",
                 ship203 : "Large Cargo",
-                abbr219 : "PF",
+                abbr203 : "LC",
+                ship204 : "Light Figther",
+                abbr204 : "LF",
+                ship205 : "Heavy Fighter",
+                abbr205 : "HF",
+                ship206 : "Cruiser",
+                abbr206 : "Crs",
+                ship207 : "Battleship",
+                abbr207 : "BS",
+                ship208 : "Colonization Ship",
+                abbr208 : "CS",
+                ship209 : "Recycler",
+                abbr209 : "Rec",
+                ship210 : "Spy Prob",
+                abbr210 : "SP",
+                ship211 : "Bomber",
+                abbr211 : "Bomb",
+                ship212 : "Solar Satelite",
+                abbr212 : "SS",
+                ship213 : "Destroyer",
+                abbr213 : "Dest",
+                ship214 : "Death Star",
+                abbr214 : "DS",
+                ship215 : "Interceptor",
+                abbr215 : "Int",
+                ship217 : "Crawler",
+                abbr217 : "Craw",
+                ship218 : "Riper",
+                abbr218 : "Riper",
                 ship219 : "Pathfinder",
-                abbr210 : "ΚΣ",
-                ship210 : "Spy Probe",
+                abbr219 : "PF",
                 planets : "Πλανήτες",
                 ships : "Πλοία",
                 items : "Αντικέιμενα",
