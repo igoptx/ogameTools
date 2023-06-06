@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OgLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.7
+// @version      4.2.5.8
 // @description  OgLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -11724,7 +11724,7 @@ class EmpireManager {
 
             for (const [key, value] of Object.entries(cumulExpe)) {
                 if (!this.mainResources.includes(key)) {
-                    let entry = shipsArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
+                    let entry = shipsArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key} tooltipUp" data-title="${this.ogl.component.lang.getText('ship' + key)}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
                     if (value < 0) entry.classList.add('ogl_danger');
                 }
             }
