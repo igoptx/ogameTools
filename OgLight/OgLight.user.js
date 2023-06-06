@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OgLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.8
+// @version      4.2.5.9
 // @description  OgLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7848,7 +7848,9 @@ class OGLight {
             'href': 'https://board.fr.ogame.gameforge.com/index.php?thread/740025-paye-ton-re-ptre-intégration-oglight/'
         }, this.ptre ? 'PTRE <span class="ogl_ok material-icons">done</span>' : 'PTRE <span class="ogl_danger material-icons">clear</span>'));
 
-        if (typeof GM_xmlhttpRequest !== 'undefined' && serverTime.getTime() > this.db.lastVersionCheck + 3600000) {
+        let isOldVersion = this.version.replace(/\D/g, "") != this.db.newVersion && this.version.indexOf('b') == -1;
+
+        if (typeof GM_xmlhttpRequest !== 'undefined' && (serverTime.getTime() > this.db.lastVersionCheck + 3600000 || isOldVersion)) {
             this.db.lastVersionCheck = serverTime.getTime();
 
             GM_xmlhttpRequest(
