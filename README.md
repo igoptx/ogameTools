@@ -3,12 +3,12 @@ The Compendium of Ogame Tools
 
 
 
-## OgLight
+## OGLight
 Version: 4.2.5.9
 
 Last Update: 2023/06/06 11:37:00
 
-[Install](https://github.com/igoptx/ogameTools/raw/main/OgLight/OgLight.user.js)
+[Install](https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.user.js)
 
 
 

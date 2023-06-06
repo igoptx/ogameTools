@@ -1,14 +1,14 @@
 // ==UserScript==
-// @name         OgLight
+// @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.9
-// @description  OgLight script for OGame
+// @version      4.2.5.10
+// @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
 // @copyright    2023, Igo
 // @match        https://*.ogame.gameforge.com/game/*
-// @updateURL    https://github.com/igoptx/ogameTools/raw/main/OgLight/OgLight.meta.js
-// @downloadURL  https://github.com/igoptx/ogameTools/raw/main/OgLight/OgLight.user.js
+// @updateURL    https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js
+// @downloadURL  https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.user.js
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -7856,7 +7856,7 @@ class OGLight {
             GM_xmlhttpRequest(
                 {
                     method: 'GET',
-                    url: 'https://github.com/igoptx/ogameTools/raw/main/OgLight/OgLight.meta.js',
+                    url: 'https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js',
                     onload: result => {
                         let updateAvailable = (result.responseText.replace(/\D/g, "") != this.version.replace(/\D/g, "") && this.version.indexOf('b') == -1) ? true : false;
 
@@ -8871,11 +8871,11 @@ class MenuManager {
             sideContainer.appendChild(Util.createDom('p', {}, this.ogl.component.lang.getText('kofi')));
             sideContainer.appendChild(Util.createDom('div', {}, "<a class='ogl_kofi' href='https://ko-fi.com/rodrigocorreia' target='_blank'>Buy me a coffee</a>"));
 
-            let rval = container.appendChild(Util.createDom('div', {}, '<span>Resources Value (RVal)</span>'));
+            let rval = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText("resourcesValue")}</span>`));
             let rvalInput = rval.appendChild(Util.createDom('input', {'type': 'text', 'class': 'ogl_input'}));
             rvalInput.value = this.ogl.db.options.rval;
 
-            let ptre = container.appendChild(Util.createDom('div', {}, '<span><a href="https://ptre.chez.gg/" target="_blank">PTRE</a> Teamkey</span>'));
+            let ptre = container.appendChild(Util.createDom('div', {}, `<span><a href="https://ptre.chez.gg/" target="_blank">${this.ogl.component.lang.getText("ptre")}</a> - ${this.ogl.component.lang.getText("teamKey")}</span>`));
             let ptreInput = ptre.appendChild(Util.createDom('input', {'type': 'password', 'placeholder': 'TM-XXXX-XXXX-XXXX-XXXX'}));
             if (this.ogl.ptre) ptreInput.value = this.ogl.ptre;
 
@@ -8885,7 +8885,7 @@ class MenuManager {
             this.ogl.component.popup.open(globalContainer);
             setTimeout(() => rvalInput.dispatchEvent(new Event('change')), 500);
 
-            container.appendChild(Util.createDom('h2', {}, 'Interface'));
+            container.appendChild(Util.createDom('h2', {}, `${this.ogl.component.lang.getText('interface')}`));
 
             let minifyPictures = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('minifyPictures')}</span>`));
             let minifyToggle = minifyPictures.appendChild(Util.createDom('div', {'class': 'ogl_confToggle'}));
@@ -8917,7 +8917,7 @@ class MenuManager {
             let tooltipDelayInput = tooltipDelay.appendChild(Util.createDom('input', {'type': 'number', 'min': '0', 'max': '2000'}));
             tooltipDelayInput.value = this.ogl.db.options.tooltipDelay;
 
-            container.appendChild(Util.createDom('h2', {}, 'Attacks & stats'));
+            container.appendChild(Util.createDom('h2', {}, `${this.ogl.component.lang.getText('attacksAndStats')}`));
 
             let stats = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('rentaStats')}</span>`));
             stats.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'renta'}));
@@ -8940,32 +8940,32 @@ class MenuManager {
             let ignoreVacation = container.appendChild(Util.createDom('div', {}, `<span>${this.ogl.component.lang.getText('ignoreVacation')}</span>`));
             ignoreVacation.appendChild(Util.createDom('div', {'class': 'ogl_confToggle ogl_active', 'data-conf': 'ignoreVacation'}));
 
-            container.appendChild(Util.createDom('h2', {}, 'Data'));
+            container.appendChild(Util.createDom('h2', {}, `${this.ogl.component.lang.getText('data')}`));
 
             let data;
 
             let dataDiv = container.appendChild(Util.createDom('div', {'class': 'ogl_manageData'}));
 
-            let resetButton = dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button tooltip', 'title': 'Reset all your data'}, 'RESET ALL'));
+            let resetButton = dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button tooltip', 'title': 'Reset all your data'}, `${this.ogl.component.lang.getText('resetAll')}`));
             resetButton.addEventListener('click', () => {
-                if (confirm('Do you really want to reset your data ?')) {
+                if (confirm(`${this.ogl.component.lang.getText('resetAllQuestion')}`)) {
                     this.ogl.save({});
                     document.location.reload();
                 }
             });
 
-            dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button tooltip', 'data-title': 'Reset only your stats'}, 'RESET STATS'))
+            dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button tooltip', 'data-title': 'Reset only your stats'}, `${this.ogl.component.lang.getText('resetStats')}`))
                 .addEventListener('click', () => {
-                    if (confirm('Do you really want to reset your stats ?')) {
+                    if (confirm(`${this.ogl.component.lang.getText('resetStatsQuestion')}`)) {
                         this.ogl.db.stats = {};
                         this.ogl.save();
                         document.location.reload();
                     }
                 });
 
-            dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button tooltip', 'title': 'Reset only your targets'}, 'RESET TARGETS'))
+            dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button tooltip', 'title': 'Reset only your targets'}, `${this.ogl.component.lang.getText('resetTargets')}`))
                 .addEventListener('click', () => {
-                    if (confirm('Do you really want to reset your targets list ?')) {
+                    if (confirm(`${this.ogl.component.lang.getText('resetTargetsQuestion')}`)) {
                         this.ogl.db.players = [];
                         this.ogl.db.positions = [];
                         this.ogl.db.pinnedList = [];
@@ -8975,7 +8975,7 @@ class MenuManager {
                     }
                 });
 
-            dataDiv.appendChild(Util.createDom('label', {'class': 'ogl_button tooltip', 'for': 'ogl_import', 'title': 'Import data'}, 'IMPORT'));
+            dataDiv.appendChild(Util.createDom('label', {'class': 'ogl_button tooltip', 'for': 'ogl_import', 'title': 'Import data'}, `${this.ogl.component.lang.getText('import')}`));
             let importButton = dataDiv.appendChild(Util.createDom('input', {'id': 'ogl_import', 'class': 'ogl_hidden', 'type': 'file'}));
             importButton.addEventListener('change', () => {
                 let file = importButton.files[0];
@@ -8994,7 +8994,7 @@ class MenuManager {
                     if (parsed.dataFormat >= 4) {
                         this.ogl.save(parsed);
                         document.location.reload();
-                    } else alert(`Wrong data format`);
+                    } else alert(`${this.ogl.component.lang.getText('wrongDataFormat')}`);
                 };
                 reader.readAsText(file);
             });
@@ -9002,10 +9002,10 @@ class MenuManager {
             let exportButton = dataDiv.appendChild(Util.createDom('a', {
                 'class': 'ogl_button',
                 'download': `ogl_${this.ogl.universe.name}_${this.ogl.universe.lang}_${serverTime.getTime()}`
-            }, 'EXPORT'));
+            }, `${this.ogl.component.lang.getText('export')}`));
             exportButton.href = URL.createObjectURL(new Blob([JSON.stringify(this.ogl.db)], {type: 'application/json'}));
 
-            let saveButton = dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button'}, 'SAVE'));
+            let saveButton = dataDiv.appendChild(Util.createDom('a', {'class': 'ogl_button'}, `${this.ogl.component.lang.getText('save')}`));
             saveButton.addEventListener('click', () => {
                 this.ogl.db.options.rval = Util.formatFromUnits(rvalInput.value || '0');
                 this.ogl.db.options.tooltipDelay = parseInt(tooltipDelayInput.value || '0');
@@ -17532,7 +17532,7 @@ class LangManager {
                 productionView: "Ver Produção",
                 pinnedView: "Alvo afixado",
                 targetView: "Lista de Alvos",
-                oglConfig: "Configurações OgLight",
+                oglConfig: "Configurações OGLight",
                 defaultShip: "Nave Default",
                 defaultMission: "Missão Default",
                 autoCollect: "Recolher recursos",
@@ -17546,7 +17546,7 @@ class LangManager {
                 inFlight: "Em voo",
                 linkedMoons: "Luas ligadas",
                 linkedPlanets: "Planetas Ligados",
-                kofi: "Estás a gostar do OgLight ? Buy me a ko-fi :)",
+                kofi: "Estás a gostar do OGLight ? Buy me a ko-fi :)",
                 wrongTarget: "Atenção, o planeta alvo mudou e irá ser removido da lista !",
                 deleteSpyDef: "Apagar espionagem contra os meu planetas",
                 rentaPerDay: "Mean ($daysd)",
@@ -17568,6 +17568,22 @@ class LangManager {
                 tooltipDelay: "Atraso na Tooltip (ms)",
                 timezoneMode: "Usar modo Fuso Horário",
                 ignoreExpeShips: "Ignorar naves encontradas em expedições",
+                resourcesValue: "Valor dos Recursos (Rval)",
+                ptre: "PTRE",
+                teamKey: "Chave de Equipa",
+                interface: "Interface",
+                attacksAndStats: "Ataques e Estatísticas",
+                data: "Dados",
+                resetAll: "Apagar Tudo",
+                resetAllQuestion: "Queres mesmo apagar todos os teus dados?",
+                resetStats: "Apagar Estatísticas",
+                resetStatsQuestion: "Queres mesmo apagar as tuas estatísticas?",
+                resetTargets: "Apagar Alvos",
+                resetTargetsQuestion: "Queres mesmo apagar os teus alvos?",
+                import: "Importar",
+                wrongDataFormat: "Estrutura de dados incorrecta",
+                export: "Exportar",
+                save: "Guardar",
             }
 
         this.en =
@@ -17678,6 +17694,22 @@ class LangManager {
                 tooltipDelay: "Tooltip delay (ms)",
                 timezoneMode: "Use timezone mode",
                 ignoreExpeShips: "Ignore ships found in expeditions",
+                resourcesValue: "Resources Value (Rval)",
+                ptre: "PTRE",
+                teamKey: "Team Key",
+                interface: "Interface",
+                attacksAndStats: "Attacks & Stats",
+                data: "Data",
+                resetAll: "Reset All",
+                resetAllQuestion: "Do you want to reset all data?",
+                resetStats: "Reset Stats",
+                resetStatsQuestion: "Do you want to reset your stats?",
+                resetTargets: "Reset Targets",
+                resetTargetsQuestion: "Do you want to reset your targets",
+                import: "Import",
+                wrongDataFormat: "Wrong data format",
+                export: "Export",
+                save: "Save",
             }
 
         this.fr =
@@ -17785,6 +17817,22 @@ class LangManager {
                 tooltipDelay: "Délai d'ouverture des tooltips (ms)",
                 timezoneMode: "Utiliser le mode décalage horaire",
                 ignoreExpeShips: "Ignorer les vaisseaux trouvés lors des expéditions",
+                resourcesValue: "Resources Value (Rval)",
+                ptre: "PTRE",
+                teamKey: "Team Key",
+                interface: "Interface",
+                attacksAndStats: "Attacks & Stats",
+                data: "Data",
+                resetAll: "Reset All",
+                resetAllQuestion: "Do you want to reset all data?",
+                resetStats: "Reset Stats",
+                resetStatsQuestion: "Do you want to reset your stats?",
+                resetTargets: "Reset Targets",
+                resetTargetsQuestion: "Do you want to reset your targets",
+                import: "Import",
+                wrongDataFormat: "Wrong data format",
+                export: "Export",
+                save: "Save",
             }
 
         this.gr =
@@ -17880,6 +17928,22 @@ class LangManager {
                 switchNameCoords: "Εναλλαγή συντεταγμένων / ονομάτων",
                 sendResources: "Αποστολή πόρων",
                 sendMissingResources: "Αφαιρέστε τους πόρους στον πλανήτη από το σύνολο",
+                resourcesValue: "Resources Value (Rval)",
+                ptre: "PTRE",
+                teamKey: "Team Key",
+                interface: "Interface",
+                attacksAndStats: "Attacks & Stats",
+                data: "Data",
+                resetAll: "Reset All",
+                resetAllQuestion: "Do you want to reset all data?",
+                resetStats: "Reset Stats",
+                resetStatsQuestion: "Do you want to reset your stats?",
+                resetTargets: "Reset Targets",
+                resetTargetsQuestion: "Do you want to reset your targets",
+                import: "Import",
+                wrongDataFormat: "Wrong data format",
+                export: "Export",
+                save: "Save",
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
