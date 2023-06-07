@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.12
+// @version      4.2.5.13
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -16081,7 +16081,7 @@ class MessageManager {
             apiKey = apiKey.querySelector('input').value;
 
             if (report.api && report.coords[2] <= 15) {
-                let simButton = actions.appendChild(Util.createDom('div', {'class': 'tooltip', 'title': 'trashsim'}, 'S'));
+                let simButton = actions.appendChild(Util.createDom('div', {'class': 'tooltip', 'title': this.ogl.component.lang.getText('trashsim')}, 'S'));
                 simButton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
 
                 if (this.ogl.ptre) {
@@ -17600,6 +17600,7 @@ class LangManager {
                 all: 'Tudo',
                 version1: 'Nova Versão',
                 version2: 'Disponível!',
+                trashsim: 'TrashSim',
             }
 
         this.en =
@@ -17739,6 +17740,7 @@ class LangManager {
                 all: 'All',
                 version1: 'New Version',
                 version2: 'Available!',
+                trashsim: 'TrashSim',
             }
 
         this.fr =
@@ -17875,6 +17877,7 @@ class LangManager {
                 all: 'All',
                 version1: 'New Version',
                 version2: 'Available!',
+                trashsim: 'TrashSim',
             }
 
         this.gr =
@@ -17999,6 +18002,7 @@ class LangManager {
                 all: 'All',
                 version1: 'New Version',
                 version2: 'Available!',
+                trashsim: 'TrashSim',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
