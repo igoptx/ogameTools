@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
-// @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.13
+// @namespace    https://github.com/igoptx/ogameTools/OGLight
+// @version      4.2.5.14
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7816,7 +7816,7 @@ class OGLight {
             <span class="menu_icon ogl_leftMenuIcon">
                 <a class="tooltipRight" data-title="Buy me a coffee <3" href="https://ko-fi.com/rodrigocorreia" target="_blank"><i class="material-icons">local_cafe</i></a>
             </span>
-            <a class="menubutton tooltipRight" href="https://board.fr.ogame.gameforge.com/index.php?thread/722955-oglight/" target="_blank">
+            <a class="menubutton tooltipRight" href="https://github.com/igoptx/ogameTools/tree/main/OGLight" target="_blank">
                 <span class="textlabel">OGLight ${this.version}</span>
             </a>
         `));
@@ -7838,7 +7838,7 @@ class OGLight {
         let updateButton = (newVersion) => {
             leftMenu.querySelector('.menubutton').classList.add('ogl_active');
             leftMenu.querySelector('.menubutton').setAttribute('data-title', this.component.lang.getText('version1') + ' ' + newVersion + ' ' + this.component.lang.getText('version2'));
-            leftMenu.querySelector('.menubutton').setAttribute('href', 'https://github.com/igoptx/ogameTools');
+            leftMenu.querySelector('.menubutton').setAttribute('href', 'https://github.com/igoptx/ogameTools/tree/main/OGLight');
         }
 
         let target = document.querySelector('#siteFooter .fright');
@@ -11735,7 +11735,7 @@ class EmpireManager {
             }
 
             let withWithout = this.ogl.db.options.togglesOff.indexOf('ignoreExpeShips') == -1 ? 's/' : 'c/';
-            expeArea.appendChild(Util.createDom('h3', {}, `Expedições (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut) / expeOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut))}">${Util.formatNumber(expeOccurences)}</u>) ${withWithout} naves`));
+            expeArea.appendChild(Util.createDom('h3', {}, `${this.ogl.component.lang.getText('expedition')} (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut) / expeOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut))}">${Util.formatNumber(expeOccurences)}</u>) ${withWithout} naves`));
             for (const [key, value] of Object.entries(cumulExpe)) {
                 if (this.mainResources.includes(key)) {
                     let entry = expeArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
@@ -11744,17 +11744,17 @@ class EmpireManager {
             }
 
             let raidArea = firstCol.appendChild(Util.createDom('div'));
-            raidArea.appendChild(Util.createDom('h3', {}, `Combates (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut) / raidOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut))}">${Util.formatNumber(raidOccurences)}</u>)`));
+            raidArea.appendChild(Util.createDom('h3', {}, `${this.ogl.component.lang.getText('fight')} (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut) / raidOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut))}">${Util.formatNumber(raidOccurences)}</u>)`));
             for (const [key, value] of Object.entries(cumulRaid)) {
                 raidArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
             }
 
-            raidArea.appendChild(Util.createDom('h3', {}, 'ø / dia'));
+            raidArea.appendChild(Util.createDom('h3', {}, `ø / ${this.ogl.component.lang.getText('day')}`));
             for (const [key, value] of Object.entries(cumul)) {
                 if (this.mainResources.includes(key)) raidArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(Math.round(value / rangeDate))}</div>`));
             }
 
-            raidArea.appendChild(Util.createDom('h3', {}, 'ø + prod  / dia'));
+            raidArea.appendChild(Util.createDom('h3', {}, `ø + prod  / ${this.ogl.component.lang.getText('day')}`));
             for (const [key, value] of Object.entries(cumul)) {
                 if (this.mainResources.includes(key)) {
                     let resIndex = key == 'metal' ? '0' : key == 'crystal' ? '1' : '2';
@@ -17601,6 +17601,8 @@ class LangManager {
                 version1: 'Nova Versão',
                 version2: 'Disponível!',
                 trashsim: 'TrashSim',
+                day: 'dia',
+                expedition: 'Expedição'
             }
 
         this.en =
@@ -17646,7 +17648,7 @@ class LangManager {
                 items: "Items",
                 other: "Other",
                 resources: "Resources",
-                fight: "Fight",
+                fight: "Raids",
                 noMoonError: "Error, there is no moon here",
                 capacityPicker: "Resources to send",
                 scExpe: "Small cargo expedition",
@@ -17741,6 +17743,8 @@ class LangManager {
                 version1: 'New Version',
                 version2: 'Available!',
                 trashsim: 'TrashSim',
+                day: 'day',
+                expedition: 'Expedition'
             }
 
         this.fr =
@@ -17785,7 +17789,7 @@ class LangManager {
                 ships: "Vaisseaux",
                 other: "Autre",
                 resources: "Ressources",
-                fight: "Combat",
+                fight: "Raids",
                 noMoonError: "Erreur, il n'y a pas de lune ici",
                 capacityPicker: "Ressources à envoyer",
                 scExpe: "Expedition au PT",
@@ -17878,6 +17882,8 @@ class LangManager {
                 version1: 'New Version',
                 version2: 'Available!',
                 trashsim: 'TrashSim',
+                day: 'jour',
+                expedition: 'Expedition'
             }
 
         this.gr =
@@ -18003,6 +18009,8 @@ class LangManager {
                 version1: 'New Version',
                 version2: 'Available!',
                 trashsim: 'TrashSim',
+                day: 'day',
+                expedition: 'Expedition'
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
