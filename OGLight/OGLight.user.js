@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.10
+// @version      4.2.5.11
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -11635,7 +11635,7 @@ class EmpireManager {
 
             let filterDiv = dateArea.appendChild(Util.createDom('div'));
             [1, 7, 14, 30, 40000].forEach(filter => {
-                let button = filterDiv.appendChild(Util.createDom('div', {'class': ''}, filter.toString().replace(/^1$/, 'today').replace(/^7$/, '7d').replace(/^14$/, '14d').replace(/^30$/, '30d').replace('40000', 'all')));
+                let button = filterDiv.appendChild(Util.createDom('div', {'class': ''}, filter.toString().replace(/^1$/, this.ogl.component.lang.getText('today')).replace(/^7$/, '7d').replace(/^14$/, '14d').replace(/^30$/, '30d').replace('40000', this.ogl.component.lang.getText('all'))));
                 if (this.ogl.db.options.dateFilter == filter) button.classList.add('ogl_active');
                 button.addEventListener('click', () => {
                     this.ogl.db.options.dateFilter = filter;
@@ -11973,7 +11973,7 @@ class EmpireManager {
 
                 if (isReady) button.classList.add('ogl_ok');
 
-                button.title = 'Locked' + '<div class="splitLine"></div>';
+                button.title = `${this.ogl.component.lang.getText('locked')}` + '<div class="splitLine"></div>';
                 ['metal', 'crystal', 'deut'].forEach((res, index) => {
                     let resName = this.ogl.component.lang.getText(res);
                     button.title += `<div>${resName}:&nbsp;<span class="ogl_${res} float_right">${Util.formatToUnits(tooltipCumul[index])}</span></div>`;
@@ -12050,7 +12050,7 @@ class EmpireManager {
                         let headerContainer = e == 'planet' ? planetContainer : moonContainer;
                         let offset = e == 'planet' ? 0 : 3;
 
-                        headerContainer.appendChild(Util.createDom('span', {'class': 'ogl_header'}, 'Total ' + e));
+                        headerContainer.appendChild(Util.createDom('span', {'class': 'ogl_header'}, this.ogl.component.lang.getText('total') + ' ' + this.ogl.component.lang.getText(e)));
                         headerContainer.appendChild(Util.createDom('i', {'class': 'ogl_header'}, '&nbsp;'));
                         headerContainer.appendChild(Util.createDom('b', {'class': 'ogl_header ogl_metal'}, Util.formatToUnits(cumul[0 + offset])));
                         headerContainer.appendChild(Util.createDom('b', {'class': 'ogl_header ogl_crystal'}, Util.formatToUnits(cumul[1 + offset])));
@@ -16061,15 +16061,15 @@ class MessageManager {
 
             //actions
             let actions = content.appendChild(Util.createDom('td', {'class': 'ogl_reportOptions'}));
-            actions.appendChild(Util.createDom('div', {'class': 'material-icons tooltip', 'onclick': report.spy, 'title': 'spy this planet'}, 'visibility'));
+            actions.appendChild(Util.createDom('div', {'class': 'material-icons tooltip', 'onclick': report.spy, 'title': this.ogl.component.lang.getText('spy')}, 'visibility'));
 
-            let more = actions.appendChild(Util.createDom('div', {'class': 'material-icons tooltip ogl_expand', 'title': 'expand'}));
+            let more = actions.appendChild(Util.createDom('div', {'class': 'material-icons tooltip ogl_expand', 'title': this.ogl.component.lang.getText('expand')}));
             more.addEventListener('click', () => {
                 expanded.classList.toggle('ogl_active');
             });
 
             // attack
-            let attack = actions.appendChild(Util.createDom('a', {'class': 'material-icons tooltip', 'href': report.attack, 'title': 'attack this planet'}, 'adjust'));
+            let attack = actions.appendChild(Util.createDom('a', {'class': 'material-icons tooltip', 'href': report.attack, 'title': this.ogl.component.lang.getText('attack')}, 'adjust'));
 
             let apiKey = Util.createDom('div', {});
             apiKey.innerHTML = report.api.getAttribute('title') || report.api.getAttribute('data-title');
@@ -16082,12 +16082,12 @@ class MessageManager {
                 simButton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
 
                 if (this.ogl.ptre) {
-                    let ptreButton = actions.appendChild(Util.createDom('div', {'class': 'ogl_smallPTRE tooltip', 'title': 'import to PTRE'}, 'P'));
+                    let ptreButton = actions.appendChild(Util.createDom('div', {'class': 'ogl_smallPTRE tooltip', 'title': this.ogl.component.lang.getText('importToPtre')}, 'P'));
                     ptreButton.addEventListener('click', () => Util.importToPTRE(apiKey, this.ogl));
                 }
             }
 
-            let trash = actions.appendChild(Util.createDom('div', {'class': 'material-icons tooltip', 'title': 'delete'}, 'clear'));
+            let trash = actions.appendChild(Util.createDom('div', {'class': 'material-icons tooltip', 'title': this.ogl.component.lang.getText('delete')}, 'clear'));
             trash.addEventListener('click', () => {
                 if (this.trashQueue.indexOf(report.id) == -1) this.trashQueue.push(report.id);
                 if (this.trashQueue.length == 1 && !this.trashQueueProcessing) {
@@ -17584,6 +17584,17 @@ class LangManager {
                 wrongDataFormat: "Estrutura de dados incorrecta",
                 export: "Exportar",
                 save: "Guardar",
+                locked: "Bloqueado",
+                planet: "planeta",
+                moon: "lua",
+                total: "Total",
+                today: 'Hoje',
+                spy: 'Espiar',
+                attack: 'Atacar',
+                importToPtre: 'Importar para PTRE',
+                delete: 'Apagar',
+                expand: 'Expandir',
+                all: 'Tudo',
             }
 
         this.en =
@@ -17710,6 +17721,17 @@ class LangManager {
                 wrongDataFormat: "Wrong data format",
                 export: "Export",
                 save: "Save",
+                locked: "Locked",
+                planet: "planet",
+                moon: "moon",
+                total: "Total",
+                today: 'Today',
+                spy: 'Spy',
+                attack: 'Attack',
+                importToPtre: 'Import to PTRE',
+                delete: 'Delete',
+                expand: 'Expand',
+                all: 'All',
             }
 
         this.fr =
@@ -17833,6 +17855,17 @@ class LangManager {
                 wrongDataFormat: "Wrong data format",
                 export: "Export",
                 save: "Save",
+                locked: "Locked",
+                planet: "planet",
+                moon: "moon",
+                total: "Total",
+                today: 'Today',
+                spy: 'Spy',
+                attack: 'Attack',
+                importToPtre: 'Import to PTRE',
+                delete: 'Delete',
+                expand: 'Expand',
+                all: 'All',
             }
 
         this.gr =
@@ -17944,6 +17977,17 @@ class LangManager {
                 wrongDataFormat: "Wrong data format",
                 export: "Export",
                 save: "Save",
+                locked: "Locked",
+                planet: "planet",
+                moon: "moon",
+                total: "Total",
+                today: 'Today',
+                spy: 'Spy',
+                attack: 'Attack',
+                importToPtre: 'Import to PTRE',
+                delete: 'Delete',
+                expand: 'Expand',
+                all: 'All',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
