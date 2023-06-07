@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools
-// @version      4.2.5.11
+// @version      4.2.5.12
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7835,9 +7835,9 @@ class OGLight {
             `));
         }
 
-        let updateButton = () => {
+        let updateButton = (newVersion) => {
             leftMenu.querySelector('.menubutton').classList.add('ogl_active');
-            leftMenu.querySelector('.menubutton').setAttribute('data-title', 'A new version is available !');
+            leftMenu.querySelector('.menubutton').setAttribute('data-title', this.component.lang.getText('version1') + ' ' + newVersion + ' ' + this.component.lang.getText('version2'));
             leftMenu.querySelector('.menubutton').setAttribute('href', 'https://github.com/igoptx/ogameTools');
         }
 
@@ -7858,11 +7858,14 @@ class OGLight {
                     method: 'GET',
                     url: 'https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js',
                     onload: result => {
+                        var newVersion = result.responseText.split("\n");
+                        var regex = /\b\d+\.\d+\.\d+\.\d+\b/;
+                        newVersion = newVersion[1].match(regex)[0];
                         let updateAvailable = (result.responseText.replace(/\D/g, "") != this.version.replace(/\D/g, "") && this.version.indexOf('b') == -1) ? true : false;
 
                         if (updateAvailable) {
                             this.db.newVersion = result.responseText.replace(/\D/g, "");
-                            updateButton();
+                            updateButton(newVersion);
                         }
                     }
                 });
@@ -17595,6 +17598,8 @@ class LangManager {
                 delete: 'Apagar',
                 expand: 'Expandir',
                 all: 'Tudo',
+                version1: 'Nova Versão',
+                version2: 'Disponível!',
             }
 
         this.en =
@@ -17732,6 +17737,8 @@ class LangManager {
                 delete: 'Delete',
                 expand: 'Expand',
                 all: 'All',
+                version1: 'New Version',
+                version2: 'Available!',
             }
 
         this.fr =
@@ -17866,6 +17873,8 @@ class LangManager {
                 delete: 'Delete',
                 expand: 'Expand',
                 all: 'All',
+                version1: 'New Version',
+                version2: 'Available!',
             }
 
         this.gr =
@@ -17988,6 +17997,8 @@ class LangManager {
                 delete: 'Delete',
                 expand: 'Expand',
                 all: 'All',
+                version1: 'New Version',
+                version2: 'Available!',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
