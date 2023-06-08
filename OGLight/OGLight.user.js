@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
-// @namespace    https://github.com/igoptx/ogameTools/OGLight
-// @version      4.2.5.14
+// @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
+// @version      4.2.5.15
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -9177,10 +9177,10 @@ class MenuManager {
             let sumProd = [0, 0, 0];
             let count = 0;
 
-            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, '&nbsp;'));
-            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, '&nbsp;'));
-            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, '&nbsp;'));
-            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, '&nbsp;'));
+            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, this.ogl.component.lang.getText('abbrCoords')));
+            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, this.ogl.component.lang.getText('name')));
+            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, this.ogl.component.lang.getText('fields')));
+            container.appendChild(Util.createDom('span', {'class': 'ogl_header'}, this.ogl.component.lang.getText('abbrTempMax')));
 
             let headerMetal = container.appendChild(Util.createDom('b', {'class': 'ogl_metal ogl_header'}));
             let headerCrystal = container.appendChild(Util.createDom('b', {'class': 'ogl_crystal ogl_header'}));
@@ -9212,9 +9212,18 @@ class MenuManager {
                     let crystalLevel = (upgrading && this.ogl.db.me.planets[coords].upgrade?.[0] == 2) ? `(${this.ogl.db.me.planets[coords].upgrade?.[1]})` : (this.ogl.db.me.planets[coords]?.techs?.[2] || '?');
                     let deutLevel = (upgrading && this.ogl.db.me.planets[coords].upgrade?.[0] == 3) ? `(${this.ogl.db.me.planets[coords].upgrade?.[1]})` : (this.ogl.db.me.planets[coords]?.techs?.[3] || '?');
 
-                    container.appendChild(Util.createDom('b', {'class': 'ogl_metal'}, metalLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[0] || 0) * 60 * 60 * 24))}</div>`));
-                    container.appendChild(Util.createDom('b', {'class': 'ogl_crystal'}, crystalLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[1] || 0) * 60 * 60 * 24))}</div>`));
-                    container.appendChild(Util.createDom('b', {'class': 'ogl_deut'}, deutLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[2] || 0) * 60 * 60 * 24))}</div>`));
+                    container.appendChild(Util.createDom('b', {
+                        'class': 'ogl_metal tooltipUp',
+                        'data-title': `${this.ogl.component.lang.getText('level')} - ${this.ogl.component.lang.getText('prodDay')}`
+                    }, metalLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[0] || 0) * 60 * 60 * 24))}</div>`));
+                    container.appendChild(Util.createDom('b', {
+                        'class': 'ogl_crystal tooltipUp',
+                        'data-title': `${this.ogl.component.lang.getText('level')} - ${this.ogl.component.lang.getText('prodDay')}`
+                    }, crystalLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[1] || 0) * 60 * 60 * 24))}</div>`));
+                    container.appendChild(Util.createDom('b', {
+                        'class': 'ogl_deut tooltipUp',
+                        'data-title': `${this.ogl.component.lang.getText('level')} - ${this.ogl.component.lang.getText('prodDay')}`
+                    }, deutLevel + `<div>+${Util.formatToUnits(Math.round((this.ogl.db.me.planets[coords]?.production[2] || 0) * 60 * 60 * 24))}</div>`));
 
                     sum = [sum[0] + parseInt(this.ogl.db.me.planets[coords]?.techs?.[1] || 0), sum[1] + parseInt(this.ogl.db.me.planets[coords]?.techs?.[2] || 0), sum[2] + parseInt(this.ogl.db.me.planets[coords]?.techs?.[3] || 0)];
                     sumProd = [sumProd[0] + (this.ogl.db.me.planets[coords]?.production?.[0] || 0) * 60 * 60 * 24, sumProd[1] + (this.ogl.db.me.planets[coords]?.production?.[1] || 0) * 60 * 60 * 24, sumProd[2] + (this.ogl.db.me.planets[coords]?.production?.[2] || 0) * 60 * 60 * 24];
@@ -17602,7 +17611,14 @@ class LangManager {
                 version2: 'Disponível!',
                 trashsim: 'TrashSim',
                 day: 'dia',
-                expedition: 'Expedição'
+                expedition: 'Expedição',
+                coords: 'Coordenadas',
+                abbrCoords: 'Coords',
+                name: 'Nome',
+                fields: 'Campos',
+                abbrTempMax: 'Temp. Max',
+                level: 'Nível',
+                prodDay: 'Prod/Dia',
             }
 
         this.en =
@@ -17744,7 +17760,14 @@ class LangManager {
                 version2: 'Available!',
                 trashsim: 'TrashSim',
                 day: 'day',
-                expedition: 'Expedition'
+                expedition: 'Expedition',
+                coords: 'Coordinates',
+                abbrCoords: 'Coords',
+                name: 'Name',
+                fields: 'Fields',
+                abbrTempMax: 'Max Temp.',
+                level: 'Level',
+                prodDay: 'Prod/Day',
             }
 
         this.fr =
@@ -17883,7 +17906,14 @@ class LangManager {
                 version2: 'Available!',
                 trashsim: 'TrashSim',
                 day: 'jour',
-                expedition: 'Expedition'
+                expedition: 'Expedition',
+                coords: 'Coordinates',
+                abbrCoords: 'Coords',
+                name: 'Name',
+                fields: 'Fields',
+                abbrTempMax: 'Max Temp.',
+                level: 'Level',
+                prodDay: 'Prod/Day',
             }
 
         this.gr =
@@ -18010,7 +18040,14 @@ class LangManager {
                 version2: 'Available!',
                 trashsim: 'TrashSim',
                 day: 'day',
-                expedition: 'Expedition'
+                expedition: 'Expedition',
+                coords: 'Coordinates',
+                abbrCoords: 'Coords',
+                name: 'Name',
+                fields: 'Fields',
+                abbrTempMax: 'Max Temp.',
+                level: 'Level',
+                prodDay: 'Prod/Day',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
