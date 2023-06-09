@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.2.6
+// @version      4.2.6.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7859,13 +7859,17 @@ class OGLight {
                     url: 'https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js',
                     onload: result => {
                         var newVersion = result.responseText.split("\n");
-                        var regex = /\b\d+\.\d+\.\d+\.\d+\b/;
-                        newVersion = newVersion[1].match(regex)[0];
-                        let updateAvailable = (result.responseText.replace(/\D/g, "") != this.version.replace(/\D/g, "") && this.version.indexOf('b') == -1) ? true : false;
+                        var versionLine = newVersion.find(function(line) {
+                            return line.includes("@version");
+                        });
+
+                        var versionValue = versionLine.split("@version")[1].trim();
+
+                        let updateAvailable = (versionValue == this.version.slice(1)) ? true : false;
 
                         if (updateAvailable) {
                             this.db.newVersion = result.responseText.replace(/\D/g, "");
-                            updateButton(newVersion);
+                            updateButton(versionValue);
                         }
                     }
                 });
