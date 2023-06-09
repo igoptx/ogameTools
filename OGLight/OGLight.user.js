@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.2.5.15
+// @version      4.2.6
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -10995,7 +10995,8 @@ class EmpireManager {
             .then(() => {
                 this.checkLockedTechs();
                 this.checkStorage();
-                this.getEmpireData();
+                this.checkBonus();
+                this.getEmpireData(true);
                 this.checkMovement();
                 this.addStats();
                 this.checkCrawlers();
@@ -11006,6 +11007,7 @@ class EmpireManager {
         //this.checkPlanetResources();
         //this.checkLockedTechs();
         //this.checkStorage();
+        //this.checkBonus();
         //this.checkMovement();
         //this.addStats();
         //this.checkCrawlers();
@@ -11974,8 +11976,10 @@ class EmpireManager {
 
                 let tooltipCumul = [0, 0, 0];
                 let isReady = false;
+                let list = [];
 
                 for (let tech of Object.values(this.ogl.db.lock[coords])) {
+                    list.push(tech.name);
                     tooltipCumul[0] += tech.metal;
                     tooltipCumul[1] += tech.crystal;
                     tooltipCumul[2] += tech.deut;
@@ -11985,7 +11989,14 @@ class EmpireManager {
 
                 if (isReady) button.classList.add('ogl_ok');
 
-                button.title = `${this.ogl.component.lang.getText('locked')}` + '<div class="splitLine"></div>';
+                button.title = '';
+
+                list.forEach((res,index) => {
+                    button.title += `<div>#${index+1} ${res}</div>`;
+                });;
+
+                button.title+= '<div class="splitLine"></div>';
+
                 ['metal', 'crystal', 'deut'].forEach((res, index) => {
                     let resName = this.ogl.component.lang.getText(res);
                     button.title += `<div>${resName}:&nbsp;<span class="ogl_${res} float_right">${Util.formatToUnits(tooltipCumul[index])}</span></div>`;
@@ -12126,6 +12137,31 @@ class EmpireManager {
         });
     }
 
+
+    checkBonus() {
+        if (this.ogl.current.type == 'moon') return;
+        var bonusElements = document.querySelectorAll(".bonusItemParent");
+        let currentCoords = this.ogl.current.coords.join(':');
+
+        if (bonusElements.length > 0) {
+            var lfProdBonus = [0, 0, 0];
+            bonusElements.forEach(function(element) {
+                var dataCategory = element.dataset.category;
+                var bonusValueElement = element.querySelector(".bonusValues");
+                var valor = bonusValueElement.textContent.trim().split("/")[0].trim();
+                if (dataCategory == 'bonus-1') {
+                    lfProdBonus[0] = parseFloat(valor.replace(",", ".")) / 100;
+                }else if (dataCategory == 'bonus-2') {
+                    lfProdBonus[1] = parseFloat(valor.replace(",", ".")) / 100;
+                } else if (dataCategory == 'bonus-3') {
+                    lfProdBonus[2] = parseFloat(valor.replace(",", ".")) / 100;
+                }
+            });
+
+            this.ogl.db.me.planets[currentCoords].lfProductionBonus = lfProdBonus;
+        }
+    }
+
     checkCrawlers() {
         if (this.ogl.current.type == 'planet' && (this.ogl.page == 'supplies' || this.ogl.page == 'shipyard')) {
             let currentCoords = this.ogl.current.coords.join(':');
@@ -12187,9 +12223,27 @@ class EmpireManager {
                                         else if (k == 'populationStorage') this.ogl.db.me.planets[coords].storage.population = p[k];
                                         // production
                                         else if (k == 'production') {
-                                            this.ogl.db.me.planets[coords].production[0] = (p[k].hourly[0] / 3600).toFixed(2);
-                                            this.ogl.db.me.planets[coords].production[1] = (p[k].hourly[1] / 3600).toFixed(2);
-                                            this.ogl.db.me.planets[coords].production[2] = (p[k].hourly[2] / 3600).toFixed(2);
+                                            var mProd = p[k].hourly[0];
+                                            var cProd = p[k].hourly[1];
+                                            var dProd = p[k].hourly[2];
+
+                                            if (this.ogl.db.me.planets[coords].lfProductionBonus) {
+                                                if (this.ogl.db.me.planets[coords].lfProductionBonus[0]) {
+                                                    mProd+=(p[k].production[1][0]*this.ogl.db.me.planets[coords].lfProductionBonus[0]);
+                                                }
+
+                                                if (this.ogl.db.me.planets[coords].lfProductionBonus[1]) {
+                                                    cProd+=(p[k].production[2][1]*this.ogl.db.me.planets[coords].lfProductionBonus[1]);
+                                                }
+
+                                                if (this.ogl.db.me.planets[coords].lfProductionBonus[2]) {
+                                                    dProd+=(p[k].production[3][2]*this.ogl.db.me.planets[coords].lfProductionBonus[2]);
+                                                }
+                                            }
+
+                                            this.ogl.db.me.planets[coords].production[0] = (mProd / 3600).toFixed(2);
+                                            this.ogl.db.me.planets[coords].production[1] = (cProd / 3600).toFixed(2);
+                                            this.ogl.db.me.planets[coords].production[2] = (dProd / 3600).toFixed(2);
                                             this.ogl.db.me.planets[coords].production[3] = serverTime.getTime();
                                         }
                                         // other
