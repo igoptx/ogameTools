@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.2.6.1
+// @version      4.2.6.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7835,9 +7835,9 @@ class OGLight {
             `));
         }
 
-        let updateButton = (newVersion) => {
+        let updateButton = () => {
             leftMenu.querySelector('.menubutton').classList.add('ogl_active');
-            leftMenu.querySelector('.menubutton').setAttribute('data-title', this.component.lang.getText('version1') + ' ' + newVersion + ' ' + this.component.lang.getText('version2'));
+            leftMenu.querySelector('.menubutton').setAttribute('data-title', this.component.lang.getText('version1') + ' ' + this.db.newVersion + ' ' + this.component.lang.getText('version2'));
             leftMenu.querySelector('.menubutton').setAttribute('href', 'https://github.com/igoptx/ogameTools/tree/main/OGLight');
         }
 
@@ -7848,7 +7848,12 @@ class OGLight {
             'href': 'https://board.fr.ogame.gameforge.com/index.php?thread/740025-paye-ton-re-ptre-intégration-oglight/'
         }, this.ptre ? 'PTRE <span class="ogl_ok material-icons">done</span>' : 'PTRE <span class="ogl_danger material-icons">clear</span>'));
 
-        let isOldVersion = this.version.replace(/\D/g, "") != this.db.newVersion && this.version.indexOf('b') == -1;
+        var isOldVersion = false;
+        if (this.db.newVersion !== 'undefined' && this.db.newVersion != null) {
+            if (this.version.slice(1) != this.db.newVersion){
+                isOldVersion = true;
+            }
+        }
 
         if (typeof GM_xmlhttpRequest !== 'undefined' && (serverTime.getTime() > this.db.lastVersionCheck + 3600000 || isOldVersion)) {
             this.db.lastVersionCheck = serverTime.getTime();
@@ -7865,11 +7870,11 @@ class OGLight {
 
                         var versionValue = versionLine.split("@version")[1].trim();
 
-                        let updateAvailable = (versionValue == this.version.slice(1)) ? true : false;
-
-                        if (updateAvailable) {
-                            this.db.newVersion = result.responseText.replace(/\D/g, "");
-                            updateButton(versionValue);
+                        if ((versionValue != this.version.slice(1))) {
+                            this.db.newVersion = versionValue;
+                            updateButton();
+                        } else {
+                            this.db.newVersion = null;
                         }
                     }
                 });
