@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.2.7
+// @version      4.2.7.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7849,10 +7849,8 @@ class OGLight {
         }, this.ptre ? 'PTRE <span class="ogl_ok material-icons">done</span>' : 'PTRE <span class="ogl_danger material-icons">clear</span>'));
 
         var isOldVersion = false;
-        if (this.db.newVersion !== 'undefined' && this.db.newVersion != null) {
-            if (this.version.slice(1) != this.db.newVersion){
-                isOldVersion = true;
-            }
+        if (this.version.slice(1) != this.db.newVersion){
+            isOldVersion = true;
         }
 
         if (typeof GM_xmlhttpRequest !== 'undefined' && (serverTime.getTime() > this.db.lastVersionCheck + 3600000 || isOldVersion)) {
@@ -7874,7 +7872,7 @@ class OGLight {
                             this.db.newVersion = versionValue;
                             updateButton();
                         } else {
-                            this.db.newVersion = null;
+                            this.db.newVersion = this.version.slice(1);
                         }
                     }
                 });
@@ -17416,7 +17414,7 @@ class TimeManager {
                             if (target) {
                                 target.textContent = Util.formatToUnits(tech.current[res]);
                                 target.setAttribute('data-total', tech.current[res]);
-                                target.setAttribute('title', `${ogl.component.lang.getText('missing')}: ${Util.formatToUnits(tech.current[res]-self.ogl.current[res])}`);
+                                target.setAttribute('title', `${self.ogl.component.lang.getText('missing')}: ${Util.formatToUnits(tech.current[res]-self.ogl.current[res])}`);
                                 self.currentDetail.querySelector('.information .level').innerHTML = `Level ${tech.current.level - 1} <i class="material-icons">arrow_forward</i> <span>${tech.current.level}</span>`;
 
                                 if (self.ogl.current[res] < tech.current[res]) target.classList.add('insufficient');
