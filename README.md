@@ -22,4 +22,4 @@ Version: 9.2.5.5
 
 Last Update: 2023/06/05 15:19:00
 
-[Install](https://github.com/igoptx/ogameTools/raw/main/InfoCompte/InfoCompte.user.js)
+[Install](https://github.com/igoptx/ogameTools/raw/main/InfoCompte/InfoCompte_beta.user.js)
