@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.2.6.2
+// @version      4.2.7
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -15000,7 +15000,15 @@ class Datafinder {
 class Util {
     static importToPTRE(apiKey, ogl) {
         Util.getJSON(`https://ptre.chez.gg/scripts/oglight_import.php?tool=oglight&team_key=${ogl.ptre}&sr_id=${apiKey}`, result => {
-            fadeBox(result.message_verbose, result.code != 1);
+
+            var message = '';
+            if (result.code == 1 || result.code == 13) {
+                message = ogl.component.lang.getText('ptreCode'+result.code);
+            } else {
+                message = result.message_verbose;
+            }
+
+            fadeBox(message, result.code != 1);
         });
     }
 
@@ -16153,7 +16161,7 @@ class MessageManager {
             apiKey = apiKey.querySelector('input').value;
 
             if (report.api && report.coords[2] <= 15) {
-                let simButton = actions.appendChild(Util.createDom('div', {'class': 'tooltip', 'title': this.ogl.component.lang.getText('trashsim')}, 'S'));
+                let simButton = actions.appendChild(Util.createDom('div', {'class': 'tooltip', 'title': this.ogl.component.lang.getText('simulateOnTrashsim')}, 'S'));
                 simButton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
 
                 if (this.ogl.ptre) {
@@ -16199,11 +16207,11 @@ class MessageManager {
             });
 
             if (report.api && !report.dom.querySelector('.ogl_sim')) {
-                let otherSimbutton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim'}, 'S'));
+                let otherSimbutton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim tooltip', 'title': this.ogl.component.lang.getText('simulateOnTrashsim')}, 'S'));
                 otherSimbutton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
 
                 if (this.ogl.ptre) {
-                    let otherPtreButton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim tooltip', 'title': 'import to PTRE'}, 'P'));
+                    let otherPtreButton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim tooltip', 'title': this.ogl.component.lang.getText('importToPtre')}, 'P'));
                     otherPtreButton.addEventListener('click', () => Util.importToPTRE(apiKey, this.ogl));
                 }
             }
@@ -16652,16 +16660,16 @@ class SidebarManager {
                                         let title;
                                         let checkValue = Math.max(0, 100 - dotValue);
 
-                                        if (checkValue === 100) title = '- No activity detected';
-                                        else if (checkValue >= 60) title = '- A few activities detected';
-                                        else if (checkValue >= 40) title = '- Some activities detected';
-                                        else title = '- A lot of activities detected';
+                                        if (checkValue === 100) title = '- ' + ogl.component.lang.getText('noActivitiyDetected');
+                                        else if (checkValue >= 60) title = '- ' + ogl.component.lang.getText('fewActivityDetected');
+                                        else if (checkValue >= 40) title = '- ' + ogl.component.lang.getText('someActivityDetected');
+                                        else title = '- ' + ogl.component.lang.getText('lotActivityDetected');
 
-                                        if (checkData[index][1] == 100) title += '<br>- Perfectly checked';
-                                        else if (checkData[index][1] >= 75) title += '<br>- Nicely checked';
-                                        else if (checkData[index][1] >= 50) title += '<br>- Decently checked';
-                                        else if (checkData[index][1] > 0) title = 'Poorly checked';
-                                        else title = 'Not checked';
+                                        if (checkData[index][1] == 100) title += '<br>- ' + ogl.component.lang.getText('perfectlyChecked');
+                                        else if (checkData[index][1] >= 75) title += '<br>- ' + ogl.component.lang.getText('nicelyChecked');
+                                        else if (checkData[index][1] >= 50) title += '<br>- ' + ogl.component.lang.getText('decentlyChecked');
+                                        else if (checkData[index][1] > 0) title = ogl.component.lang.getText('poorlyChecked');
+                                        else title = ogl.component.lang.getText('notChecked');
 
                                         div.setAttribute('title', title);
 
@@ -17408,7 +17416,7 @@ class TimeManager {
                             if (target) {
                                 target.textContent = Util.formatToUnits(tech.current[res]);
                                 target.setAttribute('data-total', tech.current[res]);
-                                target.setAttribute('title', `${Util.formatNumber(tech.current[res])} ${self.ogl.component.lang.getText(res)}`);
+                                target.setAttribute('title', `${ogl.component.lang.getText('missing')}: ${Util.formatToUnits(tech.current[res]-self.ogl.current[res])}`);
                                 self.currentDetail.querySelector('.information .level').innerHTML = `Level ${tech.current.level - 1} <i class="material-icons">arrow_forward</i> <span>${tech.current.level}</span>`;
 
                                 if (self.ogl.current[res] < tech.current[res]) target.classList.add('insufficient');
@@ -17460,7 +17468,7 @@ class TimeManager {
                     initButton.addEventListener('click', () => updateLevel(tech.initial.level, true));
                     nextButton.addEventListener('click', () => updateLevel(tech.current.level + 1, true));
 
-                    //initButton.click();
+                    initButton.click();
                 }
 
                 let lockButton = container.appendChild(Util.createDom('div', {'class': 'ogl_button material-icons'}, 'lock'));
@@ -17672,7 +17680,7 @@ class LangManager {
                 all: 'Tudo',
                 version1: 'Nova Versão',
                 version2: 'Disponível!',
-                trashsim: 'TrashSim',
+                simulateOnTrashsim: 'Simular no TrashSim',
                 day: 'dia',
                 expedition: 'Expedição',
                 coords: 'Coordenadas',
@@ -17682,6 +17690,18 @@ class LangManager {
                 abbrTempMax: 'Temp. Max',
                 level: 'Nível',
                 prodDay: 'Prod/Dia',
+                ptreCode1: 'Importado para o PTRE',
+                ptreCode13: 'O relatório de espionagem já foi importado para o PTRE',
+                noActivitiyDetected: 'Nenhuma actividade detectada',
+                fewActivityDetected: 'Poucas actividades detectadas',
+                someActivityDetected: 'Algumas actividades detectadas',
+                lotActivityDetected: 'Muitas acividades detectadas',
+                perfectlyChecked: 'Perfeitamente verificado',
+                nicelyChecked: 'Bem Verificado',
+                decentlyChecked: 'Verificado decentemente',
+                poorlyChecked: 'Mal verificado',
+                notChecked: 'Não verificado',
+                missing: 'Em Falta',
             }
 
         this.en =
@@ -17821,7 +17841,7 @@ class LangManager {
                 all: 'All',
                 version1: 'New Version',
                 version2: 'Available!',
-                trashsim: 'TrashSim',
+                simulateOnTrashsim: 'Simulate on TrashSim',
                 day: 'day',
                 expedition: 'Expedition',
                 coords: 'Coordinates',
@@ -17831,6 +17851,18 @@ class LangManager {
                 abbrTempMax: 'Max Temp.',
                 level: 'Level',
                 prodDay: 'Prod/Day',
+                ptreCode1: 'Imported to PTRE',
+                ptreCode13: 'Spy report already imported to PTRE',
+                noActivitiyDetected: 'No activity detected',
+                fewActivityDetected: 'A few activities detected',
+                someActivityDetected: 'Some activities detected',
+                lotActivityDetected: 'A lot of activities detected',
+                perfectlyChecked: 'Perfectly checked',
+                nicelyChecked: 'Nicely checked',
+                decentlyChecked: 'Decently checked',
+                poorlyChecked: 'Poorly checked',
+                notChecked: 'Not checked',
+                missing: 'Missing',
             }
 
         this.fr =
@@ -17967,7 +17999,7 @@ class LangManager {
                 all: 'All',
                 version1: 'New Version',
                 version2: 'Available!',
-                trashsim: 'TrashSim',
+                simulateOnTrashsim: 'Simulate on TrashSim',
                 day: 'jour',
                 expedition: 'Expedition',
                 coords: 'Coordinates',
@@ -17977,6 +18009,18 @@ class LangManager {
                 abbrTempMax: 'Max Temp.',
                 level: 'Level',
                 prodDay: 'Prod/Day',
+                ptreCode1: 'Imported to PTRE',
+                ptreCode13: 'Spy report already imported to PTRE',
+                noActivitiyDetected: 'No activity detected',
+                fewActivityDetected: 'A few activities detected',
+                someActivityDetected: 'Some activities detected',
+                lotActivityDetected: 'A lot of activities detected',
+                perfectlyChecked: 'Perfectly checked',
+                nicelyChecked: 'Nicely checked',
+                decentlyChecked: 'Decently checked',
+                poorlyChecked: 'Poorly checked',
+                notChecked: 'Not checked',
+                missing: 'Missing',
             }
 
         this.gr =
@@ -18101,7 +18145,7 @@ class LangManager {
                 all: 'All',
                 version1: 'New Version',
                 version2: 'Available!',
-                trashsim: 'TrashSim',
+                simulateOnTrashsim: 'Simulate on TrashSim',
                 day: 'day',
                 expedition: 'Expedition',
                 coords: 'Coordinates',
@@ -18111,6 +18155,18 @@ class LangManager {
                 abbrTempMax: 'Max Temp.',
                 level: 'Level',
                 prodDay: 'Prod/Day',
+                ptreCode1: 'Imported to PTRE',
+                ptreCode13: 'Spy report already imported to PTRE',
+                noActivitiyDetected: 'No activity detected',
+                fewActivityDetected: 'A few activities detected',
+                someActivityDetected: 'Some activities detected',
+                lotActivityDetected: 'A lot of activities detected',
+                perfectlyChecked: 'Perfectly checked',
+                nicelyChecked: 'Nicely checked',
+                decentlyChecked: 'Decently checked',
+                poorlyChecked: 'Poorly checked',
+                notChecked: 'Not checked',
+                missing: 'Missing',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
