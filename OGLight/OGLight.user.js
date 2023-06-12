@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.2.7.1
+// @version      4.2.7.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -17414,7 +17414,7 @@ class TimeManager {
                             if (target) {
                                 target.textContent = Util.formatToUnits(tech.current[res]);
                                 target.setAttribute('data-total', tech.current[res]);
-                                target.setAttribute('title', `${self.ogl.component.lang.getText('missing')}: ${Util.formatToUnits(tech.current[res]-self.ogl.current[res])}`);
+                                target.setAttribute('title', `${self.ogl.component.lang.getText(res)} ${self.ogl.component.lang.getText('missing')}: ${Util.formatToUnits(tech.current[res]-self.ogl.current[res])}`);
                                 self.currentDetail.querySelector('.information .level').innerHTML = `Level ${tech.current.level - 1} <i class="material-icons">arrow_forward</i> <span>${tech.current.level}</span>`;
 
                                 if (self.ogl.current[res] < tech.current[res]) target.classList.add('insufficient');
@@ -17699,7 +17699,7 @@ class LangManager {
                 decentlyChecked: 'Verificado decentemente',
                 poorlyChecked: 'Mal verificado',
                 notChecked: 'Não verificado',
-                missing: 'Em Falta',
+                missing: 'em falta',
             }
 
         this.en =
@@ -17860,7 +17860,7 @@ class LangManager {
                 decentlyChecked: 'Decently checked',
                 poorlyChecked: 'Poorly checked',
                 notChecked: 'Not checked',
-                missing: 'Missing',
+                missing: 'missing',
             }
 
         this.fr =
@@ -18018,7 +18018,7 @@ class LangManager {
                 decentlyChecked: 'Decently checked',
                 poorlyChecked: 'Poorly checked',
                 notChecked: 'Not checked',
-                missing: 'Missing',
+                missing: 'missing',
             }
 
         this.gr =
@@ -18164,7 +18164,7 @@ class LangManager {
                 decentlyChecked: 'Decently checked',
                 poorlyChecked: 'Poorly checked',
                 notChecked: 'Not checked',
-                missing: 'Missing',
+                missing: 'missing',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
