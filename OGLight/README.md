@@ -76,6 +76,16 @@ With this functionality you can view a resume of your empire regarding the mines
 
 ![Production View 002](images/production_view_02.png)
 
+To retrieve the correct values in this view you need to go to:
+* the details of the productions in every planet
+
+![Production View 003](images/production_view_03.png)
+
+* the Life Forms bonus in every planet
+  
+![Production View 004](images/production_view_04.png)
+
+
 ### Targets
 If you click on 'Pinned Targets'
 
