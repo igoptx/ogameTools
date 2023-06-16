@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.2.7.2
+// @version      4.2.8
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -11736,7 +11736,7 @@ class EmpireManager {
             chart.style.background = `conic-gradient(${gradient}#000)`;
 
             Object.entries(cumulExpeOccurences).sort((a, b) => a[0].localeCompare(b[0])).forEach((e, index) => {
-                if (e[0] == 'none') e[0] = 'other';
+                if (e[0] == 'none') e[0] = 'empty';
 
                 let label = labels.appendChild(Util.createDom('span', {}, `<span>${this.ogl.component.lang.getText(e[0])}</span><span>${Util.formatToUnits(Math.max(0, e[1]))}</span><b>${Math.max(0, pieStats[index].toFixed(2)) || 0}%</b>`));
                 label.prepend(Util.createDom('span', {'style': 'background:' + colors[index]}));
@@ -16606,7 +16606,7 @@ class SidebarManager {
                         return;
                     }
 
-                    Util.getJSON(`https://ptre.chez.gg/scripts/oglight_get_player_infos.php?tool=oglight&team_key=${this.ogl.ptre}&pseudo=${player.name}&player_id=${player.id}&input_frame=${frame}`, result => {
+                    Util.getJSON(`https://ptre.chez.gg/scripts/oglight_get_player_infos.php?tool=oglight&team_key=${this.ogl.ptre}&pseudo=${player.name}&univers=${this.ogl.universe.number}&player_id=${player.id}&input_frame=${frame}`, result => {
                         if (result.code == 1 && result.activity_array.activity_array && result.activity_array.check_array) {
                             let arrData = JSON.parse(result.activity_array.activity_array);
                             let checkData = JSON.parse(result.activity_array.check_array);
@@ -16658,16 +16658,16 @@ class SidebarManager {
                                         let title;
                                         let checkValue = Math.max(0, 100 - dotValue);
 
-                                        if (checkValue === 100) title = '- ' + ogl.component.lang.getText('noActivitiyDetected');
-                                        else if (checkValue >= 60) title = '- ' + ogl.component.lang.getText('fewActivityDetected');
-                                        else if (checkValue >= 40) title = '- ' + ogl.component.lang.getText('someActivityDetected');
-                                        else title = '- ' + ogl.component.lang.getText('lotActivityDetected');
+                                        if (checkValue === 100) title = '- ' + this.ogl.component.lang.getText('noActivitiyDetected');
+                                        else if (checkValue >= 60) title = '- ' + this.ogl.component.lang.getText('fewActivityDetected');
+                                        else if (checkValue >= 40) title = '- ' + this.ogl.component.lang.getText('someActivityDetected');
+                                        else title = '- ' + this.ogl.component.lang.getText('lotActivityDetected');
 
-                                        if (checkData[index][1] == 100) title += '<br>- ' + ogl.component.lang.getText('perfectlyChecked');
-                                        else if (checkData[index][1] >= 75) title += '<br>- ' + ogl.component.lang.getText('nicelyChecked');
-                                        else if (checkData[index][1] >= 50) title += '<br>- ' + ogl.component.lang.getText('decentlyChecked');
-                                        else if (checkData[index][1] > 0) title = ogl.component.lang.getText('poorlyChecked');
-                                        else title = ogl.component.lang.getText('notChecked');
+                                        if (checkData[index][1] == 100) title += '<br>- ' + this.ogl.component.lang.getText('perfectlyChecked');
+                                        else if (checkData[index][1] >= 75) title += '<br>- ' + this.ogl.component.lang.getText('nicelyChecked');
+                                        else if (checkData[index][1] >= 50) title += '<br>- ' + this.ogl.component.lang.getText('decentlyChecked');
+                                        else if (checkData[index][1] > 0) title = this.ogl.component.lang.getText('poorlyChecked');
+                                        else title = this.ogl.component.lang.getText('notChecked');
 
                                         div.setAttribute('title', title);
 
@@ -17414,7 +17414,13 @@ class TimeManager {
                             if (target) {
                                 target.textContent = Util.formatToUnits(tech.current[res]);
                                 target.setAttribute('data-total', tech.current[res]);
-                                target.setAttribute('title', `${self.ogl.component.lang.getText(res)} ${self.ogl.component.lang.getText('missing')}: ${Util.formatToUnits(tech.current[res]-self.ogl.current[res])}`);
+
+                                if ((tech.current[res]-self.ogl.current[res]) > 0) {
+                                    target.setAttribute('title', `${self.ogl.component.lang.getText(res)} ${self.ogl.component.lang.getText('missing')}: ${Util.formatToUnits(tech.current[res]-self.ogl.current[res])}`);
+                                } else {
+                                    target.setAttribute('title', `${Util.formatNumber(tech.current[res])} ${self.ogl.component.lang.getText(res)}`);
+                                }
+
                                 self.currentDetail.querySelector('.information .level').innerHTML = `Level ${tech.current.level - 1} <i class="material-icons">arrow_forward</i> <span>${tech.current.level}</span>`;
 
                                 if (self.ogl.current[res] < tech.current[res]) target.classList.add('insufficient');
@@ -17582,7 +17588,7 @@ class LangManager {
                 planets: "planetas",
                 ships: "Naves",
                 items: "Items",
-                other: "Outros",
+                empty: "Vazio",
                 resources: "Recursos",
                 fight: "Combates",
                 noMoonError: "Erro, lua inexistente",
@@ -17743,7 +17749,7 @@ class LangManager {
                 planets: "planets",
                 ships: "Ships",
                 items: "Items",
-                other: "Other",
+                empty: "Empty",
                 resources: "Resources",
                 fight: "Raids",
                 noMoonError: "Error, there is no moon here",
@@ -17903,7 +17909,7 @@ class LangManager {
                 abbr219: "PF",
                 planets: "planètes",
                 ships: "Vaisseaux",
-                other: "Autre",
+                empty: "Autre",
                 resources: "Ressources",
                 fight: "Raids",
                 noMoonError: "Erreur, il n'y a pas de lune ici",
@@ -18062,7 +18068,7 @@ class LangManager {
                 planets: "Πλανήτες",
                 ships: "Πλοία",
                 items: "Αντικέιμενα",
-                other: "Λοιπά",
+                empty: "Λοιπά",
                 resources: "Πόροι",
                 fight: "Μάχες",
                 noMoonError: "Σφάλμα, δεν υπάρχει φεγγάρι εδώ",
