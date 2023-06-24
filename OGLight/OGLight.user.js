@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.2.8
+// @version      4.3
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -320,6 +320,14 @@ body.ogl_active
 .ogl_shipIcon.ogl_215 { background-image:url(https://gf3.geo.gfsrv.net/cdn5a/24f511ec14a71e2d83fd750aa0dee2.jpg); }
 .ogl_shipIcon.ogl_218 { background-image:url(https://gf1.geo.gfsrv.net/cdn39/12d016c8bb0d71e053b901560c17cc.jpg); }
 .ogl_shipIcon.ogl_219 { background-image:url(https://gf3.geo.gfsrv.net/cdne2/b8d8d18f2baf674acedb7504c7cc83.jpg); }
+
+
+.ogl_shipIcon.ogl_lifeform1, .ogl_shipIcon.ogl_lifeform2, .ogl_shipIcon.ogl_lifeform3, .ogl_shipIcon.ogl_lifeform4 { background-image:url(https://gf2.geo.gfsrv.net/cdna5/5681003b4f1fcb30edc5d0e62382a2.png); background-size: 302px !important;}
+
+.ogl_lifeform1 { background-position-x: 283px; background-position-y: -15px; }
+.ogl_lifeform2 { background-position-x: 209px; background-position-y: -15px; }
+.ogl_lifeform3 { background-position-x: 132px; background-position-y: -15px; }
+.ogl_lifeform4 { background-position-x: 57px; background-position-y: -15px; }
 
 .ogl_shipIcon.ogl_metal, .ogl_shipIcon.ogl_crystal, .ogl_shipIcon.ogl_deut, .ogl_shipIcon.ogl_dm, .ogl_shipIcon.ogl_energy, .ogl_shipIcon.ogl_food
 {
@@ -10970,6 +10978,7 @@ class EmpireManager {
         if (!this.ogl.nextLink) this.ogl.nextLink = this.ogl.current.type == 'moon' ? this.ogl.next.smallplanetWithMoon.querySelector('.moonlink')?.getAttribute('href') || this.ogl.next.smallplanet.querySelector('.planetlink')?.getAttribute('href') : this.ogl.next.smallplanet.querySelector('.planetlink')?.getAttribute('href');
 
         this.mainResources = ['metal', 'crystal', 'deut', 'dm'];
+        this.lifeForms = ['lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artifact'];
         this.myPlanets = {};
         this.total = [0, 0, 0, 0];
         this.onPlanet = [0, 0, 0, 0];
@@ -11540,6 +11549,7 @@ class EmpireManager {
         this.dailiesStats = [];
         let raidOccurences = 0;
         let expeOccurences = 0;
+        let lfOccurences = 0;
 
         if (startDate >= 0) {
             for (let i = 0; i < days; i++) {
@@ -11555,6 +11565,7 @@ class EmpireManager {
 
                 raidOccurences += this.ogl.db.stats?.[midnight]?.raidOccurences || 0;
                 expeOccurences += this.ogl.db.stats?.[midnight]?.expeOccurences && Object.values(this.ogl.db.stats?.[midnight]?.expeOccurences).length ? Object.values(this.ogl.db.stats?.[midnight]?.expeOccurences).reduce((a, b) => a + b) : 0;
+                lfOccurences += this.ogl.db.stats?.[midnight]?.lfOccurences && Object.values(this.ogl.db.stats?.[midnight]?.lfOccurences).length ? Object.values(this.ogl.db.stats?.[midnight]?.lfOccurences).reduce((a, b) => a + b) : 0;
             }
         } else {
             // fix
@@ -11566,15 +11577,16 @@ class EmpireManager {
             this.dailiesStats.push(this.ogl.db.stats.total || false);
             raidOccurences += this.ogl.db.stats?.total?.raidOccurences || 0;
             expeOccurences += this.ogl.db.stats?.total?.expeOccurences && Object.values(this.ogl.db.stats?.total?.expeOccurences).length ? Object.values(this.ogl.db.stats?.total?.expeOccurences).reduce((a, b) => a + b) : 0;
+            lfOccurences += this.ogl.db.stats?.total?.lfOccurences && Object.values(this.ogl.db.stats?.total?.lfOccurences).length ? Object.values(this.ogl.db.stats?.total?.lfOccurences).reduce((a, b) => a + b) : 0;
 
             let now = new Date();
             let midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime();
             rangeDate = (midnight - this.ogl.db.stats.firstEntry) / (24 * 60 * 60 * 1000) || (Math.ceil((Date.now() - Object.keys(this.ogl.db.stats).sort()[0]) / 24 / 60 / 60 / 1000) + 1) || 1;
         }
 
-
         let cumul = {metal: 0, crystal: 0, deut: 0, dm: 0};
         let cumulExpe = {metal: 0, crystal: 0, deut: 0, dm: 0};
+        let cumulLF = {lifeform1: 0, lifeform2: 0, lifeform3: 0, lifeform4: 0, artifact: 0};
         let cumulRaid = {metal: 0, crystal: 0, deut: 0, dm: 0};
         let cumulConso = 0;
         let cumulExpeOccurences = {};
@@ -11585,7 +11597,7 @@ class EmpireManager {
 
             if (emptyData) emptyData = false;
 
-            ['metal', 'crystal', 'deut', 'dm', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 218, 219].forEach(id => {
+            ['metal', 'crystal', 'deut', 'dm', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 218, 219, 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artifact'].forEach(id => {
                 cumul[id] = parseInt(cumul[id]) || 0;
                 if (isNaN(id)) cumulRaid[id] = parseInt(cumulRaid[id]) || 0;
                 cumulExpe[id] = parseInt(cumulExpe[id]) || 0;
@@ -11744,19 +11756,23 @@ class EmpireManager {
 
             let shipsArea = firstCol.appendChild(Util.createDom('span', {'class': 'ogl_shipsArea', 'data-html2canvas-ignore': true}));
             let expeArea = firstCol.appendChild(Util.createDom('div'));
+            let lfArea = firstCol.appendChild(Util.createDom('div'));
 
             for (const [key, value] of Object.entries(cumulExpe)) {
-                if (!this.mainResources.includes(key)) {
+                if (!this.mainResources.includes(key) && !this.lifeForms.includes(key)) {
                     let entry = shipsArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key} tooltipUp" data-title="${this.ogl.component.lang.getText('ship' + key)}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
                     if (value < 0) entry.classList.add('ogl_danger');
                 }
             }
-
             let withWithout = this.ogl.db.options.togglesOff.indexOf('ignoreExpeShips') == -1 ? 's/' : 'c/';
             expeArea.appendChild(Util.createDom('h3', {}, `${this.ogl.component.lang.getText('expedition')} (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut) / expeOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulExpe.metal + cumulExpe.crystal + cumulExpe.deut))}">${Util.formatNumber(expeOccurences)}</u>) ${withWithout} naves`));
+            lfArea.appendChild(Util.createDom('h3', {}, `${this.ogl.component.lang.getText('lifeFormExp')} (<u class="tooltip" title="${this.ogl.component.lang.getText('artifacts')} | ø ${Util.formatToUnits(Math.round((cumulExpe.artifact) / lfOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulExpe.artifact))}">${Util.formatNumber(lfOccurences)}</u>)`));
             for (const [key, value] of Object.entries(cumulExpe)) {
-                if (this.mainResources.includes(key)) {
+                if (this.mainResources.includes(key) && !this.lifeForms.includes(key)) {
                     let entry = expeArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
+                    if (value < 0) entry.classList.add('ogl_danger');
+                } else if (this.lifeForms.includes(key) && key != 'artifact') {
+                    let entry = lfArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem tooltip', 'title': `${this.ogl.component.lang.getText(key)}`}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
                     if (value < 0) entry.classList.add('ogl_danger');
                 }
             }
@@ -11764,7 +11780,9 @@ class EmpireManager {
             let raidArea = firstCol.appendChild(Util.createDom('div'));
             raidArea.appendChild(Util.createDom('h3', {}, `${this.ogl.component.lang.getText('fight')} (<u class="tooltip" title="ø ${Util.formatToUnits(Math.round((cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut) / raidOccurences))} | Σ ${Util.formatToUnits(Math.round(cumulRaid.metal + cumulRaid.crystal + cumulRaid.deut))}">${Util.formatNumber(raidOccurences)}</u>)`));
             for (const [key, value] of Object.entries(cumulRaid)) {
-                raidArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
+                if (this.mainResources.includes(key) && !this.lifeForms.includes(key)) {
+                    raidArea.appendChild(Util.createDom('div', {'class': 'ogl_statsItem'}, `<div class="ogl_shipIcon ogl_${key}"></div><div class="ogl_${key}">${Util.formatToUnits(value)}</div>`));
+                }
             }
 
             raidArea.appendChild(Util.createDom('h3', {}, `ø / ${this.ogl.component.lang.getText('day')}`));
@@ -11783,12 +11801,12 @@ class EmpireManager {
                 }
             }
 
-            if (!sum || emptyData) {
+            if (emptyData) {
                 chartArea.classList.add('ogl_hidden');
                 shipsArea.classList.add('ogl_hidden');
                 expeArea.classList.add('ogl_hidden');
-
-                if (emptyData) raidArea.classList.add('ogl_hidden');
+                lfArea.classList.add('ogl_hidden');
+                raidArea.classList.add('ogl_hidden');
             }
 
             let shareButton = Util.createDom('div', {'class': 'ogl_button'}, '<i class="material-icons">file_download</i>Download (.jpg)');
@@ -15628,7 +15646,7 @@ class MessageManager {
                 let date = new Date(parseInt(message.querySelector('.msg_date').getAttribute('data-servertime')));
                 let midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0).getTime();
                 let type = 'none';
-                let typeList = ['metal', 'crystal', 'deut', 'dm', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
+                let typeList = ['metal', 'crystal', 'deut', 'dm', 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artifact', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
 
                 this.messagePending.push(id);
 
@@ -15639,11 +15657,11 @@ class MessageManager {
                         if (!isNaN(typeID)) type = 'ships';
                         else if (typeID == 'metal' || typeID == 'crystal' || typeID == 'deut') type = 'resources';
                         else if (typeID == 'dm') type = 'dm';
+                        else if (typeID == 'lifeform1' || typeID == 'lifeform2' || typeID == 'lifeform3' || typeID == 'lifeform4' || typeID == 'artifact') type = 'lf';
                         result[typeID] = this.getExpeValue(this.ogl.component.lang.getText(typeID), message);
                     }
 
                     if (result[typeID] == -1) {
-                        type = 'none';
                         delete result[typeID];
                     }
                 });
@@ -15653,22 +15671,35 @@ class MessageManager {
                     result.item = 1;
                 }
 
-                message.querySelector('.msg_content').prepend(Util.createDom('div', {'class': 'ogl_expeResult'}, type.replace('none', '-')));
+                if (type == 'none' && message.textContent.indexOf(this.ogl.component.lang.getText('lf')) > -1) {
+                    type = 'lfNone';
+                }
 
-                this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
+                var showType = type.replace('none', '-');
+                showType = type.replace('lfNone', '-');
+
+                message.querySelector('.msg_content').prepend(Util.createDom('div', {'class': 'ogl_expeResult'}, showType));
+
+                this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, lfOccurences: {}, raidOccurences: 0, consumption: 0};
 
                 if (this.ogl.db.stats[midnight].idList.indexOf(id) == -1) {
                     this.ogl.db.stats[midnight].idList.push(id);
                     this.ogl.db.stats.total.expe = this.ogl.db.stats.total.expe || {};
                     this.ogl.db.stats.total.expeOccurences = this.ogl.db.stats.total.expeOccurences || {};
+                    this.ogl.db.stats.total.lfOccurences = this.ogl.db.stats.total.lfOccurences || {};
 
                     for (let [k, v] of Object.entries(result)) {
                         this.ogl.db.stats[midnight].expe[k] = (this.ogl.db.stats[midnight].expe[k] || 0) + v;
                         this.ogl.db.stats.total.expe[k] = (this.ogl.db.stats.total?.expe?.[k] || 0) + v;
                     }
 
-                    this.ogl.db.stats[midnight].expeOccurences[type] = (this.ogl.db.stats[midnight].expeOccurences[type] || 0) + 1;
-                    this.ogl.db.stats.total.expeOccurences[type] = (this.ogl.db.stats.total.expeOccurences[type] || 0) + 1;
+                    if (type == 'lfNone' || type == 'lf') {
+                        this.ogl.db.stats[midnight].lfOccurences[type] = (this.ogl.db.stats[midnight].lfOccurences[type] || 0) + 1;
+                        this.ogl.db.stats.total.lfOccurences[type] = (this.ogl.db.stats.total.lfOccurences[type] || 0) + 1;
+                    } else {
+                        this.ogl.db.stats[midnight].expeOccurences[type] = (this.ogl.db.stats[midnight].expeOccurences[type] || 0) + 1;
+                        this.ogl.db.stats.total.expeOccurences[type] = (this.ogl.db.stats.total.expeOccurences[type] || 0) + 1;
+                    }
                 }
 
                 if (this.messagePending.length == messages.length) {
@@ -15715,7 +15746,7 @@ class MessageManager {
                 message.prepend(Util.createDom('div', {'class': 'ogl_expeResult'}, `Renta: ${Util.formatToUnits(report.metal)} | ${Util.formatToUnits(report.crystal)} | ${Util.formatToUnits(report.deut)}`));
             }
 
-            console.log(report)
+            // console.log(report)
 
             this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
             this.ogl.db.stats.total = this.ogl.db.stats.total || {};
@@ -15923,14 +15954,37 @@ class MessageManager {
     getExpeValue(locaAttr, message) {
         let regex;
         let isResource;
+        let isLF;
+        let stringResult;
         ['metal', 'crystal', 'deut'].forEach(res => {
             if (this.ogl.component.lang.getText(res) == locaAttr) isResource = true;
         });
+        ['lifeform1','lifeform2','lifeform3','lifeform4', 'artifact'].forEach(value => {
+            if (this.ogl.component.lang.getText(value) == locaAttr) isLF = true;
+        });
 
-        let regexBefore = new RegExp('(\\d+) ' + this.cleanString(locaAttr), 'g');
-        let regexAfter = new RegExp(this.cleanString(locaAttr) + ' (\\d+)', 'g');
 
-        let stringResult = regexBefore.exec(this.cleanString(message.innerHTML))?.[1] || regexAfter.exec(this.cleanString(message.innerHTML))?.[1] || -1;
+        if (isLF == true) {
+            if (locaAttr == this.ogl.component.lang.getText('artifact')) {
+                let artFound = this.ogl.component.lang.getText('artifactFound');
+                let regex = new RegExp(artFound + ': (\\d+)');
+                let match = regex.exec(message.innerHTML);
+                if (match) {
+                    stringResult = match[1];
+                }
+            } else {
+                let regex = /(\d+)\s*EXP/;
+                let match = regex.exec(message.innerHTML);
+                if (match) {
+                    stringResult = match[1];
+                }
+            }
+        } else {
+            let regexBefore = new RegExp('(\\d+) ' + this.cleanString(locaAttr), 'g');
+            let regexAfter = new RegExp(this.cleanString(locaAttr) + ' (\\d+)', 'g');
+
+            stringResult = regexBefore.exec(this.cleanString(message.innerHTML))?.[1] || regexAfter.exec(this.cleanString(message.innerHTML))?.[1] || -1;
+        }
 
         return parseInt(stringResult);
     }
@@ -17706,6 +17760,15 @@ class LangManager {
                 poorlyChecked: 'Mal verificado',
                 notChecked: 'Não verificado',
                 missing: 'em falta',
+                lf: 'Forma de Vida',
+                lifeform1: 'Humanos',
+                lifeform2: 'Rock’tal',
+                lifeform3: 'Mechas',
+                lifeform4: 'Kaelesh',
+                artifact: 'Artefacto',
+                artifactFound: 'Artefactos encontrados',
+                lifeFormExp: 'Exp. FdV',
+                artifacts: 'Artefactos',
             }
 
         this.en =
@@ -17867,6 +17930,15 @@ class LangManager {
                 poorlyChecked: 'Poorly checked',
                 notChecked: 'Not checked',
                 missing: 'missing',
+                lf: 'Life Form',
+                lifeform1: 'Humans',
+                lifeform2: 'Rock’tal',
+                lifeform3: 'Mechas',
+                lifeform4: 'Kaelesh',
+                artifact: 'Artifact',
+                artifactFound: 'Artifacts founded',
+                lifeFormExp: 'Life Form Exp.',
+                artifacts: 'Artifacts',
             }
 
         this.fr =
@@ -18025,6 +18097,15 @@ class LangManager {
                 poorlyChecked: 'Poorly checked',
                 notChecked: 'Not checked',
                 missing: 'missing',
+                lf: 'Life Form',
+                lifeform1: 'Humans',
+                lifeform2: 'Rock’tal',
+                lifeform3: 'Mechas',
+                lifeform4: 'Kaelesh',
+                artifact: 'Artifact',
+                artifactFound: 'Artifacts founded',
+                lifeFormExp: 'Life Form Exp.',
+                artifacts: 'Artifacts',
             }
 
         this.gr =
@@ -18171,6 +18252,15 @@ class LangManager {
                 poorlyChecked: 'Poorly checked',
                 notChecked: 'Not checked',
                 missing: 'missing',
+                lf: 'Life Form',
+                lifeform1: 'Humans',
+                lifeform2: 'Rock’tal',
+                lifeform3: 'Mechas',
+                lifeform4: 'Kaelesh',
+                artifact: 'Artifact',
+                artifactFound: 'Artifacts founded',
+                lifeFormExp: 'Life Form Exp.',
+                artifacts: 'Artifacts',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
