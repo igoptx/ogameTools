@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3
+// @version      4.3.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -11852,11 +11852,13 @@ class EmpireManager {
                         if (!isNaN(shipID) && !isNaN(amount)) result[shipID] = amount;
                     });
 
-                    this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
+                    this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, lfOccurences: {}, raidOccurences: 0, consumption: 0};
                     this.ogl.db.stats[midnight].expe = this.ogl.db.stats[midnight].expe || {};
                     this.ogl.db.stats.total.expe = this.ogl.db.stats.total.expe || {};
                     this.ogl.db.stats[midnight].expeOccurences = this.ogl.db.stats[midnight].expeOccurences || {};
                     this.ogl.db.stats.total.expeOccurences = this.ogl.db.stats.total.expeOccurences || {};
+                    this.ogl.db.stats[midnight].lfOccurences = this.ogl.db.stats[midnight].lfOccurences || {};
+                    this.ogl.db.stats.total.lfOccurences = this.ogl.db.stats.total.lfOccurences || {};
 
                     for (let [k, v] of Object.entries(result)) {
                         this.ogl.db.stats[midnight].expe[k] = (this.ogl.db.stats[midnight].expe?.[k] || 0) - v;
@@ -15549,10 +15551,11 @@ class MessageManager {
 
         let target = json.coordinates.position == 16 ? 'expe' : 'raid';
 
-        this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
+        this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, lfOccurences: {}, raidOccurences: 0, consumption: 0};
         this.ogl.db.stats.ignored = this.ogl.db.stats.ignored || {};
         this.ogl.db.stats.total = this.ogl.db.stats.total || {};
         this.ogl.db.stats.total.expeOccurences = this.ogl.db.stats.total.expeOccurences || {};
+        this.ogl.db.stats.total.lfOccurences = this.ogl.db.stats.total.lfOccurences || {};
         this.ogl.db.stats.total.raidOccurences = this.ogl.db.stats.total.raidOccurences || 0;
 
         let newEntry = !this.ogl.db.stats[midnight].idList.includes(id) && !this.ogl.db.stats.ignored[id];
