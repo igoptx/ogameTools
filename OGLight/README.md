@@ -180,6 +180,10 @@ You can ignore the raids to not count in stats profit window
 
 ![Raid 001](images/raids_01.png)
 
+You can convert the CR directly from the messages page with the OGotcha Converter
+
+![Raid 001](images/raids_02.png)
+
 
 ### Expeditions
 
