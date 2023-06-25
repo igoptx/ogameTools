@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.1
+// @version      4.3.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -15058,6 +15058,11 @@ class Util {
         return 'https://trashsim.universeview.be/' + lang + '?SR_KEY=' + apiKey + '#prefill=' + jsonTechs;
     }
 
+    static convertOgotcha(apiKey, ogl) {
+        let lang = ogl.universe.lang == 'us' ? 'en' : ogl.universe.lang == 'ar' ? 'es' : ogl.universe.lang;
+        window.open('https://ogotcha.oplanet.eu/'+lang+'?CR_KEY='+apiKey, "_blank");
+    }
+
     static getXML(url, callback) {
         let cancelController = new AbortController();
         let signal = cancelController.signal;
@@ -15549,6 +15554,11 @@ class MessageManager {
 
         message.prepend(line);
 
+
+        let apiKey = Util.createDom('div', {});
+        apiKey.innerHTML = message.querySelector('.icon_apikey').getAttribute('title');
+        apiKey = apiKey.querySelector('input').value;
+
         let target = json.coordinates.position == 16 ? 'expe' : 'raid';
 
         this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, lfOccurences: {}, raidOccurences: 0, consumption: 0};
@@ -15625,6 +15635,9 @@ class MessageManager {
 
             // ignore spies fights
             if (newEntry && probesOnly && !this.ogl.db.ships[210]?.capacity) ignore.click();
+
+            let convertOgotcha = message.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf_link ogl_sim tooltip ', 'title': this.ogl.component.lang.getText('convertOgotcha')+' -> '+apiKey}, 'CR'));
+            convertOgotcha.addEventListener('click', () => Util.convertOgotcha(apiKey, this.ogl));
         }
     }
 
@@ -15679,7 +15692,7 @@ class MessageManager {
                 }
 
                 var showType = type.replace('none', '-');
-                showType = type.replace('lfNone', '-');
+                showType = showType.replace('lfNone', '-');
 
                 message.querySelector('.msg_content').prepend(Util.createDom('div', {'class': 'ogl_expeResult'}, showType));
 
@@ -17772,6 +17785,7 @@ class LangManager {
                 artifactFound: 'Artefactos encontrados',
                 lifeFormExp: 'Exp. FdV',
                 artifacts: 'Artefactos',
+                convertOgotcha: 'Converter com o Ogotcha',
             }
 
         this.en =
@@ -17942,6 +17956,7 @@ class LangManager {
                 artifactFound: 'Artifacts founded',
                 lifeFormExp: 'Life Form Exp.',
                 artifacts: 'Artifacts',
+                convertOgotcha: 'Convert with Ogotcha',
             }
 
         this.fr =
@@ -18109,6 +18124,7 @@ class LangManager {
                 artifactFound: 'Artifacts founded',
                 lifeFormExp: 'Life Form Exp.',
                 artifacts: 'Artifacts',
+                convertOgotcha: 'Convert with Ogotcha',
             }
 
         this.gr =
@@ -18264,6 +18280,7 @@ class LangManager {
                 artifactFound: 'Artifacts founded',
                 lifeFormExp: 'Life Form Exp.',
                 artifacts: 'Artifacts',
+                convertOgotcha: 'Convert with Ogotcha',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);

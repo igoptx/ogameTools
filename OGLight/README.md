@@ -1,7 +1,7 @@
 # OGLight
-Version: 4.3.1
+Version: 4.3.2
 
-Last Update: 2023/06/24 15:20:00
+Last Update: 2023/06/25 15:20:00
 
 [Install](https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.user.js)
 
