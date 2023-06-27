@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.2
+// @version      4.3.2.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -15636,7 +15636,7 @@ class MessageManager {
             // ignore spies fights
             if (newEntry && probesOnly && !this.ogl.db.ships[210]?.capacity) ignore.click();
 
-            let convertOgotcha = message.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf_link ogl_sim tooltip ', 'title': this.ogl.component.lang.getText('convertOgotcha')+' -> '+apiKey}, 'CR'));
+            let convertOgotcha = message.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf_link ogl_sim tooltip ', 'title': this.ogl.component.lang.getText('convertOgotcha')}, 'CR'));
             convertOgotcha.addEventListener('click', () => Util.convertOgotcha(apiKey, this.ogl));
         }
     }
