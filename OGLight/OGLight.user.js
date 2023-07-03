@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.2.1
+// @version      4.3.3
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -11736,7 +11736,7 @@ class EmpireManager {
             let pieStats = Object.entries(cumulExpeOccurences).sort((a, b) => a[0].localeCompare(b[0])).map(x => (1 / (dataSum / x[1]) * 100));
             let gradient = '';
             let sum = 0;
-            let colors = ['#e64a19', '#19bd9b', '#f9a825', '#64648b', '#c52b51', '#05abc3', '#c5ced3'];
+            let colors = ['#e64a19', '#19bd9b', '#f9a825', '#64648b', '#c52b51', '#05abc3', '#c5ced3', '#f5e71b', '#573d4a'];
 
             pieStats.forEach((v, index) => {
                 gradient += `${colors[index]} ${Math.max(sum, 0) || 0}%, ${colors[index]} ${Math.max(sum + v, 0) || 0}%, `;
@@ -15662,7 +15662,7 @@ class MessageManager {
                 let date = new Date(parseInt(message.querySelector('.msg_date').getAttribute('data-servertime')));
                 let midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0).getTime();
                 let type = 'none';
-                let typeList = ['metal', 'crystal', 'deut', 'dm', 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artifact', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
+                let typeList = ['metal', 'crystal', 'deut', 'dm', 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artifact', 'longerText1', 'longerText2', 'longerText3', 'earlyText1', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
 
                 this.messagePending.push(id);
 
@@ -15674,6 +15674,8 @@ class MessageManager {
                         else if (typeID == 'metal' || typeID == 'crystal' || typeID == 'deut') type = 'resources';
                         else if (typeID == 'dm') type = 'dm';
                         else if (typeID == 'lifeform1' || typeID == 'lifeform2' || typeID == 'lifeform3' || typeID == 'lifeform4' || typeID == 'artifact') type = 'lf';
+                        else if (typeID == 'longerText1' || typeID == 'longerText2' || typeID == 'longerText3') type = 'longer';
+                        else if (typeID == 'earlyText1') type ='early';
                         result[typeID] = this.getExpeValue(this.ogl.component.lang.getText(typeID), message);
                     }
 
@@ -17789,6 +17791,12 @@ class LangManager {
                 lifeFormExp: 'Exp. FdV',
                 artifacts: 'Artefactos',
                 convertOgotcha: 'Converter com o Ogotcha',
+                longer: 'Com Atraso',
+                longerText1: 'equipa irá demorar mais do que pensavam',
+                longerText2: 'missão irá voltar com um grande atraso',
+                longerText3: 'O computador irá precisar de mais tempo para conseguir recalcular o salto de volta',
+                early: 'Regresso Rápido',
+                earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
             }
 
         this.en =
@@ -17960,6 +17968,12 @@ class LangManager {
                 lifeFormExp: 'Life Form Exp.',
                 artifacts: 'Artifacts',
                 convertOgotcha: 'Convert with Ogotcha',
+                longer: 'Com Atraso',
+                longerText1: 'equipa irá demorar mais do que pensavam',
+                longerText2: 'missão irá voltar com um grande atraso',
+                longerText3: 'O computador irá precisar de mais tempo para conseguir recalcular o salto de volta',
+                early: 'Regresso Rápido',
+                earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
             }
 
         this.fr =
@@ -18128,6 +18142,12 @@ class LangManager {
                 lifeFormExp: 'Life Form Exp.',
                 artifacts: 'Artifacts',
                 convertOgotcha: 'Convert with Ogotcha',
+                longer: 'Com Atraso',
+                longerText1: 'equipa irá demorar mais do que pensavam',
+                longerText2: 'missão irá voltar com um grande atraso',
+                longerText3: 'O computador irá precisar de mais tempo para conseguir recalcular o salto de volta',
+                early: 'Regresso Rápido',
+                earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
             }
 
         this.gr =
@@ -18284,6 +18304,12 @@ class LangManager {
                 lifeFormExp: 'Life Form Exp.',
                 artifacts: 'Artifacts',
                 convertOgotcha: 'Convert with Ogotcha',
+                longer: 'Com Atraso',
+                longerText1: 'equipa irá demorar mais do que pensavam',
+                longerText2: 'missão irá voltar com um grande atraso',
+                longerText3: 'O computador irá precisar de mais tempo para conseguir recalcular o salto de volta',
+                early: 'Regresso Rápido',
+                earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);
