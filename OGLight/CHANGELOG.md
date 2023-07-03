@@ -1,12 +1,15 @@
 # OGLight - Changelog
 
+### [4.3.3.1] - 2023/07/03 15:30:00
+- Add new texts to identify expeditions
+
 ### [4.3.3] - 2023/07/03 13:00:00
 - [Issue #004](https://github.com/igoptx/ogameTools/issues/4)
-   - Add new exploration types to stats. Early and Longer Missions
+   - Add new expedition types to stats. Early and Longer Missions
   
 ### [4.3.2.2] - 2023/07/03 11:25:00
 - [Issue #003](https://github.com/igoptx/ogameTools/issues/3)
-   - Fix empty exploration list as resources
+   - Fix empty expedition list as resources
 
 ### [4.3.2.1] - 2023/06/27 09:43:00
  - Fix minor bug
