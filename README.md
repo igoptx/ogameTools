@@ -4,9 +4,9 @@ The Compendium of Ogame Tools
 
 
 ## [OGLight](https://github.com/igoptx/ogameTools/tree/main/OGLight)
-Version: 4.3.2.2
+Version: 4.3.3
 
-Last Update: 2023/07/03 11:24:00
+Last Update: 2023/07/03 13:00:00
 
 
 ## InfoCompte
