@@ -15678,6 +15678,9 @@ class MessageManager {
                     }
 
                     if (result[typeID] == -1) {
+                        if (type == 'resources') {
+                            type = 'none';
+                        }
                         delete result[typeID];
                     }
                 });

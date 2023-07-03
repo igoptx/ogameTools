@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [4.3.2.2] - 2023/07/03 11:25:00
+ - Fix [Issue #003](https://github.com/igoptx/ogameTools/issues/3)
+   - Fix empty exploration list as resources
+
 ### [4.3.2.1] - 2023/06/27 09:43:00
  - Fix minor bug
    - Remove api key that is showing in the CR button popup
