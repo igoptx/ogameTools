@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.3.2
+// @version      4.3.3.3
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -15702,13 +15702,6 @@ class MessageManager {
                 message.querySelector('.msg_content').prepend(Util.createDom('div', {'class': 'ogl_expeResult'}, showType));
 
                 this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, lfOccurences: {}, raidOccurences: 0, consumption: 0};
-
-                if (!('lfOccurences' in this.ogl.db.stats[midnight])) {
-                    this.ogl.db.stats[midnight].lfOccurences = [];
-                }
-                if (!('lfOccurences' in this.ogl.db.stats.total)) {
-                    this.ogl.db.stats.total.lfOccurences = [];
-                }
 
                 if (this.ogl.db.stats[midnight].idList.indexOf(id) == -1) {
                     this.ogl.db.stats[midnight].idList.push(id);
