@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.3.1
+// @version      4.3.3.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -10057,7 +10057,7 @@ class FleetManager {
             this.ogl.db.lastFleet.expeditionTime = fleetDispatcher.expeditionTime;
 
             // add consumption to stats
-            this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
+            this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, lfOccurences: {}, raidOccurences: 0, consumption: 0};
             this.ogl.db.stats[midnight].consumption = (this.ogl.db.stats?.[midnight]?.consumption || 0) - fleetDispatcher.getConsumption();
             this.ogl.db.stats.total = this.ogl.db.stats.total || {};
             this.ogl.db.stats.total.consumption = (this.ogl.db.stats?.total?.consumption || 0) - fleetDispatcher.getConsumption();
@@ -15703,6 +15703,13 @@ class MessageManager {
 
                 this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, lfOccurences: {}, raidOccurences: 0, consumption: 0};
 
+                if (!('lfOccurences' in this.ogl.db.stats[midnight])) {
+                    this.ogl.db.stats[midnight].lfOccurences = [];
+                }
+                if (!('lfOccurences' in this.ogl.db.stats.total)) {
+                    this.ogl.db.stats.total.lfOccurences = [];
+                }
+
                 if (this.ogl.db.stats[midnight].idList.indexOf(id) == -1) {
                     this.ogl.db.stats[midnight].idList.push(id);
                     this.ogl.db.stats.total.expe = this.ogl.db.stats.total.expe || {};
@@ -15769,7 +15776,7 @@ class MessageManager {
 
             // console.log(report)
 
-            this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, raidOccurences: 0, consumption: 0};
+            this.ogl.db.stats[midnight] = this.ogl.db.stats[midnight] || {idList: [], expe: {}, raid: {}, expeOccurences: {}, lfOccurences: {}, raidOccurences: 0, consumption: 0};
             this.ogl.db.stats.total = this.ogl.db.stats.total || {};
             this.ogl.db.stats.total[target] = this.ogl.db.stats.total[target] || {};
 
@@ -15777,6 +15784,7 @@ class MessageManager {
                 this.ogl.db.stats[midnight].idList.push(id);
                 this.ogl.db.stats.total.expe = this.ogl.db.stats.total.expe || {};
                 this.ogl.db.stats.total.expeOccurences = this.ogl.db.stats.total.expeOccurences || {};
+                this.ogl.db.stats.total.lfOccurences = this.ogl.db.stats.total.lfOccurences || {};
 
                 for (let [k, v] of Object.entries(report)) {
                     this.ogl.db.stats[midnight][target][k] = (this.ogl.db.stats[midnight][target][k] || 0) + v;

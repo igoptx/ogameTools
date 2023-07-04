@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [4.3.3.2] - 2023/07/04 10:00:00
+- Fix LF expeditions count
+
 ### [4.3.3.1] - 2023/07/03 15:30:00
 - Add new texts to identify expeditions
 
