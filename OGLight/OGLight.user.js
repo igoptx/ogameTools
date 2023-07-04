@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.3.3
+// @version      4.3.3.4
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -15435,7 +15435,6 @@ class MessageManager {
 
             if (this.ogl.cache.msg[id]) this.loadRaidMessages(id);
             else {
-                console.log('fetch')
                 let groupID = Math.floor(index / 15) * 10;
 
                 urls[groupID] = urls[groupID] || [];
@@ -15715,6 +15714,11 @@ class MessageManager {
                     }
 
                     if (type == 'lfNone' || type == 'lf') {
+
+                        if (this.ogl.db.stats[midnight]?.lfOccurences == undefined) {
+                            this.ogl.db.stats[midnight].lfOccurences = {};
+                        }
+
                         this.ogl.db.stats[midnight].lfOccurences[type] = (this.ogl.db.stats[midnight].lfOccurences[type] || 0) + 1;
                         this.ogl.db.stats.total.lfOccurences[type] = (this.ogl.db.stats.total.lfOccurences[type] || 0) + 1;
                     } else {
