@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.4
+// @version      4.3.5
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -11172,23 +11172,30 @@ class EmpireManager {
                 this.myPlanets[coords] = this.myPlanets[coords] || {};
                 this.myPlanets[coords].missions.push(mission);
 
-                let tooltip = Util.createDom('div', {}, (line.querySelector('.icon_movement .tooltip') || line.querySelector('.icon_movement_reserve .tooltip')).getAttribute('title'));
-                tooltip.querySelectorAll('.fleetinfo tr').forEach(subline => {
-                    if (subline.textContent.trim() == '') subline.classList.add('ogl_hidden');
-                    else if (!subline.querySelector('td')) subline.classList.add('ogl_full');
-                    else {
-                        let name = subline.querySelector('td').textContent.replace(':', '');
-                        let shipID = (Object.entries(this.ogl.db.ships).find(e => e[1].name == name) || [false])[0];
-                        let resourceName = resourceKeys.find(e => this.ogl.component.lang.getText(e) == name);
+                let tooltip = (line.querySelector('.icon_movement .tooltip') || line.querySelector('.icon_movement_reserve .tooltip'));
 
-                        if (shipID && shipID > -1 && subline.querySelector('.value')) {
-                            if ((mission == '1' || mission == '6') && fromAnotherPlayer) this.myPlanets[coords].opponentShips[shipID] = (this.myPlanets[coords].opponentShips[shipID] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
-                            else if (!toAnotherPlayer || back) this.myPlanets[coords].shipsFlight[shipID] = (this.myPlanets[coords].shipsFlight[shipID] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
-                        } else if (resourceName && (!toAnotherPlayer || back)) {
-                            this.myPlanets[coords].resourcesFlight[resourceName] = (this.myPlanets[coords].resourcesFlight[resourceName] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
+                if (tooltip == null) {
+                    console.log("No Spy Tec Yet");
+                } else {
+                    tooltip = Util.createDom('div', {}, tooltip.getAttribute('title'));
+
+                    tooltip.querySelectorAll('.fleetinfo tr').forEach(subline => {
+                        if (subline.textContent.trim() == '') subline.classList.add('ogl_hidden');
+                        else if (!subline.querySelector('td')) subline.classList.add('ogl_full');
+                        else {
+                            let name = subline.querySelector('td').textContent.replace(':', '');
+                            let shipID = (Object.entries(this.ogl.db.ships).find(e => e[1].name == name) || [false])[0];
+                            let resourceName = resourceKeys.find(e => this.ogl.component.lang.getText(e) == name);
+
+                            if (shipID && shipID > -1 && subline.querySelector('.value')) {
+                                if ((mission == '1' || mission == '6') && fromAnotherPlayer) this.myPlanets[coords].opponentShips[shipID] = (this.myPlanets[coords].opponentShips[shipID] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
+                                else if (!toAnotherPlayer || back) this.myPlanets[coords].shipsFlight[shipID] = (this.myPlanets[coords].shipsFlight[shipID] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
+                            } else if (resourceName && (!toAnotherPlayer || back)) {
+                                this.myPlanets[coords].resourcesFlight[resourceName] = (this.myPlanets[coords].resourcesFlight[resourceName] || 0) + Util.formatFromUnits(subline.querySelector('.value').textContent);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             });
 
             // fleet movements
