@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.3.5
+// @version      4.3.4
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -8603,6 +8603,20 @@ class HighscoreManager {
     init() {
         if (!document.querySelector('.playername')) return;
 
+        var table = document.getElementById('ranks');
+        var tbody = table.querySelector('tbody');
+        var firstRow = tbody.querySelector('tr');
+
+        const string = (firstRow.outerText).replace('.','');
+        const regex = /(\[.*?\])\s+(.*?)\s+(\d+(?:\.\d+)?)/;
+        const match = string.match(regex);
+
+        if (match) {
+            const playerName = match[1].replace(/\[|\]/g, '');
+            const points = parseFloat(match[3].replace(/[,.]/g, ''));
+            this.ogl.db.topScore[0] = points;
+        }
+
         document.querySelectorAll('#ranks tbody tr').forEach(line => {
             line.querySelector('.playername').classList.add('tooltipRight');
             line.querySelector('.playername').classList.add('tooltipClose');
@@ -15661,7 +15675,7 @@ class MessageManager {
                 let date = new Date(parseInt(message.querySelector('.msg_date').getAttribute('data-servertime')));
                 let midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0).getTime();
                 let type = 'none';
-                let typeList = ['metal', 'crystal', 'deut', 'dm', 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artifact', 'longerText1', 'longerText2', 'longerText3', 'longerText4', 'longerText5', 'earlyText1', 'earlyText2', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
+                let typeList = ['metal', 'crystal', 'deut', 'dm', 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artifact', 'longerText1', 'longerText2', 'longerText3', 'longerText4', 'longerText5', 'longerText6', 'earlyText1', 'earlyText2', 'earlyText3', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
 
                 this.messagePending.push(id);
 
@@ -15673,8 +15687,8 @@ class MessageManager {
                         else if (typeID == 'metal' || typeID == 'crystal' || typeID == 'deut') type = 'resources';
                         else if (typeID == 'dm') type = 'dm';
                         else if (typeID == 'lifeform1' || typeID == 'lifeform2' || typeID == 'lifeform3' || typeID == 'lifeform4' || typeID == 'artifact') type = 'lf';
-                        else if (typeID == 'longerText1' || typeID == 'longerText2' || typeID == 'longerText3' || typeID == 'longerText4' || typeID == 'longerText5') type = 'longer';
-                        else if (typeID == 'earlyText1' || typeID == 'earlyText2') type ='early';
+                        else if (typeID == 'longerText1' || typeID == 'longerText2' || typeID == 'longerText3' || typeID == 'longerText4' || typeID == 'longerText5' || typeID == 'longerText6') type = 'longer';
+                        else if (typeID == 'earlyText1' || typeID == 'earlyText2' || typeID == 'earlyText3') type ='early';
                         result[typeID] = this.getExpeValue(this.ogl.component.lang.getText(typeID), message);
                     }
 
@@ -17802,9 +17816,11 @@ class LangManager {
                 longerText3: 'O computador irá precisar de mais tempo para conseguir recalcular o salto de volta',
                 longerText4: 'A nave principal colidiu com uma nave estranha que tinha acabado de sair do salto de hiperespaço. A nave estranha explodiu com o impacto causando danos substanciais no casco da nave principal',
                 longerText5: 'Devido a esta falha a frota aterrou no local errado e devido a isso irá demorar mais tempo a voltar',
+                longerText6: 'A viagem de retorno demorará mais um pouco que o previsto',
                 early: 'Regresso Rápido',
                 earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
                 earlyText2: 'Um problema inesperado no campo energético dos motores fez com que a expedição voltasse mais rapidamente para casa',
+                earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
             }
 
         this.en =
@@ -17982,9 +17998,11 @@ class LangManager {
                 longerText3: 'O computador irá precisar de mais tempo para conseguir recalcular o salto de volta',
                 longerText4: 'A nave principal colidiu com uma nave estranha que tinha acabado de sair do salto de hiperespaço. A nave estranha explodiu com o impacto causando danos substanciais no casco da nave principal',
                 longerText5: 'Devido a esta falha a frota aterrou no local errado e devido a isso irá demorar mais tempo a voltar',
+                longerText6: 'A viagem de retorno demorará mais um pouco que o previsto',
                 early: 'Regresso Rápido',
                 earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
                 earlyText2: 'Um problema inesperado no campo energético dos motores fez com que a expedição voltasse mais rapidamente para casa',
+                earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
             }
 
         this.fr =
@@ -18159,9 +18177,11 @@ class LangManager {
                 longerText3: 'O computador irá precisar de mais tempo para conseguir recalcular o salto de volta',
                 longerText4: 'A nave principal colidiu com uma nave estranha que tinha acabado de sair do salto de hiperespaço. A nave estranha explodiu com o impacto causando danos substanciais no casco da nave principal',
                 longerText5: 'Devido a esta falha a frota aterrou no local errado e devido a isso irá demorar mais tempo a voltar',
+                longerText6: 'A viagem de retorno demorará mais um pouco que o previsto',
                 early: 'Regresso Rápido',
                 earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
                 earlyText2: 'Um problema inesperado no campo energético dos motores fez com que a expedição voltasse mais rapidamente para casa',
+                earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
             }
 
         this.gr =
@@ -18324,9 +18344,11 @@ class LangManager {
                 longerText3: 'O computador irá precisar de mais tempo para conseguir recalcular o salto de volta',
                 longerText4: 'A nave principal colidiu com uma nave estranha que tinha acabado de sair do salto de hiperespaço. A nave estranha explodiu com o impacto causando danos substanciais no casco da nave principal',
                 longerText5: 'Devido a esta falha a frota aterrou no local errado e devido a isso irá demorar mais tempo a voltar',
+                longerText6: 'A viagem de retorno demorará mais um pouco que o previsto',
                 early: 'Regresso Rápido',
                 earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
                 earlyText2: 'Um problema inesperado no campo energético dos motores fez com que a expedição voltasse mais rapidamente para casa',
+                earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);

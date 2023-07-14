@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [4.3.4] - 2023/07/14 10:20:00
+- Add new way to collect the top player score
+- Add new text to identify expeditions
+
 ### [4.3.3.5] - 2023/07/06 14:55:00
 - Add new text to identify expeditions
 
