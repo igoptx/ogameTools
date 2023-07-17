@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [4.3.6] - 2023/07/17 10:20:00
+- Fix time in expedition to 'Repeat previous fleet' action
+
 ### [4.3.5] - 2023/07/14 15:40:00
 - Fix gathering information when there is no spy tec (when we can't see ships in the events)
 

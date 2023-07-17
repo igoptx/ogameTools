@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.5
+// @version      4.3.6
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -16473,6 +16473,7 @@ class KeyboardManager {
 
                     if (fleetDispatcher.mission == 15) {
                         fleetDispatcher.expeditionTime = this.ogl.db.lastFleet.expeditionTime;
+                        $('#fleet2 #expeditiontime').val(fleetDispatcher.expeditionTime);
                         fleetDispatcher.updateExpeditionTime();
                     }
 
