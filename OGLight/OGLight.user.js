@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.3.6
+// @version      4.4
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -17420,23 +17420,23 @@ class TimeManager {
                         if (tech.isLfBuilding) {
                             totalTime = Math.round(tech.current.level * tech.data.duration * Math.pow(tech.data.durationFactor, tech.current.level)) / (1 + baseTechs.robot) / (Math.pow(2, baseTechs.nanite)) / this.ogl.universe.ecoSpeed;
                         } else if (tech.isLfResearch) {
-                            totalTime = Math.round(tech.current.level * tech.data.duration * Math.pow(tech.data.durationFactor, tech.current.level)) * (1 - 0.02 * center) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed);
+                            //totalTime = Math.round(tech.current.level * tech.data.duration * Math.pow(tech.data.durationFactor, tech.current.level)) * (1 - 0.02 * center) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed);
                         } else if (tech.isBaseBuilding && tech.id != 15) {
                             let levelRatio = tech.id == 43 ? 1 : 4 - tech.current.level / 2;
                             totalTime = (tech.current.metal + tech.current.crystal) / (2500 * Math.max(levelRatio, 1) * (1 + baseTechs.robot) * (Math.pow(2, baseTechs.nanite))) / this.ogl.universe.ecoSpeed * 3600;
                         } else if (tech.isBaseResearch) {
-                            totalTime = (tech.current.metal + tech.current.crystal) / (1000 * (1 + baseTechs.labo + networkLevel)) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed) * 3600;
+                            //totalTime = (tech.current.metal + tech.current.crystal) / (1000 * (1 + baseTechs.labo + networkLevel)) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed) * 3600;
                         } else if (tech.id != 15) {
                             totalTime = totalTime * Math.pow(tech.data.durationFactor, tech.current.level - tech.initial.level);
                         }
 
                         let bonus = 0;
 
-                        if (tech.isBaseResearch && this.ogl.account.class == 3) bonus += 25;
-                        if (tech.isBaseResearch && document.querySelector(`[data-technology="${tech.id}"] .acceleration`)) bonus += parseInt(document.querySelector(`[data-technology="${tech.id}"] .acceleration`).getAttribute('data-value'));
-                        if (tech.isBaseResearch && document.querySelector('#officers .technocrat.on')) totalTime = totalTime - totalTime * 25 / 100;
+                        //if (tech.isBaseResearch && this.ogl.account.class == 3) bonus += 25;
+                        //if (tech.isBaseResearch && document.querySelector(`[data-technology="${tech.id}"] .acceleration`)) bonus += parseInt(document.querySelector(`[data-technology="${tech.id}"] .acceleration`).getAttribute('data-value'));
+                        //if (tech.isBaseResearch && document.querySelector('#officers .technocrat.on')) totalTime = totalTime - totalTime * 25 / 100;
 
-                        totalTime = totalTime - totalTime * bonus / 100;
+                        //totalTime = totalTime - totalTime * bonus / 100;
                     }
 
                     let seconds = Math.ceil(totalTime || 1);

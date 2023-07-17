@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [4.4] - 2023/07/17 14:35:00
+- Fix building time of Life Forms and normal researchs
+
 ### [4.3.6] - 2023/07/17 10:20:00
 - Fix time in expedition to 'Repeat previous fleet' action
 
