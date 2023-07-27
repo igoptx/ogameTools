@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.4
+// @version      4.4.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -9787,7 +9787,7 @@ class FleetManager {
             if (fleetDispatcher.fleetHelper.shipsData?.[shipID]) {
                 this.ogl.db.ships[shipID] = {};
                 this.ogl.db.ships[shipID].name = fleetDispatcher.fleetHelper.shipsData[shipID].name;
-                this.ogl.db.ships[shipID].capacity = fleetDispatcher.fleetHelper.shipsData[shipID].cargoCapacity;
+                this.ogl.db.ships[shipID].capacity = fleetDispatcher.fleetHelper.shipsData[shipID].baseCargoCapacity;
                 this.ogl.db.ships[shipID].speed = fleetDispatcher.fleetHelper.shipsData[shipID].speed;
             }
         });

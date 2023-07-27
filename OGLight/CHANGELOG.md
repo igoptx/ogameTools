@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [4.4.1] - 2023/07/27 12:45:00
+- Fix getting cargo capacity from ships
+
 ### [4.4] - 2023/07/17 14:35:00
 - Fix building time of Life Forms and normal researchs
 

@@ -8,9 +8,9 @@
 
 ## [OGLight](https://github.com/igoptx/ogameTools/tree/main/OGLight)
 
-Version: 4.4
+Version: 4.4.1
 
-Last Update: 2023/07/17 14:35:00
+Last Update: 2023/07/27 12:45:00
 
 ## InfoCompte
 
