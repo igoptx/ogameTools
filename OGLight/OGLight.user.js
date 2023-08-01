@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.4.1
+// @version      4.5
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7918,8 +7918,8 @@ class OGLight {
                     previousTime = entry[1];
 
                     if (index == this.performances.length - 1) {
-                        console.log(''.padEnd(24, '-'));
-                        console.log('Total'.padEnd(16, '_') + ` ${(entry[1] - initialTime).toFixed(2)} ms`);
+                        //console.log(''.padEnd(24, '-'));
+                        //console.log('Total'.padEnd(16, '_') + ` ${(entry[1] - initialTime).toFixed(2)} ms`);
                     }
                 });
 
@@ -11175,7 +11175,7 @@ class EmpireManager {
                 let tooltip = (line.querySelector('.icon_movement .tooltip') || line.querySelector('.icon_movement_reserve .tooltip'));
 
                 if (tooltip == null) {
-                    console.log("No Spy Tec Yet");
+                    //console.log("No Spy Tec Yet");
                 } else {
                     tooltip = Util.createDom('div', {}, tooltip.getAttribute('title'));
 
@@ -15682,7 +15682,7 @@ class MessageManager {
                 let date = new Date(parseInt(message.querySelector('.msg_date').getAttribute('data-servertime')));
                 let midnight = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0).getTime();
                 let type = 'none';
-                let typeList = ['metal', 'crystal', 'deut', 'dm', 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artifact', 'longerText1', 'longerText2', 'longerText3', 'longerText4', 'longerText5', 'longerText6', 'earlyText1', 'earlyText2', 'earlyText3', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
+                let typeList = ['metal', 'crystal', 'deut', 'dm', 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artifact', 'longerText1', 'longerText2', 'longerText3', 'longerText4', 'longerText5', 'longerText6', 'earlyText1', 'earlyText2', 'earlyText3', 'traderText1', 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 213, 214, 215, 217, 218, 219];
 
                 this.messagePending.push(id);
 
@@ -15696,6 +15696,7 @@ class MessageManager {
                         else if (typeID == 'lifeform1' || typeID == 'lifeform2' || typeID == 'lifeform3' || typeID == 'lifeform4' || typeID == 'artifact') type = 'lf';
                         else if (typeID == 'longerText1' || typeID == 'longerText2' || typeID == 'longerText3' || typeID == 'longerText4' || typeID == 'longerText5' || typeID == 'longerText6') type = 'longer';
                         else if (typeID == 'earlyText1' || typeID == 'earlyText2' || typeID == 'earlyText3') type ='early';
+                        else if (typeID == 'traderText1') type ='trader';
                         result[typeID] = this.getExpeValue(this.ogl.component.lang.getText(typeID), message);
                     }
 
@@ -17422,8 +17423,8 @@ class TimeManager {
                         } else if (tech.isLfResearch) {
                             //totalTime = Math.round(tech.current.level * tech.data.duration * Math.pow(tech.data.durationFactor, tech.current.level)) * (1 - 0.02 * center) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed);
                         } else if (tech.isBaseBuilding && tech.id != 15) {
-                            let levelRatio = tech.id == 43 ? 1 : 4 - tech.current.level / 2;
-                            totalTime = (tech.current.metal + tech.current.crystal) / (2500 * Math.max(levelRatio, 1) * (1 + baseTechs.robot) * (Math.pow(2, baseTechs.nanite))) / this.ogl.universe.ecoSpeed * 3600;
+                            //let levelRatio = tech.id == 43 ? 1 : 4 - tech.current.level / 2;
+                            //totalTime = (tech.current.metal + tech.current.crystal) / (2500 * Math.max(levelRatio, 1) * (1 + baseTechs.robot) * (Math.pow(2, baseTechs.nanite))) / this.ogl.universe.ecoSpeed * 3600;
                         } else if (tech.isBaseResearch) {
                             //totalTime = (tech.current.metal + tech.current.crystal) / (1000 * (1 + baseTechs.labo + networkLevel)) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed) * 3600;
                         } else if (tech.id != 15) {
@@ -17439,7 +17440,14 @@ class TimeManager {
                         //totalTime = totalTime - totalTime * bonus / 100;
                     }
 
-                    let seconds = Math.ceil(totalTime || 1);
+                    let amount = 1;
+                    if (this.currentDetail.querySelector('#build_amount')) {
+                        amount = parseInt(this.currentDetail.querySelector('#build_amount').value || 1);
+
+                        if (amount == 0) amount = 1;
+                    }
+
+                    let seconds = Math.ceil(totalTime || 1) * amount;
                     let w = Math.floor(seconds / (3600 * 24 * 7));
                     let d = Math.floor(seconds % (3600 * 24 * 7) / (3600 * 24));
                     let h = Math.floor(seconds % (3600 * 24) / 3600);
@@ -17829,6 +17837,8 @@ class LangManager {
                 earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
                 earlyText2: 'Um problema inesperado no campo energético dos motores fez com que a expedição voltasse mais rapidamente para casa',
                 earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
+                trader: 'Mercador',
+                traderText1: 'iria fazer descontos especiais em trocas de recursos',
             }
 
         this.en =
@@ -18011,6 +18021,8 @@ class LangManager {
                 earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
                 earlyText2: 'Um problema inesperado no campo energético dos motores fez com que a expedição voltasse mais rapidamente para casa',
                 earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
+                trader: 'Trader',
+                traderText1: 'iria fazer descontos especiais em trocas de recursos',
             }
 
         this.fr =
@@ -18190,6 +18202,8 @@ class LangManager {
                 earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
                 earlyText2: 'Um problema inesperado no campo energético dos motores fez com que a expedição voltasse mais rapidamente para casa',
                 earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
+                trader: 'Mercador',
+                traderText1: 'iria fazer descontos especiais em trocas de recursos',
             }
 
         this.gr =
@@ -18357,6 +18371,8 @@ class LangManager {
                 earlyText1: 'Um comandante novo e destemido conseguiu atravessar um wormhole instável diminuindo assim a duração do voo',
                 earlyText2: 'Um problema inesperado no campo energético dos motores fez com que a expedição voltasse mais rapidamente para casa',
                 earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
+                trader: 'Mercador',
+                traderText1: 'iria fazer descontos especiais em trocas de recursos',
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);

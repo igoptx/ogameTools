@@ -1,5 +1,10 @@
 # OGLight - Changelog
 
+### [4.5] - 2023/08/01 11:05:00
+- Fix building time in moon buildings
+- Add new type of expedition to stats (trader)
+- Show the time in defense/ships building page acording to the amount
+
 ### [4.4.1] - 2023/07/27 12:45:00
 - Fix getting cargo capacity from ships
 
