@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [4.6] - 2023/08/02 15:25:00
+- Place expedition shortcuts in every page
+- Add new shortcut to recycle the current planet Debris
+
 ### [4.5] - 2023/08/01 11:05:00
 - Fix building time in moon buildings
 - Add new type of expedition to stats (trader)

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.5
+// @version      4.6
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -10907,7 +10907,7 @@ class FleetManager {
         }
     }
 
-    expedition(mainShipID) {
+    expedition(mainShipID, fast) {
         fleetDispatcher.resetShips();
         fleetDispatcher.resetCargo();
 
@@ -10968,6 +10968,13 @@ class FleetManager {
         fleetDispatcher.refresh();
 
         //setTimeout(() => document.querySelector('#continueToFleet2').focus(), 100);
+
+        if (fast) {
+            var element = document.querySelector('.ogl_fleetBtn');
+            if (element) {
+                element.click()
+            }
+        }
     }
 }
 
@@ -16388,6 +16395,105 @@ class KeyboardManager {
 
         document.addEventListener('keyup', () => this.sent = false);
 
+        this.addKey('l', this.ogl.component.lang.getText('lcExpe'), (event) => {
+            if (typeof fleetDispatcher !== 'undefined') {
+                var fast = false;
+                if(event.shiftKey) {
+                    fast = true;
+                }
+
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    this.ogl.component.fleet.expedition(203, fast);
+                } else if (fleetDispatcher.currentPage == 'fleet2') {
+                    var element = document.querySelector('.ogl_fleetBtn');
+                    if (element) {
+                        element.click()
+                    }
+                }
+            } else {
+                window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
+                return;
+            }
+        });
+
+        this.addKey('s', this.ogl.component.lang.getText('scExpe'), (event) => {
+            if (typeof fleetDispatcher !== 'undefined') {
+                var fast = false;
+                if(event.shiftKey) {
+                    fast = true;
+                }
+
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    this.ogl.component.fleet.expedition(202, fast);
+                } else if (fleetDispatcher.currentPage == 'fleet2') {
+                    var element = document.querySelector('.ogl_fleetBtn');
+                    if (element) {
+                        element.click()
+                    }
+                }
+            } else {
+                window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
+                return;
+            }
+        });
+
+        this.addKey('f', this.ogl.component.lang.getText('pfExpe'), (event) => {
+            if (typeof fleetDispatcher !== 'undefined') {
+                var fast = false;
+                if(event.shiftKey) {
+                    fast = true;
+                }
+
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    this.ogl.component.fleet.expedition(219, fast);
+                } else if (fleetDispatcher.currentPage == 'fleet2') {
+                    var element = document.querySelector('.ogl_fleetBtn');
+                    if (element) {
+                        element.click()
+                    }
+                }
+            } else {
+                window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
+                return;
+            }
+        });
+
+        this.addKey('m', this.ogl.component.lang.getText('recycle'), (event) => {
+            if (typeof fleetDispatcher !== 'undefined') {
+                var element = document.querySelector('.ogl_fleetBtn');
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    if (event.shiftKey) {
+                        fleetDispatcher.selectAllShips();
+                    }
+                    let coords = [fleetDispatcher.currentPlanet.galaxy, fleetDispatcher.currentPlanet.system, fleetDispatcher.currentPlanet.position];
+                    fleetDispatcher.targetPlanet.galaxy = coords[0];
+                    fleetDispatcher.targetPlanet.system = coords[1];
+                    fleetDispatcher.targetPlanet.position = coords[2];
+                    fleetDispatcher.targetPlanet.type = 2;
+                    fleetDispatcher.targetPlanet.name = 'Campo de Destroços';
+                    fleetDispatcher.mission = 8;
+                    fleetDispatcher.expeditionTime = 0;
+                    fleetDispatcher.refresh();
+                    if (element && event.shiftKey) {
+                        element.click()
+                    }
+                }
+
+                if (fleetDispatcher.currentPage == 'fleet2') {
+                    if (event.shiftKey) {
+                        fleetDispatcher.selectMaxAll();
+                    }
+                    fleetDispatcher.refresh();
+                    if (element && event.shiftKey) {
+                        element.click()
+                    }
+                }
+            } else {
+                window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
+                return;
+            }
+        });
+
         this.addKey('i', this.ogl.component.lang.getText('prevPlanet'), () => this.goToNextPlanet(this.ogl.prevLink));
         this.addKey('o', this.ogl.component.lang.getText('nextPlanet'), () => this.goToNextPlanet(this.ogl.nextLink));
 
@@ -16396,18 +16502,6 @@ class KeyboardManager {
             this.addKey('r', this.ogl.component.lang.getText('reverseAllShipsRes'), () => {
                 if (fleetDispatcher.currentPage == 'fleet1') document.querySelectorAll('#fleet1 li[data-status="on"] .ogl_delta').forEach(e => e.click());
                 if (fleetDispatcher.currentPage == 'fleet2') document.querySelectorAll('#fleet2 .res .ogl_delta').forEach(e => e.click());
-            });
-
-            this.addKey('s', this.ogl.component.lang.getText('scExpe'), () => {
-                if (fleetDispatcher.currentPage == 'fleet1') this.ogl.component.fleet.expedition(202);
-            });
-
-            this.addKey('l', this.ogl.component.lang.getText('lcExpe'), () => {
-                if (fleetDispatcher.currentPage == 'fleet1') this.ogl.component.fleet.expedition(203);
-            });
-
-            this.addKey('f', this.ogl.component.lang.getText('pfExpe'), () => {
-                if (fleetDispatcher.currentPage == 'fleet1') this.ogl.component.fleet.expedition(219);
             });
 
             this.addKey('a', this.ogl.component.lang.getText('allShipsRes'), event => {
@@ -17706,6 +17800,7 @@ class LangManager {
                 scExpe: "Expedição - Cargueiros Pequenos",
                 lcExpe: "Expedição - Cargueiros Grandes",
                 pfExpe: "Expedição - Exploradoras",
+                recycle: "Reciclar",
                 allShipsRes: "Seleccionar todas as naves (pagina 1) <br>ou todos os recursos (pagina 2)",
                 splitShipsRes: "Dividir todas as naves (pagina 1) <br>ou todos os recursos (pagina 2)",
                 prevFleet: "Repetir frota anterior",
@@ -17890,6 +17985,7 @@ class LangManager {
                 scExpe: "Small cargo expedition",
                 lcExpe: "Large cargo expedition",
                 pfExpe: "Pathfinder expedition",
+                recycle: "Recycle",
                 allShipsRes: "Select all ships (page 1) <br>or all resources (page 2)",
                 splitShipsRes: "Split all ships (page 1) <br>or all resources (page 2)",
                 prevFleet: "Repeat previous fleet",
@@ -18072,6 +18168,7 @@ class LangManager {
                 capacityPicker: "Ressources à envoyer",
                 scExpe: "Expedition au PT",
                 lcExpe: "Expedition au GT",
+                recycle: "Recycle",
                 allShipsRes: "Selectionner tous les vaisseux (page 1) <br>ou toutes les ressources (page2)",
                 splitShipsRes: "Diviser tous les vaisseux (page 1) <br>ou toutes les ressources (page2)",
                 prevFleet: "Répéter la flotte précédente",
@@ -18254,6 +18351,7 @@ class LangManager {
                 capacityPicker: "Πόροι για αποστολή",
                 scExpe: "Αποστολή με μικρά μεταγωγικά",
                 lcExpe: "Αποστολή με μεγάλα μεταγωγικά",
+                recycle: "Recycle",
                 allShipsRes: "Επιλέξτε όλα τα πλοία (σελίδα 1) ή όλους τους πόρους (σελίδα 3))",
                 splitShipsRes: "Διαχωρίστε όλα τα πλοία (σελίδα 1) ή όλους τους πόρους (σελίδα 3) με την επιλεγμένη τιμή (2-9)",
                 prevFleet: "Επάληψη προηγούμενου στόλου",
