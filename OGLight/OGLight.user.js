@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.6
+// @version      4.6.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7568,7 +7568,7 @@ class OGLight {
 
         this.current.techs = this.db.me.planets[this.current.coords.join(':')]?.techs || {};
 
-        this.checkTopScore();
+        this.checkTopScore(false);
         this.betterInputs();
 
         // update old player positions
@@ -7889,8 +7889,8 @@ class OGLight {
         this.checkOGLID();
     }
 
-    checkTopScore() {
-        if (!this.db.researchSpeed || this.db.topScore[1] < serverTime.getTime() - 3600000) // check every 1h max
+    checkTopScore(force) {
+        if (!this.db.researchSpeed || this.db.topScore[1] < serverTime.getTime() - 3600000 || force) // check every 1h max
         {
             fetch('https://' + window.location.host + '/api/serverData.xml')
                 .then(result => result.text())
@@ -8607,7 +8607,7 @@ class HighscoreManager {
         var tbody = table.querySelector('tbody');
         var firstRow = tbody.querySelector('tr');
 
-        const string = (firstRow.outerText).replace('.','');
+        const string = (firstRow.outerText).replaceAll('.','');
         const regex = /(\[.*?\])\s+(.*?)\s+(\d+(?:\.\d+)?)/;
         const match = string.match(regex);
 

@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [4.6.1] - 2023/08/27 11:20:00
+- Fix check top score
+
 ### [4.6] - 2023/08/02 15:25:00
 - Place expedition shortcuts in every page
 - Add new shortcut to recycle the current planet Debris
