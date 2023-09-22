@@ -7,9 +7,9 @@
 </table>
 
 # OGLight
-Version: 4.7
+Version: 4.7.1
 
-Last Update: 2023/09/22 12:25:00
+Last Update: 2023/09/22 12:35:00
 
 [Install](https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.user.js)
 
@@ -229,6 +229,7 @@ If you click on the truck icon the script will automatically go to fleet page, s
 * 2-9 -> Split by X ships or resources
 * P -> Repeat previous fleet
 * T -> Attack next target
+* K -> Use the default ship and mission to go between planet and moon
 
 ![Shortcut 001](images/shortcut_01.png)
 
@@ -249,3 +250,8 @@ If you click on the truck icon the script will automatically go to fleet page, s
 * O -> Go to next planet
 
 ![Shortcut 003](images/shortcut_03.png)
+
+#### Auctioneer
+* 1 - Bid Metal (minimum needed)
+* 2 - Bid Crystal (minimum needed)
+* 3 - Bid Deuterium (minimum needed)

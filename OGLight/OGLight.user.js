@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.7
+// @version      4.7.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -16502,7 +16502,7 @@ class KeyboardManager {
                 window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
                 return;
             }
-        });
+        }, true);
 
         this.addKey('k', this.ogl.component.lang.getText('to_the_moon'), (event) => {
             if (typeof fleetDispatcher !== 'undefined') {
