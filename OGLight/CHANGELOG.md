@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [4.7] - 2023/09/22 12:25:00
+- Add new shortcuts bid to Auctioneer
+- Add new shortcut to send ships between planet/moon 
+
 ### [4.6.1] - 2023/08/27 11:20:00
 - Fix check top score
 

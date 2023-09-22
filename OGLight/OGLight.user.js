@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.6.1
+// @version      4.7
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -7647,6 +7647,7 @@ class OGLight {
         this.component.jumpgate = new JumpgateManager(this);
         this.component.empire = new EmpireManager(this);
         this.component.menu = new MenuManager(this);
+        this.component.trader = new TraderManager(this);
 
         if (this.page == 'galaxy' && !this.galaxyLoaded) {
             document.querySelector('#amountColonized').textContent = document.querySelector('#amountColonized').textContent;
@@ -9693,6 +9694,12 @@ class TooltipManager {
             sender.classList.add('tooltipBottom');
             sender.classList.remove('tooltip');
         }
+    }
+}
+
+class TraderManager {
+    constructor(ogl) {
+        this.ogl = ogl;
     }
 }
 
@@ -16406,7 +16413,7 @@ class KeyboardManager {
                     this.ogl.component.fleet.expedition(203, fast);
                 } else if (fleetDispatcher.currentPage == 'fleet2') {
                     var element = document.querySelector('.ogl_fleetBtn');
-                    if (element) {
+                    if (element && fast) {
                         element.click()
                     }
                 }
@@ -16427,7 +16434,7 @@ class KeyboardManager {
                     this.ogl.component.fleet.expedition(202, fast);
                 } else if (fleetDispatcher.currentPage == 'fleet2') {
                     var element = document.querySelector('.ogl_fleetBtn');
-                    if (element) {
+                    if (element && fast) {
                         element.click()
                     }
                 }
@@ -16448,7 +16455,7 @@ class KeyboardManager {
                     this.ogl.component.fleet.expedition(219, fast);
                 } else if (fleetDispatcher.currentPage == 'fleet2') {
                     var element = document.querySelector('.ogl_fleetBtn');
-                    if (element) {
+                    if (element && fast) {
                         element.click()
                     }
                 }
@@ -16460,11 +16467,14 @@ class KeyboardManager {
 
         this.addKey('m', this.ogl.component.lang.getText('recycle'), (event) => {
             if (typeof fleetDispatcher !== 'undefined') {
+                var fast = false;
+                if(event.shiftKey) {
+                    fast = true;
+                }
+
                 var element = document.querySelector('.ogl_fleetBtn');
                 if (fleetDispatcher.currentPage == 'fleet1') {
-                    if (event.shiftKey) {
-                        fleetDispatcher.selectAllShips();
-                    }
+                    fleetDispatcher.selectAllShips();
                     let coords = [fleetDispatcher.currentPlanet.galaxy, fleetDispatcher.currentPlanet.system, fleetDispatcher.currentPlanet.position];
                     fleetDispatcher.targetPlanet.galaxy = coords[0];
                     fleetDispatcher.targetPlanet.system = coords[1];
@@ -16474,17 +16484,67 @@ class KeyboardManager {
                     fleetDispatcher.mission = 8;
                     fleetDispatcher.expeditionTime = 0;
                     fleetDispatcher.refresh();
-                    if (element && event.shiftKey) {
+                    if (element && fast) {
                         element.click()
                     }
                 }
 
                 if (fleetDispatcher.currentPage == 'fleet2') {
-                    if (event.shiftKey) {
-                        fleetDispatcher.selectMaxAll();
-                    }
+                    fleetDispatcher.selectMaxAll();
+                    fleetDispatcher.speedPercent = 1;
+                    ogl.component.fleet.updateSpeedPercent();
                     fleetDispatcher.refresh();
-                    if (element && event.shiftKey) {
+                    if (element && fast) {
+                        element.click()
+                    }
+                }
+            } else {
+                window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
+                return;
+            }
+        });
+
+        this.addKey('k', this.ogl.component.lang.getText('to_the_moon'), (event) => {
+            if (typeof fleetDispatcher !== 'undefined') {
+                var fast = false;
+                if(event.shiftKey) {
+                    fast = true;
+                }
+
+                var element = document.querySelector('.ogl_fleetBtn');
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    let coords = [fleetDispatcher.currentPlanet.galaxy, fleetDispatcher.currentPlanet.system, fleetDispatcher.currentPlanet.position];
+                    fleetDispatcher.targetPlanet.galaxy = coords[0];
+                    fleetDispatcher.targetPlanet.system = coords[1];
+                    fleetDispatcher.targetPlanet.position = coords[2];
+
+                    if (fleetDispatcher.currentPlanet.type == 1){
+                        fleetDispatcher.targetPlanet.type = 3;
+                        fleetDispatcher.targetPlanet.name = 'Lua';
+                    } else if (fleetDispatcher.currentPlanet.type == 3) {
+                        fleetDispatcher.targetPlanet.type = 1;
+                        fleetDispatcher.targetPlanet.name = 'Planeta';
+                    }
+
+                    fleetDispatcher.mission = ogl.db.options.defaultMission;
+
+                    var resourcesOnPlanet = fleetDispatcher.metalOnPlanet + fleetDispatcher.crystalOnPlanet + fleetDispatcher.deuteriumOnPlanet + fleetDispatcher.foodOnPlanet;
+
+                    let shipID = this.ogl.db.options.defaultShip;
+                    let shipCount = this.ogl.component.fleet.calcRequiredShips(shipID, resourcesOnPlanet);
+                    fleetDispatcher.selectShip(shipID, shipCount);
+
+                    fleetDispatcher.refresh();
+
+                    if (element && fast) {
+                        element.click()
+                    }
+                }
+
+                if (fleetDispatcher.currentPage == 'fleet2') {
+                    fleetDispatcher.selectMaxAll();
+                    fleetDispatcher.refresh();
+                    if (element && fast) {
                         element.click()
                     }
                 }
@@ -16616,10 +16676,65 @@ class KeyboardManager {
             });
         }
 
+        if (this.ogl.page == 'traderOverview') {
+            // this.addKey('1'
+            this.addKey('1', this.ogl.component.lang.getText('bidMetal'), () => {
+                traderObj.resetValues();
+                var element = document.getElementsByClassName("js_sliderMetalMax");
+                element[0].click();
+                traderObj.sumAuctioneer();
+                traderObj.checkOverbidden();
+            });
+
+            this.addKey('!', this.ogl.component.lang.getText('bidMetal'), () => {
+                traderObj.resetValues();
+                var element = document.getElementsByClassName("js_sliderMetalMax");
+                element[0].click();
+                traderObj.sumAuctioneer();
+                traderObj.checkOverbidden();
+
+                document.querySelector("a.pay").click();
+            }, true);
+
+            this.addKey('2', this.ogl.component.lang.getText('bidCrystal'), () => {
+                traderObj.resetValues();
+                var element = document.getElementsByClassName("js_sliderCrystalMax");
+                element[0].click();
+                traderObj.sumAuctioneer();
+                traderObj.checkOverbidden();
+            });
+
+            this.addKey('"', this.ogl.component.lang.getText('bidMetal'), () => {
+                traderObj.resetValues();
+                var element = document.getElementsByClassName("js_sliderCrystalMax");
+                element[0].click();
+                traderObj.sumAuctioneer();
+                traderObj.checkOverbidden();
+                document.querySelector("a.pay").click();
+            }, true);
+
+            this.addKey('3', this.ogl.component.lang.getText('bidDeuterium'), () => {
+                traderObj.resetValues();
+                var element = document.getElementsByClassName("js_sliderDeuteriumMax");
+                element[0].click();
+                traderObj.sumAuctioneer();
+                traderObj.checkOverbidden();
+            });
+
+            this.addKey('#', this.ogl.component.lang.getText('bidDeuterium'), () => {
+                traderObj.resetValues();
+                var element = document.getElementsByClassName("js_sliderDeuteriumMax");
+                element[0].click();
+                traderObj.sumAuctioneer();
+                traderObj.checkOverbidden();
+                document.querySelector("a.pay").click();
+            }, true);
+        }
+
         if (this.ogl.page == 'galaxy') {
             this.addKey('s', 'Previous galaxy', () => submitOnKey('ArrowDown'));
-            this.addKey('z|w', 'Next galaxy', () => submitOnKey('ArrowUp'));
-            this.addKey('q|a', 'Previous system', () => submitOnKey('ArrowLeft'));
+            this.addKey('w', 'Next galaxy', () => submitOnKey('ArrowUp'));
+            this.addKey('a', 'Previous system', () => submitOnKey('ArrowLeft'));
             this.addKey('d', 'Next system', () => submitOnKey('ArrowRight'));
         }
 
@@ -16636,11 +16751,16 @@ class KeyboardManager {
         this.ogl.performances.push(['Keyboard', performance.now()]);
     }
 
-    addKey(key, text, callback) {
+    addKey(key, text, callback, hide) {
         this.ogl.keyboardActionsList = this.ogl.keyboardActionsList || {};
         this.ogl.keyboardActionsList[key] = callback;
 
-        let tip = this.dom.appendChild(Util.createDom('div', {'class': 'ogl_button tooltipLeft', 'title': text, 'data-trigger': key.toUpperCase()}, key.toUpperCase()));
+        var style = '';
+        if (hide) {
+            style = 'display:none';
+        }
+
+        let tip = this.dom.appendChild(Util.createDom('div', {'id': key.toUpperCase(), 'style': style,'class': 'ogl_button tooltipLeft', 'title': text, 'data-trigger': key.toUpperCase()}, key.toUpperCase()));
         if (key == 'enter') {
             tip.classList.add('material-icons');
             tip.textContent = 'subdirectory_arrow_left';

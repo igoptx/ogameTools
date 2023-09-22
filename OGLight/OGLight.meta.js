@@ -1,5 +1,5 @@
 // ==UserScript==
-// @version 4.6.1
+// @version 4.7
 // @name OGLight
 // @namespace    https://github.com/igoptx/ogameTools
 // ==/UserScript==
