@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.7.1
+// @version      4.7.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -16423,6 +16423,24 @@ class KeyboardManager {
             }
         });
 
+        this.addKey('b', this.ogl.component.lang.getText('lcExpe'), (event) => {
+            if (typeof fleetDispatcher !== 'undefined') {
+                var fast = true;
+
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    this.ogl.component.fleet.expedition(203, fast);
+                } else if (fleetDispatcher.currentPage == 'fleet2') {
+                    var element = document.querySelector('.ogl_fleetBtn');
+                    if (element && fast) {
+                        element.click()
+                    }
+                }
+            } else {
+                window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
+                return;
+            }
+        }, true);
+
         this.addKey('s', this.ogl.component.lang.getText('scExpe'), (event) => {
             if (typeof fleetDispatcher !== 'undefined') {
                 var fast = false;
@@ -16467,10 +16485,7 @@ class KeyboardManager {
 
         this.addKey('m', this.ogl.component.lang.getText('recycle'), (event) => {
             if (typeof fleetDispatcher !== 'undefined') {
-                var fast = false;
-                if(event.shiftKey) {
-                    fast = true;
-                }
+                var fast = true;
 
                 var element = document.querySelector('.ogl_fleetBtn');
                 if (fleetDispatcher.currentPage == 'fleet1') {
@@ -17485,8 +17500,8 @@ class TimeManager {
     }
 
     checkCurrentBuilding() {
-        let countDownID = ['buildingCountdown', 'researchCountdown', 'shipyardCountdown2', 'lfbuildingCountdown'];
-        ['restTimebuilding', 'restTimeresearch', 'restTimeship2', 'restTimelfbuilding '].forEach((building, index) => {
+        let countDownID = ['buildingCountdown', 'researchCountdown', 'shipyardCountdown2', 'lfbuildingCountdown', 'lfResearchCountdown'];
+        ['restTimebuilding', 'restTimeresearch', 'restTimeship2', 'restTimelfbuilding', 'restTimelfresearch'].forEach((building, index) => {
             try {
                 let time = new Date(serverTime - Math.round(timeDiff / 100000) * 100000 + eval(building) * 1000);
                 let parent = document.querySelector(`span#${countDownID[index]}`).closest('.content');

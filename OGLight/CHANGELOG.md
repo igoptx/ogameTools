@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [4.7.2] - 2023/10/03 15:00:00
+- End time to Life Form Research in Main View
+
 ### [4.7.1] - 2023/09/23 12:35:00
 - Update manual
 
