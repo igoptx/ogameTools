@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.7.2
+// @version      4.8
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
-// @copyright    2023, Igo
+// @copyright    2024, Igo
 // @match        https://*.ogame.gameforge.com/game/*
 // @updateURL    https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js
 // @downloadURL  https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.user.js
@@ -15065,7 +15065,7 @@ class Util {
         });
     }
 
-    static genTrashsimLink(apiKey, ogl) {
+    static getFightSimulatorLink(apiKey, ogl) {
         let coords = ogl.current.coords;
 
         let jsonTechs = {
@@ -15090,7 +15090,7 @@ class Util {
         jsonTechs = btoa(JSON.stringify(jsonTechs));
         let lang = ogl.universe.lang == 'us' ? 'en' : ogl.universe.lang == 'ar' ? 'es' : ogl.universe.lang;
 
-        return 'https://trashsim.universeview.be/' + lang + '?SR_KEY=' + apiKey + '#prefill=' + jsonTechs;
+        return 'https://battlesim.logserver.net/' + lang + '?SR_KEY=' + apiKey + '#prefill=' + jsonTechs;
     }
 
     static convertOgotcha(apiKey, ogl) {
@@ -15291,7 +15291,7 @@ class MessageManager {
                     apiKey = apiKey.querySelector('input').value;
 
                     let simButton = detail.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim'}, 'S'));
-                    simButton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
+                    simButton.addEventListener('click', () => window.open(Util.getFightSimulatorLink(apiKey, this.ogl), '_blank'));
 
                     if (this.ogl.ptre) {
                         let ptreButton = detail.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim tooltip', 'title': 'import to PTRE'}, 'P'));
@@ -16275,8 +16275,8 @@ class MessageManager {
             apiKey = apiKey.querySelector('input').value;
 
             if (report.api && report.coords[2] <= 15) {
-                let simButton = actions.appendChild(Util.createDom('div', {'class': 'tooltip', 'title': this.ogl.component.lang.getText('simulateOnTrashsim')}, 'S'));
-                simButton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
+                let simButton = actions.appendChild(Util.createDom('div', {'class': 'tooltip', 'title': this.ogl.component.lang.getText('simulateFight')}, 'S'));
+                simButton.addEventListener('click', () => window.open(Util.getFightSimulatorLink(apiKey, this.ogl), '_blank'));
 
                 if (this.ogl.ptre) {
                     let ptreButton = actions.appendChild(Util.createDom('div', {'class': 'ogl_smallPTRE tooltip', 'title': this.ogl.component.lang.getText('importToPtre')}, 'P'));
@@ -16321,8 +16321,8 @@ class MessageManager {
             });
 
             if (report.api && !report.dom.querySelector('.ogl_sim')) {
-                let otherSimbutton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim tooltip', 'title': this.ogl.component.lang.getText('simulateOnTrashsim')}, 'S'));
-                otherSimbutton.addEventListener('click', () => window.open(Util.genTrashsimLink(apiKey, this.ogl), '_blank'));
+                let otherSimbutton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim tooltip', 'title': this.ogl.component.lang.getText('simulateFight')}, 'S'));
+                otherSimbutton.addEventListener('click', () => window.open(Util.getFightSimulatorLink(apiKey, this.ogl), '_blank'));
 
                 if (this.ogl.ptre) {
                     let otherPtreButton = report.dom.querySelector('.msg_actions').appendChild(Util.createDom('div', {'class': 'icon_nf ogl_sim tooltip', 'title': this.ogl.component.lang.getText('importToPtre')}, 'P'));
@@ -18024,7 +18024,7 @@ class LangManager {
                 all: 'Tudo',
                 version1: 'Nova Versão',
                 version2: 'Disponível!',
-                simulateOnTrashsim: 'Simular no TrashSim',
+                simulateFight: 'Simular Combate',
                 day: 'dia',
                 expedition: 'Expedição',
                 coords: 'Coordenadas',
@@ -18209,7 +18209,7 @@ class LangManager {
                 all: 'All',
                 version1: 'New Version',
                 version2: 'Available!',
-                simulateOnTrashsim: 'Simulate on TrashSim',
+                simulateFight: 'Simulate Fight',
                 day: 'day',
                 expedition: 'Expedition',
                 coords: 'Coordinates',
@@ -18391,7 +18391,7 @@ class LangManager {
                 all: 'All',
                 version1: 'New Version',
                 version2: 'Available!',
-                simulateOnTrashsim: 'Simulate on TrashSim',
+                simulateFight: 'Simulate Fight',
                 day: 'jour',
                 expedition: 'Expedition',
                 coords: 'Coordinates',
@@ -18561,7 +18561,7 @@ class LangManager {
                 all: 'All',
                 version1: 'New Version',
                 version2: 'Available!',
-                simulateOnTrashsim: 'Simulate on TrashSim',
+                simulateFight: 'Simulate Fight',
                 day: 'day',
                 expedition: 'Expedition',
                 coords: 'Coordinates',

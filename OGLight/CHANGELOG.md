@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [4.8] - 2024/01/01 22:50:00
+- Change Fight Simulator link
+
 ### [4.7.2] - 2023/10/03 15:00:00
 - End time to Life Form Research in Main View
 
