@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [4.8.1] - 2024/01/02 00:40:00
+- Change Fight Simulator link
+
 ### [4.8] - 2024/01/01 22:50:00
 - Change Fight Simulator link
 

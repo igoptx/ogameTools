@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.8
+// @version      4.8.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -15090,7 +15090,9 @@ class Util {
         jsonTechs = btoa(JSON.stringify(jsonTechs));
         let lang = ogl.universe.lang == 'us' ? 'en' : ogl.universe.lang == 'ar' ? 'es' : ogl.universe.lang;
 
-        return 'https://battlesim.logserver.net/' + lang + '?SR_KEY=' + apiKey + '#prefill=' + jsonTechs;
+        let simulator_url = 'https://simulator.ogame-tools.com/';
+
+        return simulator_url + '?SR_KEY=' + apiKey + '#prefill=' + jsonTechs;
     }
 
     static convertOgotcha(apiKey, ogl) {
