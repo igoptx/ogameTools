@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.8.1
+// @version      4.8.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -11157,11 +11157,17 @@ class EmpireManager {
                 let fromAnotherPlayer = document.querySelector(`.smallplanet[data-coords="${line.querySelector('.coordsOrigin').textContent.trim().slice(1, -1)}"]`) ? false : true;
                 let toAnotherPlayer = document.querySelector(`.smallplanet[data-coords="${line.querySelector('.destCoords').textContent.trim().slice(1, -1)}"]`) ? false : true;
 
-                if ((mission == '1' || mission == '6') && fromAnotherPlayer) // ennemy attacks and spies
+                if ((mission == '1' || mission == '2' || mission == '6') && fromAnotherPlayer) // enemy attacks and spies
                 {
                     coordsNode = line.querySelector('.destCoords');
                     isMoon = line.querySelector('.destFleet figure.moon');
-                } else if ((mission == '1' && back)    // attack
+
+                    if(fromAnotherPlayer && toAnotherPlayer) {
+                        return;
+                    }
+
+                } else if ((mission == '1' && back)     // attack
+                           || (mission == '2' && back)
                     || mission == '3'                   // transpo
                     || mission == '4'                   // deploy
                     || (mission == '7' && back)         // colo
@@ -12201,26 +12207,43 @@ class EmpireManager {
 
 
     checkBonus() {
-        if (this.ogl.current.type == 'moon') return;
-        var bonusElements = document.querySelectorAll(".bonusItemParent");
-        let currentCoords = this.ogl.current.coords.join(':');
+        if (this.ogl.page == 'lfbonuses') {
+            // Calc resource bonus for exp.
+            var dataToggableTarget = 'subcategoryResourcesExpedition';
+            var bonusElements = document.querySelector('[data-toggable-target="'+dataToggableTarget+'"]');
+            var elementosBonusCategory = bonusElements.querySelectorAll('bonus-category');
 
-        if (bonusElements.length > 0) {
-            var lfProdBonus = [0, 0, 0];
-            bonusElements.forEach(function(element) {
-                var dataCategory = element.dataset.category;
-                var bonusValueElement = element.querySelector(".bonusValues");
-                var valor = bonusValueElement.textContent.trim().split("/")[0].trim();
-                if (dataCategory == 'bonus-1') {
-                    lfProdBonus[0] = parseFloat(valor.replace(",", ".")) / 100;
-                }else if (dataCategory == 'bonus-2') {
-                    lfProdBonus[1] = parseFloat(valor.replace(",", ".")) / 100;
-                } else if (dataCategory == 'bonus-3') {
-                    lfProdBonus[2] = parseFloat(valor.replace(",", ".")) / 100;
+            if (elementosBonusCategory.length > 0) {
+                var bonus = 0;
+                elementosBonusCategory.forEach(function(elemento) {
+                    // Faça algo com cada elemento, por exemplo, imprimir o conteúdo
+                    var subCategoryTitle = elemento.querySelector('.subCategoryTitle');
+
+                    // Busca a div com a classe 'subCategoryBonus' dentro do elemento atual
+                    var subCategoryBonus = elemento.querySelector('.subCategoryBonus');
+
+                    // Verifica se as divs foram encontradas antes de acessar seu conteúdo
+                    if (subCategoryTitle && subCategoryBonus) {
+                        // Obtém o conteúdo das divs
+                        var coords = subCategoryTitle.textContent;
+                        var resultado = coords.match(/\[(.*?)\]/);
+
+                        // Verifica se o resultado não é nulo antes de acessar o valor
+                        if (resultado && resultado.length > 1) {
+                            coords = resultado[1];
+                        } else {
+                            coords = ''
+                        }
+                        var b = subCategoryBonus.textContent.replace('%', '').replace(',', '.');
+                        bonus = bonus + parseFloat(b);
+                    }
+                });
+
+                if(ogl.db.me.lifeFormsResearchs == undefined) {
+                    ogl.db.me.lifeFormsResearchs = {};
                 }
-            });
-
-            this.ogl.db.me.planets[currentCoords].lfProductionBonus = lfProdBonus;
+                ogl.db.me.lifeFormsResearchs.expResources = bonus / 100;
+            }
         }
     }
 
@@ -16077,12 +16100,12 @@ class MessageManager {
 
         let header = thead.appendChild(Util.createDom('div'));
         //header.appendChild(Util.createDom('th', {}, ''));
-        header.appendChild(Util.createDom('th', {'data-filter': 'DATE'}, 'age'));
-        header.appendChild(Util.createDom('th', {'data-filter': 'COORDS'}, 'coords'));
-        header.appendChild(Util.createDom('th', {}, 'name'));
-        header.appendChild(Util.createDom('th', {'data-filter': '$'}, 'renta'));
-        header.appendChild(Util.createDom('th', {'data-filter': 'FLEET'}, 'fleet'));
-        header.appendChild(Util.createDom('th', {'data-filter': 'DEF'}, 'def'));
+        header.appendChild(Util.createDom('th', {'data-filter': 'DATE'}, this.ogl.component.lang.getText('age')));
+        header.appendChild(Util.createDom('th', {'data-filter': 'COORDS'}, this.ogl.component.lang.getText('coords')));
+        header.appendChild(Util.createDom('th', {}, this.ogl.component.lang.getText('name')));
+        header.appendChild(Util.createDom('th', {'data-filter': '$'}, this.ogl.component.lang.getText('renta')));
+        header.appendChild(Util.createDom('th', {'data-filter': 'FLEET'}, this.ogl.component.lang.getText('fleet')));
+        header.appendChild(Util.createDom('th', {'data-filter': 'DEF'}, this.ogl.component.lang.getText('def')));
         //header.appendChild(Util.createDom('th', {'class':'ogl_shipIcon ogl_'+this.ogl.db.options.defaultShip}));
         let headerActions = header.appendChild(Util.createDom('th', {'class': 'ogl_headerActions'}));
 
@@ -16514,6 +16537,38 @@ class KeyboardManager {
                     if (element && fast) {
                         element.click()
                     }
+                }
+            } else {
+                window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
+                return;
+            }
+        }, true);
+
+        this.addKey('n', this.ogl.component.lang.getText('recycle'), (event) => {
+            if (typeof fleetDispatcher !== 'undefined') {
+                var fast = true;
+
+                var element = document.querySelector('.ogl_fleetBtn');
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    fleetDispatcher.selectAllShips();
+                    let coords = [fleetDispatcher.currentPlanet.galaxy, fleetDispatcher.currentPlanet.system, fleetDispatcher.currentPlanet.position];
+                    fleetDispatcher.targetPlanet.galaxy = coords[0];
+                    fleetDispatcher.targetPlanet.system = coords[1];
+                    fleetDispatcher.targetPlanet.position = coords[2];
+                    fleetDispatcher.targetPlanet.type = 2;
+                    fleetDispatcher.targetPlanet.name = 'Campo de Destroços';
+                    fleetDispatcher.mission = 8;
+                    fleetDispatcher.expeditionTime = 0;
+                    fleetDispatcher.refresh();
+                    element.click();
+                }
+
+                if (fleetDispatcher.currentPage == 'fleet2') {
+                    fleetDispatcher.selectMaxAll();
+                    fleetDispatcher.speedPercent = 1;
+                    ogl.component.fleet.updateSpeedPercent();
+                    fleetDispatcher.refresh();
+                    element.click();
                 }
             } else {
                 window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
@@ -17652,23 +17707,23 @@ class TimeManager {
                         if (tech.isLfBuilding) {
                             totalTime = Math.round(tech.current.level * tech.data.duration * Math.pow(tech.data.durationFactor, tech.current.level)) / (1 + baseTechs.robot) / (Math.pow(2, baseTechs.nanite)) / this.ogl.universe.ecoSpeed;
                         } else if (tech.isLfResearch) {
-                            //totalTime = Math.round(tech.current.level * tech.data.duration * Math.pow(tech.data.durationFactor, tech.current.level)) * (1 - 0.02 * center) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed);
+                            totalTime = (Math.round(tech.current.level * tech.data.duration * Math.pow(tech.data.durationFactor, tech.current.level)) * (1 - 0.02 * center) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed))*2;
                         } else if (tech.isBaseBuilding && tech.id != 15) {
-                            //let levelRatio = tech.id == 43 ? 1 : 4 - tech.current.level / 2;
-                            //totalTime = (tech.current.metal + tech.current.crystal) / (2500 * Math.max(levelRatio, 1) * (1 + baseTechs.robot) * (Math.pow(2, baseTechs.nanite))) / this.ogl.universe.ecoSpeed * 3600;
+                            let levelRatio = tech.id == 43 ? 1 : 4 - tech.current.level / 2;
+                            totalTime = (tech.current.metal + tech.current.crystal) / (2500 * Math.max(levelRatio, 1) * (1 + baseTechs.robot) * (Math.pow(2, baseTechs.nanite))) / this.ogl.universe.ecoSpeed * 3600;
                         } else if (tech.isBaseResearch) {
-                            //totalTime = (tech.current.metal + tech.current.crystal) / (1000 * (1 + baseTechs.labo + networkLevel)) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed) * 3600;
+                            totalTime = (tech.current.metal + tech.current.crystal) / (1000 * (1 + baseTechs.labo + networkLevel)) / (this.ogl.db.researchSpeed * this.ogl.universe.ecoSpeed) * 3600;
                         } else if (tech.id != 15) {
                             totalTime = totalTime * Math.pow(tech.data.durationFactor, tech.current.level - tech.initial.level);
                         }
 
                         let bonus = 0;
 
-                        //if (tech.isBaseResearch && this.ogl.account.class == 3) bonus += 25;
-                        //if (tech.isBaseResearch && document.querySelector(`[data-technology="${tech.id}"] .acceleration`)) bonus += parseInt(document.querySelector(`[data-technology="${tech.id}"] .acceleration`).getAttribute('data-value'));
-                        //if (tech.isBaseResearch && document.querySelector('#officers .technocrat.on')) totalTime = totalTime - totalTime * 25 / 100;
+                        if (tech.isBaseResearch && this.ogl.account.class == 3) bonus += 25;
+                        if (tech.isBaseResearch && document.querySelector(`[data-technology="${tech.id}"] .acceleration`)) bonus += parseInt(document.querySelector(`[data-technology="${tech.id}"] .acceleration`).getAttribute('data-value'));
+                        if (tech.isBaseResearch && document.querySelector('#officers .technocrat.on')) totalTime = totalTime - totalTime * 25 / 100;
 
-                        //totalTime = totalTime - totalTime * bonus / 100;
+                        totalTime = totalTime - totalTime * bonus / 100;
                     }
 
                     let amount = 1;
@@ -18071,6 +18126,11 @@ class LangManager {
                 earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
                 trader: 'Mercador',
                 traderText1: 'iria fazer descontos especiais em trocas de recursos',
+                age: 'À',
+                coords: 'Coords',
+                renta: 'Rentabilidade',
+                fleet: 'Frota',
+                def: 'Def'
             }
 
         this.en =
@@ -18256,6 +18316,11 @@ class LangManager {
                 earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
                 trader: 'Trader',
                 traderText1: 'iria fazer descontos especiais em trocas de recursos',
+                age: 'Age',
+                coords: 'Coords',
+                renta: 'Renta',
+                fleet: 'Fleet',
+                def: 'Def'
             }
 
         this.fr =
@@ -18438,6 +18503,11 @@ class LangManager {
                 earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
                 trader: 'Mercador',
                 traderText1: 'iria fazer descontos especiais em trocas de recursos',
+                age: 'Age',
+                coords: 'Coords',
+                renta: 'Renta',
+                fleet: 'Fleet',
+                def: 'Def'
             }
 
         this.gr =
@@ -18608,6 +18678,11 @@ class LangManager {
                 earlyText3: ' tua frota de expedição volta ao ponto de partida um pouco mais cedo',
                 trader: 'Mercador',
                 traderText1: 'iria fazer descontos especiais em trocas de recursos',
+                age: 'Age',
+                coords: 'Coords',
+                renta: 'Renta',
+                fleet: 'Fleet',
+                def: 'Def'
             }
 
         this.ogl.performances.push(['Lang', performance.now()]);

@@ -1,5 +1,11 @@
 # OGLight - Changelog
 
+### [4.8.2] - 2024/02/29 10:20:00
+- Fix bug when there is an ACS started by a friend
+- Fix life form bonus (resources)
+- Add new translations
+- Re-add time and resources planning in buildings and research
+
 ### [4.8.1] - 2024/01/02 00:40:00
 - Change Fight Simulator link
 
