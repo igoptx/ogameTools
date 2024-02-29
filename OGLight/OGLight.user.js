@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      4.8.2
+// @version      4.8.3
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -15989,8 +15989,8 @@ class MessageManager {
                 data.attacked = report.querySelector('.msg_actions .icon_attack img') ? true : false;
                 data.trash = report.querySelector('.msg_head .fright a .icon_refuse');
                 data.detail = report.querySelector('.msg_actions a.fright').href;
-                data.spy = report.querySelector('a[onclick*="sendShipsWithPopup"]').getAttribute('onclick');
-                data.attack = report.querySelector('.icon_attack').closest('a').href;
+                data.spy = report.querySelector('button[onclick*="sendShipsWithPopup"]').getAttribute('onclick');
+                data.attack = report.querySelector('.msgAttackBtn').closest('button').href;
                 data.api = report.querySelector('.icon_apikey');
                 data.dom = report;
 

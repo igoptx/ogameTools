@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [4.8.3] - 2024/02/29 12:40:00
+- Quick fix on spy reports due to Ogame version 11.10.3
+
 ### [4.8.2] - 2024/02/29 10:20:00
 - Fix bug when there is an ACS started by a friend
 - Fix life form bonus (resources)
