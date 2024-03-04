@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         OGLight
-// @namespace    https://openuserjs.org/users/nullNaN
-// @version      5.0.0
+// @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
+// @version      5.0.1
 // @description  OGLight script for OGame
-// @author       Oz
+// @author       Igo (Original: Oz)
 // @license      MIT
-// @copyright    2019, Oz
+// @copyright    2024, Igo
 // @match        https://*.ogame.gameforge.com/game/*
-// @updateURL    https://openuserjs.org/meta/nullNaN/OGLight.meta.js
-// @downloadURL  https://openuserjs.org/install/nullNaN/OGLight.user.js
+// @updateURL    https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js
+// @downloadURL  https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.user.js
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -16,6 +16,7 @@
 // @grant        GM_getTab
 // @grant        GM_saveTab
 // @run-at       document-start
+// @website      https://correia.red
 // ==/UserScript==
 'use strict';
 
@@ -64,9 +65,8 @@ if(typeof GM_saveTab == typeof undefined)
     }
 }
 
-
-let betaVersion = '-b206';
-let oglVersion = '5.0.0';
+let betaVersion = '';
+let oglVersion = GM_info.script.version;
 
 
 class OGLight
@@ -151,6 +151,10 @@ class OGLight
         this.db.options.keyboardActions.expeditionSC = this.db.options.keyboardActions.expeditionSC || 's';
         this.db.options.keyboardActions.expeditionLC = this.db.options.keyboardActions.expeditionLC || 'l';
         this.db.options.keyboardActions.expeditionPF = this.db.options.keyboardActions.expeditionPF || 'f';
+
+        this.db.options.keyboardActions.expeditionLCFast = this.db.options.keyboardActions.expeditionLCFast || 'b';
+        this.db.options.keyboardActions.expeditionRecFast = this.db.options.keyboardActions.expeditionRecFast || 'n';
+
         this.db.options.keyboardActions.quickRaid = this.db.options.keyboardActions.quickRaid || 't';
         this.db.options.keyboardActions.fleetResourcesSplit = this.db.options.keyboardActions.fleetResourcesSplit || '2-9';
         this.db.options.keyboardActions.galaxyUp = this.db.options.keyboardActions.galaxyUp || (window.location.host.split(/[-.]/)[1] == 'fr' ? 'z' : 'w');
@@ -885,6 +889,8 @@ class LangManager extends Manager
             fleetSelectAll:"<div>Select all ships (fleet1)<hr>Select all resources (fleet2)</div>",
             expeditionSC:'Small cargo expedition',
             expeditionLC:'Large cargo expedition',
+            expeditionLCFast:'Fast Expedition',
+            expeditionRecFast:'Fast Recs',
             expeditionPF:'Pathfinder expedition',
             galaxySpySystem:"System spy",
             collectLinked:"Collect to linked planet/moon",
@@ -953,6 +959,37 @@ class LangManager extends Manager
             ptreActivityAlreadyImported:"activity already imported to PTRE",
             ptreSyncTarget:"Sync with PTRE",
             ptreManageTarget:"Manage on PTRE",
+
+            expe: 'Expeditions',
+            expeditionLCFast:'Expedição Rápida (CG)',
+            expeditionRecFast:'Reciclagem Rápida (10%)',
+            raid: 'Raids',
+            debris: 'Debris',
+            debrisp16: 'Debris p16',
+            discovery: 'Discovery',
+            conso: 'Conso',
+            average: 'Average',
+            total: 'Total',
+            fleet: 'Fleet',
+            general: 'General',
+            expeditions: 'Expeditions',
+            stats: 'STATS',
+            messages: 'Messages',
+            PTRE: 'PTRE',
+            data: 'Data',
+            settings: 'Settings',
+            coords: 'Coords',
+            P: 'P',
+            M: 'M',
+            name: 'Name',
+            fields: 'Fields',
+            T: 'Tºc',
+            lf: 'LF',
+            selectGalaxySystemRange: 'Select a galaxy/system range',
+            noResult: 'No Result',
+            taggedPlanets: 'Tagged planets',
+            pinnedPlayers: 'Pinned players',
+            newUpdateAvailable: 'New Update Available'
         };
 
         this.fr =
@@ -993,6 +1030,8 @@ class LangManager extends Manager
             expeditionSC:"Expédition au petit transporteur",
             expeditionLC:"Expédition au grand transporteur",
             expeditionPF:"Expédition à l'éclaireur",
+            expeditionLCFast:'Fast Expedition',
+            expeditionRecFast:'Fast Recs',
             galaxySpySystem:"Espionnage du système",
             collectLinked:"Rapatrier vers les planètes/lunes liée",
             keyboardActions:"Raccourcis clavier",
@@ -1060,6 +1099,175 @@ class LangManager extends Manager
             ptreActivityAlreadyImported:"Activité déjà importée dans PTRE",
             ptreSyncTarget:"Synchroniser avec PTRE",
             ptreManageTarget:"Gérer sur PTRE",
+
+            expe: 'Expeditions',
+            expeditionLCFast:'Expedição Rápida (CG)',
+            expeditionRecFast:'Reciclagem Rápida (10%)',
+            raid: 'Raids',
+            debris: 'Debris',
+            debrisp16: 'Debris p16',
+            discovery: 'Discovery',
+            conso: "Conso",
+            average: "Average",
+            total: 'Total',
+            fleet: 'Fleet',
+            general: 'General',
+            expeditions: 'Expeditions',
+            stats: 'STATS',
+            messages: 'Messages',
+            PTRE: 'PTRE',
+            data: 'Data',
+            settings: 'Settings',
+            coords: 'Coords',
+            P: 'P',
+            M: 'M',
+            name: 'Name',
+            fields: 'Fields',
+            T: 'Tºc',
+            lf: 'LF',
+            selectGalaxySystemRange: 'Select a galaxy/system range',
+            noResult: 'No Result',
+            taggedPlanets: 'Tagged planets',
+            pinnedPlayers: 'Pinned players',
+            newUpdateAvailable: 'New Update Available'
+        };
+
+        this.pt =
+        {
+            ship:"Naves",
+            item:"Item",
+            other:"Outros",
+            resource:"Recursos",
+            battle:"Batalhas",
+            blackhole:"Buraco Negro",
+            early:"Adiantado",
+            late:"Atrasado",
+            trader:"Mercador",
+            nothing:"Nada",
+            pirate:"Piratas",
+            alien:"Aliens",
+            duration:"Duração",
+            defaultShip:"Tipo de nave pre-definido",
+            defaultMission:"Tipo de missão pre-definida",
+            useClientTime:"Usar horas do cliente",
+            displayMiniStats:"Intervalo das estatísticas",
+            displayPlanetTimers:"Mostrar temporizador nos planetas",
+            reduceLargeImages:"Reduzid imagens grandes",
+            ignoreExpeShips:"Ignorar naves encontradas nas expedições",
+            ignoreExpeShipsLoss:"Ignorar naves perdidas nas expedições",
+            ignoreConsumption:"Ignorar consumo das naves",
+            resourceTreshold:"Limite de recursos",
+            tooltipDelay:"Atraso da tooltip (ms)",
+            galaxyUp:"Próxima galáxia",
+            galaxyDown:"Galáxia anterior",
+            galaxyLeft:"Sistema anterior",
+            galaxyRight:"Próximo sistema",
+            previousPlanet:"Planeta anterior",
+            nextPlanet:"Próximo planeta",
+            nextPinnedPosition:"Próxima posição marcada",
+            fleetRepeat:"Repetir ultima missão",
+            fleetSelectAll:"<div>Selecionar todas as naves (fleet1)<hr>Selecionar todos os recursos (fleet2)</div>",
+            expeditionSC:'Expedição Cargueiros Pequenos',
+            expeditionLC:'Expedição Cargueiros Grandes',
+            expeditionPF:'Expedição Exploradora',
+            galaxySpySystem:"Espiar sistema",
+            collectLinked:"Enviar para planeta/lua ligados",
+            keyboardActions:"Definições do teclado",
+            expeditionValue:"Valor da expedição",
+            expeditionValueTT:"Capacidade costumizada para as expedições.<br> Colocar <b>0</b> para usar o valor normal calculado",
+            expeditionBigShips:"Permitir naves grandes",
+            expeditionRandomSystem:"Sistema aleatório",
+            expeditionShipRatio:"Valor das naves encontradas (%)",
+            fleetLimiter:"Limitador de frota",
+            fleetLimiterTT:"Escolher a quantidade de naves / recursos para deixar nos planetas",
+            menu:"Mostrar/Esconder menu OGLight",
+            quickRaid:"Ataque rápido",
+            attackNext:"Atacar próximo planeta",
+            autoCleanReports:"Limpar automaticamente os relatórios",
+            noCurrentPin:"Erro, nenhum alvo marcado",
+            backFirstFleet:"Mandar recuar a primeira frota",
+            backLastFleet:"Mandar recuar a última frota enviada",
+            fleetReverseAll:"Inverter seleção",
+            fleetResourcesSplit:"Dividir naves/recursos",
+            manageData:"Gerir dados OGLight",
+            profileButton:"Perfil de Limitadores",
+            limiters:"Limitadores",
+            expeditionRedirect:"Redirecionar para o próximo planeta/lua",
+            playerProfile:"Perfil de jogador",
+            topReportDetails:"Detalhes do melhor relatório",
+            reportFound:"Melhor relatório",
+            discovery:"Enviar explorações",
+            collectResources:"Enviar recursos",
+            accountSummary:"Sumário da conta",
+            stats:"Estatísticas",
+            taggedPlanets:"Planetas marcados",
+            pinnedPlayers:"Jogadores marcados",
+            oglSettings:"Definições do OGLight",
+            coffee:"Buy me a coffee",
+            syncEmpire:"Sincronizar dados do império",
+            repeatQueue:"Repetir a quantidade acima numa nova ordem X vezes.<br>Esta operação vai demorar um pouco",
+            spyPlanet:"Espiar este planeta",
+            spyMoon:"Espiar esta lua",
+            resourceLimiter:"Subtrair a quantidade de recursos definida no perfil Limitador",
+            fleetLimiter:"Subtrair a quantidade de naves de definidas no perfil Limitador",
+            forceKeepCapacity:"Manter capacidade suficiente no planeta para mover os recursos (tem prioridade acima dos limitadores)",
+            forceIgnoreFood:"Ignorar comida (tem prioridade acima dos limitadores)",
+            resetStats:"Reiniciar estatísticas",
+            resetTaggedPlanets:"Reiniciar planetas marcados",
+            resetPinnedPlayers:"Reiniciar jogadores marcados",
+            resetAll:"Reiniciar todos os dados",
+            resetStatsLong:"Tens a certeza que queres reiniciar os dados do OGLight ?",
+            resetTaggedPlanetsLong:"Tens a certeza que queres reiniciar os planetas marcados ?",
+            resetPinnedPlayersLong:"Tens a certeza que queres reiniciar os jogadores marcados ?",
+            resetAllLong:"Tens a certeza que queres reiniciar todos os dados do OGLight ?",
+            reportBlackhole:"Reportar um buraco negro",
+            reportBlackholeLong:"Tens a certeza que queres reportar este buraco negro ?",
+            emptyPlayerList:"Não existe nenhum jogador na lista",
+            debugMode:"Modo de Depuração",
+            sim:"Simulador de batalha",
+            siblingPlanetMoon:"Planeta / Lua irmãos",
+            oglMessageDone:"Esta mensagem foi lida pelo OGLight",
+            boardTab:"Mostrar notícias",
+            msu:"Unidade de Metal",
+            notifyNoProbe:"Funcionalidade desactivada :(",
+
+            ptreTeamKey:"Chave de Equipa",
+            ptreLogs:"Mostrar erros do PTRE",
+            ptreActivityImported:"Actividade importada  para o PTRE",
+            ptreActivityAlreadyImported:"Activdade presente no PTRE",
+            ptreSyncTarget:"Sincronizar com o PTRE",
+            ptreManageTarget:"Gerir PTRE",
+
+            expe: "Expedições",
+            expeditionLCFast:'Expedição Rápida (CG)',
+            expeditionRecFast:'Reciclagem Rápida (10%)',
+            raid: 'Combates',
+            debris: 'Destroços',
+            debrisp16: 'Destroços p16',
+            discovery: 'Explorações',
+            conso: 'Consumo',
+            average: 'Média',
+            total: 'Total',
+            fleet: 'Frota',
+            general: 'Geral',
+            expeditions: 'Expedições',
+            stats: 'Estatísticas',
+            messages: 'Mensagens',
+            PTRE: 'PTRE',
+            data: 'Dados',
+            settings: 'Definições',
+            coords: 'Coords',
+            P: 'P',
+            M: 'L',
+            name: 'Nome',
+            fields: 'Campos',
+            T: 'Temp',
+            lf: 'FdV',
+            selectGalaxySystemRange: 'Selecionar intervalo de galaxia/sistema',
+            noResult: 'Sem resultados',
+            taggedPlanets: 'Planetas Marcados',
+            pinnedPlayers: 'Jogadores Marcados',
+            newUpdateAvailable: 'Actualização Disponível'
         };
     }
 
@@ -2196,7 +2404,8 @@ class UIManager extends Manager
 
         if(uniqueType == 'planet' || !uniqueType)
         {// onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 1)
-            const planetIcon = Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyPlanet'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:1`, child:'language', parent:parent, onclick:e => this.ogl._notification.addToQueue(this.ogl._lang.find('notifyNoProbe'), false, true) });
+         // onclick:e => this.ogl._notification.addToQueue(this.ogl._lang.find('notifyNoProbe'), false, true)
+            const planetIcon = Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyPlanet'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:1`, child:'language', parent:parent, onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 1) });
             const lastPlanetSpy = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.spy?.[0] || 0;
             if(serverTime.getTime() - lastPlanetSpy < this.ogl.db.options.spyIndicatorDelay)
             {
@@ -2215,7 +2424,8 @@ class UIManager extends Manager
         
         if(uniqueType == 'moon' || (!uniqueType && this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid))
         {// onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 3)
-            const moonIcon = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid > 0 ? Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyMoon'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:3`,child:'bedtime', parent:parent, onclick:e => this.ogl._notification.addToQueue(this.ogl._lang.find('notifyNoProbe'), false, true)}) : Util.addDom('div', { parent:parent });
+         // onclick:e => this.ogl._notification.addToQueue(this.ogl._lang.find('notifyNoProbe'), false, true)
+            const moonIcon = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid > 0 ? Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyMoon'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:3`,child:'bedtime', parent:parent, onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 3)}) : Util.addDom('div', { parent:parent });
             const lastMoontSpy = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.spy?.[1] || 0;
             if(serverTime.getTime() - lastMoontSpy < this.ogl.db.options.spyIndicatorDelay)
             {
@@ -2244,7 +2454,7 @@ class UIManager extends Manager
         const version = oglVersion;
 
         const oglBlock = Util.addDom('li', { parent:leftMenu });
-        const oglIcon = Util.addDom('span', { parent:oglBlock, class:'menu_icon ogl_leftMenuIcon', child:`<a class="tooltipRight" href="https://openuserjs.org/scripts/nullNaN/OGLight" target="_blank"><i class="material-icons">oglight_simple</i></a>` });
+        const oglIcon = Util.addDom('span', { parent:oglBlock, class:'menu_icon ogl_leftMenuIcon', child:`<a class="tooltipRight" href="https://github.com/igoptx/ogameTools/tree/main/OGLight" target="_blank"><i class="material-icons">oglight_simple</i></a>` });
         Util.addDom('a', { parent:oglBlock, class:'menubutton tooltipRight', href:'https://board.fr.ogame.gameforge.com/index.php?thread/722955-oglight/', target:'_blank', child:`<span class="textlabel">OGLight ${version}</span>` });
 
         if(this.ogl.ptreKey)
@@ -2261,7 +2471,7 @@ class UIManager extends Manager
                 GM_xmlhttpRequest(
                 {
                     method:'GET',
-                    url:'https://openuserjs.org/meta/nullNaN/OGLight.meta.js/',
+                    url:'https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js',
                     onload:result =>
                     {
                         this.ogl.db.serverVersion = result.responseText.replace(/\D/g, '');
@@ -2270,7 +2480,7 @@ class UIManager extends Manager
                         if(this.ogl.version.replace(/\D/g, '') != this.ogl.db.serverVersion)
                         {
                             oglIcon.querySelector('i').classList.add('ogl_danger');
-                            oglIcon.querySelector('a').setAttribute('data-title', 'New update available');
+                            oglIcon.querySelector('a').setAttribute('data-title', this.ogl._lang.find('newUpdateAvailable'));
                         }
                     }
                 });
@@ -2278,7 +2488,7 @@ class UIManager extends Manager
             else if(this.ogl.version.replace(/\D/g, '') != this.ogl.db.serverVersion)
             {
                 oglIcon.querySelector('i').classList.add('ogl_danger');
-                oglIcon.querySelector('a').setAttribute('data-title', 'New update available');
+                oglIcon.querySelector('a').setAttribute('data-title', this.ogl._lang.find('newUpdateAvailable'));
             }
         }
     }
@@ -2569,7 +2779,7 @@ class TopbarManager extends Manager
         Util.addDom('i', { class:'material-icons tooltipTop', child:'push_pin', parent:this.topbar, title:this.ogl._lang.find('pinnedPlayers'), onclick:() => this.openPinned(true) });
         Util.addDom('i', { class:'material-icons tooltipTop', child:'settings', parent:this.topbar, title:this.ogl._lang.find('oglSettings'), onclick:() => this.openSettings(true) });
 
-        Util.addDom('a', { parent:this.topbar, class:'material-icons tooltipTop', child:'favorite', title:this.ogl._lang.find('coffee'), target:'_blank', href:'https://ko-fi.com/O4O22XV69' });
+        Util.addDom('a', { parent:this.topbar, class:'material-icons tooltipTop', child:'favorite', title:this.ogl._lang.find('coffee'), target:'_blank', href:'https://ko-fi.com/rodrigocorreia' });
         
         this.syncBtn = Util.addDom('i', {class:'material-icons tooltipTop', child:'directory_sync', title:this.ogl._lang.find('syncEmpire'), parent:this.topbar, onclick:() =>
         {
@@ -2628,13 +2838,13 @@ class TopbarManager extends Manager
         Util.addDom('div', {class:'ogl_icon ogl_crystal', parent:container});
         Util.addDom('div', {class:'ogl_icon ogl_deut', parent:container});
 
-        Util.addDom('div', {child:'Coords', parent:container});
-        Util.addDom('div', {child:'P', parent:container});
-        Util.addDom('div', {child:'M', parent:container});
-        Util.addDom('div', {child:'Name', parent:container});
-        Util.addDom('div', {child:'Fields', parent:container});
-        Util.addDom('div', {child:'T°c', parent:container});
-        Util.addDom('div', {child:'LF', parent:container});
+        Util.addDom('div', {child:this.ogl._lang.find('coords'), parent:container});
+        Util.addDom('div', {child:this.ogl._lang.find('P'), parent:container});
+        Util.addDom('div', {child:this.ogl._lang.find('M'), parent:container});
+        Util.addDom('div', {child:this.ogl._lang.find('name'), parent:container});
+        Util.addDom('div', {child:this.ogl._lang.find('fields'), parent:container});
+        Util.addDom('div', {child:this.ogl._lang.find('T'), parent:container});
+        Util.addDom('div', {child:this.ogl._lang.find('lf'), parent:container});
         
         /*Util.addDom('div',
         {
@@ -2810,7 +3020,7 @@ class TopbarManager extends Manager
 
     openSettings(buttonSource)
     {
-        const container = Util.addDom('div', {class:'ogl_config', child:'<h2>Settings<i class="material-icons">settings</i></h2>'});
+        const container = Util.addDom('div', {class:'ogl_config', child:'<h2>'+this.ogl._lang.find('settings')+'<i class="material-icons">settings</i></h2>'});
 
         let subContainer;
         let options =
@@ -2846,7 +3056,7 @@ class TopbarManager extends Manager
             {
                 currentContainer = Util.addDom('div', { parent:container, 'data-container':subContainer });
                 if(this.ogl.db.configState[subContainer]) currentContainer.classList.add('ogl_active');
-                Util.addDom('h3', { parent:currentContainer, child:subContainer, onclick:() =>
+                Util.addDom('h3', { parent:currentContainer, child:this.ogl._lang.find(subContainer), onclick:() =>
                 {
                     if(currentContainer.classList.contains('ogl_active'))
                     {
@@ -3092,7 +3302,7 @@ class TopbarManager extends Manager
 
         Util.runAsync(() =>
         {
-            const container = Util.addDom('div', {class:'ogl_pinned', child:'<h2>Pinned players<i class="material-icons">push_pin</i></h2>'});
+            const container = Util.addDom('div', {class:'ogl_pinned', child:'<h2>'+this.ogl._lang.find('pinnedPlayers')+'<i class="material-icons">push_pin</i></h2>'});
 
             const tabs = Util.addDom('div', { class:'ogl_tabs ogl_flagSelector material-icons', parent:container });
             const list = Util.addDom('div', { class:'ogl_list', parent:container });
@@ -3353,11 +3563,11 @@ class TopbarManager extends Manager
 
         Util.runAsync(() =>
         {
-            const container = Util.addDom('div', {class:'ogl_tagged', child:'<h2>Tagged planets<i class="material-icons">stroke_full</i></h2>'});
+            const container = Util.addDom('div', {class:'ogl_tagged', child:'<h2>'+this.ogl._lang.find('taggedPlanets')+'<i class="material-icons">stroke_full</i></h2>'});
             const tabs = Util.addDom('div', { class:'ogl_tabs ogl_tagSelector material-icons', parent:container });
             const inputs = Util.addDom('div', { class:'ogl_actions', parent:container });
             Util.addDom('hr', { parent:container });
-            const list = Util.addDom('div', { class:'ogl_list', parent:container, child:'<p class="ogl_emptyList">Select a galaxy/system range</p>' });
+            const list = Util.addDom('div', { class:'ogl_list', parent:container, child:'<p class="ogl_emptyList">'+this.ogl._lang.find('selectGalaxySystemRange')+'</p>' });
 
             const buildList = () =>
             {
@@ -3369,7 +3579,7 @@ class TopbarManager extends Manager
 
                 if(items.length < 1)
                 {
-                    Util.addDom('p', { child:'No result', parent:list } );
+                    Util.addDom('p', { child:this.ogl._lang.find('noResult'), parent:list } );
                 }
                 else
                 {
@@ -4410,7 +4620,7 @@ class FleetManager extends Manager
         return Math.ceil(resource / this.ogl.db.shipsCapacity[shipID]) || 0;
     }
 
-    selectExpedition(shipID)
+    selectExpedition(shipID, fast)
     {
         if(fleetDispatcher.fetchTargetPlayerDataTimeout) return;
 
@@ -4484,6 +4694,13 @@ class FleetManager extends Manager
         this.ogl.db.lastExpeditionShip = shipID;
 
         this.prepareRedirection();
+
+        if (fast) {
+            var element = document.querySelector('.continue');
+            if (element) {
+                element.click()
+            }
+        }
     }
 
     updateSpeedBar()
@@ -4598,7 +4815,7 @@ class FleetManager extends Manager
         this.spyQueue.push({ order:order, galaxy:galaxy, system:system, position:position, type:type, shipCount:shipCount, callback:callback });
 
         document.querySelectorAll(`[data-spy-coords="${galaxy}:${system}:${position}:${type}"]`).forEach(e => e.setAttribute('data-spy', 'prepare'));
-        
+
         if(!this.spyInterval)
         {
             this.spyInterval = setInterval(() => this.spy(), 500);
@@ -4977,7 +5194,7 @@ class GalaxyManager extends Manager
                         ptrePositions[coords].moon.size = moonSize;
                     }
 
-                    console.log(`${coords} | ${oldEntry.pid} -> ${planetID} | ${oldEntry.mid} -> ${moonID}`)
+                    //console.log(`${coords} | ${oldEntry.pid} -> ${planetID} | ${oldEntry.mid} -> ${moonID}`)
                 }
                 else // no change
                 {
@@ -7521,6 +7738,60 @@ class ShortcutManager extends Manager
 
         this.loaded = true;
 
+        this.add('expeditionLCFast', () => {
+            if (typeof fleetDispatcher !== 'undefined') {
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    this.ogl._fleet.selectExpedition(203, true);
+                } else if (fleetDispatcher.currentPage == 'fleet2') {
+                    var element = document.querySelector('.start');
+                    if (element) {
+                        element.click()
+                    }
+                }
+            } else {
+                window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
+                return;
+            }
+        });
+
+        this.add('expeditionRecFast', () => {
+            if (typeof fleetDispatcher !== 'undefined') {
+                var fast = true;
+
+                if (fleetDispatcher.currentPage == 'fleet1') {
+                    var b_continue = document.querySelector('.continue');
+                    fleetDispatcher.selectAllShips();
+                    let coords = [fleetDispatcher.currentPlanet.galaxy, fleetDispatcher.currentPlanet.system, fleetDispatcher.currentPlanet.position];
+
+                    this.ogl._fleet.setRealTarget(
+                        fleetDispatcher.realTarget,{
+                            galaxy:coords[0],
+                            system:coords[1],
+                            position:coords[2],
+                            type:2,
+                            name:'Campo de Destroços'
+                        }
+                    );
+                    fleetDispatcher.selectMission(8);
+                    fleetDispatcher.expeditionTime = 0;
+                    fleetDispatcher.refresh();
+                    b_continue.click();
+                }
+
+                if (fleetDispatcher.currentPage == 'fleet2') {
+                    var b_start = document.querySelector('.start');
+                    fleetDispatcher.selectMaxAll();
+                    fleetDispatcher.speedPercent = 1;
+                    fleetDispatcher.realSpeedPercent = 1;
+                    fleetDispatcher.refresh();
+                    b_start.click();
+                }
+            } else {
+                window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
+                return;
+            }
+        });
+
         this.add('menu', () =>
         {
             if(document.querySelector('.ogl_side.ogl_active .ogl_config'))
@@ -7551,7 +7822,7 @@ class ShortcutManager extends Manager
         });
 
         this.add('nextPlanet', () =>
-        {
+                 {
             localStorage.setItem('ogl-redirect', false);
             document.body.classList.remove('ogl_destinationPicker');
                 
@@ -7597,7 +7868,7 @@ class ShortcutManager extends Manager
             this.add('expeditionPF', () => { if(fleetDispatcher.currentPage == 'fleet1') this.ogl._fleet.selectExpedition(219) }, 'fleet');
 
             this.add('fleetRepeat', () =>
-            {
+                     {
                 if(fleetDispatcher.currentPage == 'fleet1')
                 {
                     fleetDispatcher.resetShips();
@@ -9320,7 +9591,7 @@ class StatsManager extends Manager
         ['expe', 'raid', 'conso', 'u', 'total'].forEach(type =>
         {
             const typeLabel = type == 'u' ? 'average' : type;
-            const line = Util.addDom('div', { parent:sumTable, child:`<div>${typeLabel}</div>` });
+            const line = Util.addDom('div', { parent:sumTable, child:`<div>${this.ogl._lang.find(typeLabel)}</div>` });
 
             const count = {}
             count.expe = data.expe.count + data.debris16.count;
@@ -9332,13 +9603,13 @@ class StatsManager extends Manager
             if(count[type])
             {
                 const tooltip = 
-                    type == 'expe' ? `<div>Expedition: ${data.expe.count}</div><div>Debris p16: ${data.debris16.count}</div>` :
-                    type == 'raid' ? `<div>Raid: ${data.raid.count}</div><div>Debris: ${data.debris.count}</div>` :
-                    type == 'total' ? `<div>Expedition: ${data.expe.count}</div>
-                        <div>Debris p16: <span>${data.debris16.count}</span></div>
-                        <div>Raid: <span>${data.raid.count}</span></div>
-                        <div>Debris: <span>${data.debris.count}</span></div>
-                        <div>Discovery: <span>${data.discovery.count}</span></div>` : '';
+                    type == 'expe' ? `<div>${this.ogl._lang.find('expe')}: ${data.expe.count}</div><div>${this.ogl._lang.find('debrisp16')}: ${data.debris16.count}</div>` :
+                    type == 'raid' ? `<div>${this.ogl._lang.find('raid')}: ${data.raid.count}</div><div>${this.ogl._lang.find('debris')}: ${data.debris.count}</div>` :
+                    type == 'total' ? `<div>${this.ogl._lang.find('expe')}: ${data.expe.count}</div>
+                        <div>${this.ogl._lang.find('debrisp16')}: <span>${data.debris16.count}</span></div>
+                        <div>${this.ogl._lang.find('raid')}: <span>${data.raid.count}</span></div>
+                        <div>${this.ogl._lang.find('debris')}: <span>${data.debris.count}</span></div>
+                        <div>${this.ogl._lang.find('discovery')}: <span>${data.discovery.count}</span></div>` : '';
 
                 missions.classList.add('tooltip');
                 missions.setAttribute('data-title', tooltip);
@@ -9454,13 +9725,12 @@ class StatsManager extends Manager
             ctx.beginPath();
             ctx.arc(size/2, size/2, size/2.7, 0, 2 * Math.PI, false);
             ctx.fill();
-    
             ctx.fillStyle = "#1b212a";
             ctx.beginPath();
             ctx.arc(size/2, size/2, size/3, 0, 2 * Math.PI, false);
             ctx.fill();
 
-            pie.setAttribute('data-pie', `${hoveredSlice ? this.ogl._lang.find(hoveredSlice.title) + '\r\n' : ''}${hoveredSlice ? hoveredSlice.percent + '%' : total + '\r\nExpeditions'}`);
+            pie.setAttribute('data-pie', `${hoveredSlice ? this.ogl._lang.find(hoveredSlice.title) + '\r\n' : ''}${hoveredSlice ? hoveredSlice.percent + '%' : total + '\r\n' + this.ogl._lang.find('expe')}`);
 
             legend.querySelectorAll('.ogl_active').forEach(e => e.classList.remove('ogl_active'));
 
@@ -9472,7 +9742,6 @@ class StatsManager extends Manager
 
         const canvas = Util.addDom('canvas', { parent:pie, width:size, height:size, onmouseout:() => { drawPie();canvas.classList.remove('ogl_interactive'); }, /*onmousemove:event =>
         {
-            
             const rect = canvas.getBoundingClientRect();
             mouseXY = { x:event.clientX - rect.left, y:event.clientY - rect.top };
 

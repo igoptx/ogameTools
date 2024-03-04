@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.0.1] - 2024/03/04 15:15:00
+- Add portuguese translations
+
 ### [5.0.0] - 2024/03/04 15:00:00
 - Update to the new original OGLight by Oz (https://openuserjs.org/scripts/nullNaN/OGLight)
 
