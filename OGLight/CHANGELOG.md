@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.0.2] - 2024/03/04 15:20:00
+- Update flow to check new versions
+
 ### [5.0.1] - 2024/03/04 15:15:00
 - Add portuguese translations
 

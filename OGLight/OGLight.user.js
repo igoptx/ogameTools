@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.0.1
+// @version      5.0.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -2466,8 +2466,21 @@ class UIManager extends Manager
 
         if(this.ogl.version.indexOf('-b') == -1)
         {
+            var checkVersion = false;
+
             if(typeof GM_xmlhttpRequest !== 'undefined' && (serverTime.getTime() > (this.ogl.db.lastVersionCheck || 0) + 86400000))
             {
+                checkVersion = true;
+            }
+            else if(this.ogl.version.replace(/\D/g, '') != this.ogl.db.serverVersion)
+            {
+                checkVersion = true;
+                oglIcon.querySelector('i').classList.add('ogl_danger');
+                oglIcon.querySelector('a').setAttribute('data-title', this.ogl._lang.find('newUpdateAvailable'));
+            }
+
+            if (checkVersion) {
+
                 GM_xmlhttpRequest(
                 {
                     method:'GET',
@@ -2484,12 +2497,9 @@ class UIManager extends Manager
                         }
                     }
                 });
+
             }
-            else if(this.ogl.version.replace(/\D/g, '') != this.ogl.db.serverVersion)
-            {
-                oglIcon.querySelector('i').classList.add('ogl_danger');
-                oglIcon.querySelector('a').setAttribute('data-title', this.ogl._lang.find('newUpdateAvailable'));
-            }
+
         }
     }
 
