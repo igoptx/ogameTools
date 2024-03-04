@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.0.0] - 2024/03/04 15:00:00
+- Update to the new original OGLight by Oz (https://openuserjs.org/scripts/nullNaN/OGLight)
+
 ### [4.8.3] - 2024/02/29 12:40:00
 - Quick fix on spy reports due to Ogame version 11.10.3
 
