@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.0.3
+// @version      5.0.4
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -2498,7 +2498,7 @@ class UIManager extends Manager
         {
             var checkVersion = false;
 
-            if(typeof GM_xmlhttpRequest !== 'undefined' && (serverTime.getTime() > (this.ogl.db.lastVersionCheck || 0) + 86400000))
+            if(typeof GM_xmlhttpRequest !== 'undefined' && (serverTime.getTime() > (this.ogl.db.lastVersionCheck || 0) + 3600000))
             {
                 checkVersion = true;
             }
