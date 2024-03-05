@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.0.3] - 2024/03/05 10:50:00
+- Add new translations
+
 ### [5.0.2] - 2024/03/04 15:20:00
 - Update flow to check new versions
 

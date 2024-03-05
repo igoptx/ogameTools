@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.0.2
+// @version      5.0.3
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -989,7 +989,17 @@ class LangManager extends Manager
             noResult: 'No Result',
             taggedPlanets: 'Tagged planets',
             pinnedPlayers: 'Pinned players',
-            newUpdateAvailable: 'New Update Available'
+            newUpdateAvailable: 'New Update Available',
+            ptreLastRequestStatus: 'PTRE last request status',
+            ptreErrors: 'PTRE errors',
+            errorCode: 'Error Code',
+            message: 'Message',
+            time: 'Time',
+            resourceLimit: 'Resources Limit',
+            shipLimit: 'Ship limit',
+            ignoreFood : 'Ignore food',
+            force : 'Force',
+            jumpgate: 'Jumpgate'
         };
 
         this.fr =
@@ -1129,7 +1139,17 @@ class LangManager extends Manager
             noResult: 'No Result',
             taggedPlanets: 'Tagged planets',
             pinnedPlayers: 'Pinned players',
-            newUpdateAvailable: 'New Update Available'
+            newUpdateAvailable: 'New Update Available',
+            ptreLastRequestStatus: 'PTRE last request status',
+            ptreErrors: 'PTRE errors',
+            errorCode: 'Error Code',
+            message: 'Message',
+            time: 'Time',
+            resourceLimit: 'Resources limit',
+            shipLimit: 'Ship limit',
+            ignoreFood : 'Ignore food',
+            force : 'Force',
+            jumpgate: 'Jumpgate'
         };
 
         this.pt =
@@ -1267,7 +1287,17 @@ class LangManager extends Manager
             noResult: 'Sem resultados',
             taggedPlanets: 'Planetas Marcados',
             pinnedPlayers: 'Jogadores Marcados',
-            newUpdateAvailable: 'Actualização Disponível'
+            newUpdateAvailable: 'Actualização Disponível',
+            ptreLastRequestStatus: 'Estado do último pedido do PTRE',
+            ptreErrors: 'Log do PTRE',
+            errorCode: 'Código do Erro',
+            message: 'Mensagem',
+            time: 'Hora',
+            resourceLimit: 'Limite de Recursos',
+            shipLimit: 'Limite de Naves',
+            ignoreFood : 'Ignorar Comida',
+            force : 'Forçar',
+            jumpgate: 'Portal de Salto'
         };
     }
 
@@ -1841,11 +1871,11 @@ class UIManager extends Manager
     openFleetProfile()
     {
         const container = Util.addDom('div', { class:'ogl_keeper' });
-        Util.addDom('h2', { child:'Limiters', parent:container });
+        Util.addDom('h2', { child:this.ogl._lang.find('limiters'), parent:container });
 
         const leftSide = Util.addDom('div', { parent:container });
 
-        const limitResourceLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'resource', title:this.ogl._lang.find('resourceLimiter'), parent:leftSide, child:'Resources' });
+        const limitResourceLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'resource', title:this.ogl._lang.find('resourceLimiter'), parent:leftSide, child:this.ogl._lang.find('resource') });
         const limitResourceCheckbox = Util.addDom('input', { type:'checkbox', parent:limitResourceLabel, onclick:() =>
         {
             this.ogl.db.fleetLimiter.resourceActive = !this.ogl.db.fleetLimiter.resourceActive;
@@ -1855,7 +1885,7 @@ class UIManager extends Manager
         const resourceContainer = Util.addDom('div', { parent:leftSide, class:'ogl_resourceLimiter' });
         Util.addDom('br', { parent:leftSide });
 
-        const limitShipLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'ship', title:this.ogl._lang.find('fleetLimiter'), parent:leftSide, child:'Ships' });
+        const limitShipLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'ship', title:this.ogl._lang.find('fleetLimiter'), parent:leftSide, child:this.ogl._lang.find('ship') });
         const limitShipCheckbox = Util.addDom('input', { type:'checkbox', parent:limitShipLabel, onclick:() =>
         {
             this.ogl.db.fleetLimiter.shipActive = !this.ogl.db.fleetLimiter.shipActive;
@@ -1865,7 +1895,7 @@ class UIManager extends Manager
         const fleetContainer = Util.addDom('div', { parent:leftSide, class:'ogl_shipLimiter' });
         Util.addDom('br', { parent:leftSide });
 
-        const limitJumpgateLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'jumpgate', title:this.ogl._lang.find('fleetLimiter'), parent:leftSide, child:'Jumpgate' });
+        const limitJumpgateLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'jumpgate', title:this.ogl._lang.find('fleetLimiter'), parent:leftSide, child:this.ogl._lang.find('jumpgate') });
         const limitJumpgateCheckbox = Util.addDom('input', { type:'checkbox', parent:limitJumpgateLabel, onclick:() =>
         {
             this.ogl.db.fleetLimiter.jumpgateActive = !this.ogl.db.fleetLimiter.jumpgateActive;
@@ -2460,7 +2490,7 @@ class UIManager extends Manager
         if(this.ogl.ptreKey)
         {
             const ptreBlock = Util.addDom('li', { parent:leftMenu });
-            Util.addDom('span', { parent:ptreBlock, class:'menu_icon ogl_leftMenuIcon ogl_ptreActionIcon', child:`<a class="tooltipRight" data-title="PTRE last request status" href="#"><i class="material-icons">sync_alt</i></a>`, onclick:() => PTRE.displayLogs() });
+            Util.addDom('span', { parent:ptreBlock, class:'menu_icon ogl_leftMenuIcon ogl_ptreActionIcon', child:`<a class="tooltipRight" data-title="${this.ogl._lang.find('ptreLastRequestStatus')}" href="#"><i class="material-icons">sync_alt</i></a>`, onclick:() => PTRE.displayLogs() });
             Util.addDom('a', { parent:ptreBlock, class:'menubutton tooltipRight', href:'https://ptre.chez.gg/', target:'_blank', child:`<span class="textlabel">PTRE</span>` });
         }
 
@@ -4436,30 +4466,30 @@ class FleetManager extends Manager
         const limiterContainer = document.querySelector('#fleetdispatchcomponent');
 
         const limiterField = Util.addDom('fieldset', { parent:limiterContainer });
-        Util.addDom('legend', { parent:limiterField, child:'<i class="material-icons">settings</i> Settings' });
+        Util.addDom('legend', { parent:limiterField, child:'<i class="material-icons">settings</i> '+this.ogl._lang.find('settings')});
 
-        const limitResourceLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'resource', title:this.ogl._lang.find('resourceLimiter'), parent:limiterField, child:'Limit resources' });
+        const limitResourceLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'resource', title:this.ogl._lang.find('resourceLimiter'), parent:limiterField, child:this.ogl._lang.find('resourceLimit') });
         const limitResourceCheckbox = Util.addDom('input', { type:'checkbox', parent:limitResourceLabel, onclick:() =>
         {
             this.ogl.db.fleetLimiter.resourceActive = !this.ogl.db.fleetLimiter.resourceActive;
             this.updateLimiter();
         }});
 
-        const limitShipLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'ship', title:this.ogl._lang.find('fleetLimiter'), parent:limiterField, child:'Limit ships' });
+        const limitShipLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', 'data-limiter-type':'ship', title:this.ogl._lang.find('fleetLimiter'), parent:limiterField, child:this.ogl._lang.find('shipLimit') });
         const limitShipCheckbox = Util.addDom('input', { type:'checkbox', parent:limitShipLabel, onclick:() =>
         {
             this.ogl.db.fleetLimiter.shipActive = !this.ogl.db.fleetLimiter.shipActive;
             this.updateLimiter();
         }});
 
-        const limitFoodLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', title:this.ogl._lang.find('forceIgnoreFood'), parent:limiterField, child:'Ignore Food' });
+        const limitFoodLabel = Util.addDom('label', { class:'ogl_limiterLabel tooltip', title:this.ogl._lang.find('forceIgnoreFood'), parent:limiterField, child:this.ogl._lang.find('ignoreFood') });
         const limitFoodCheckbox = Util.addDom('input', { type:'checkbox', parent:limitFoodLabel, onclick:() =>
         {
             this.ogl.db.fleetLimiter.ignoreFood = !this.ogl.db.fleetLimiter.ignoreFood;
             this.updateLimiter();
         }});
 
-        const keepLabel = Util.addDom('div', { class:'ogl_limiterGroup tooltip', title:this.ogl._lang.find('forceKeepCapacity'), parent:limiterField, child:'Force' });
+        const keepLabel = Util.addDom('div', { class:'ogl_limiterGroup tooltip', title:this.ogl._lang.find('forceKeepCapacity'), parent:limiterField, child:this.ogl._lang.find('force') });
 
         [202, 203, 219, 200].forEach(shipID =>
         {
@@ -10613,14 +10643,14 @@ class PTRE
                 Util.addDom('div', { child:`<div>${time.outerHTML}</div><div>${log.code}</div><div>${log.message}</div>`, prepend:container });
             });
     
-            Util.addDom('div', { child:`<div>time</div><div>error code</div><div>message</div>`, prepend:container });
+            Util.addDom('div', { child:`<div>${this.ogl._lang.find('time')}</div><div>${this.ogl._lang.find('errorCode')}</div><div>${this.ogl._lang.find('message')}</div>`, prepend:container });
         }
         else
         {
             Util.addDom('div', { child:'empty', parent:container });
         }
 
-        Util.addDom('div', { child:`<h2>PTRE errors</h2>`, prepend:container });
+        Util.addDom('div', { child:`<h2>${this.ogl._lang.find('ptreErrors')}</h2>`, prepend:container });
 
         PTRE.ogl._popup.open(container, true);
     }
