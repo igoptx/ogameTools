@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.0.6] - 2024/03/07 17:30
+- Fix bug in Galaxy View (not showing debris on slot 16) due to Ogame Version 11.11.2
+
 ### [5.0.5] - 2024/03/07 14:30:00
 - In spy reports, just show the reports of that page
 - Add total time to build, energy consuption and energy production when click on arrows to see the next levels of buildings/researchs

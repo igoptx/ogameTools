@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.0.5
+// @version      5.0.6
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -5341,7 +5341,7 @@ class GalaxyManager extends Manager
                 div.closest('.cellDebris').classList.add('ogl_important');
             }
         }
-}
+    }
 
     updateDebrisP16(debris, row)
     {
@@ -5374,7 +5374,7 @@ class GalaxyManager extends Manager
 
     unloadSystem()
     {
-        document.querySelector(`#galaxyRow16`)?.remove();
+        //document.querySelector(`#galaxyRow16`)?.remove();
 
         for(let i=1; i<16; i++)
         {
