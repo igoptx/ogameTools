@@ -2455,7 +2455,7 @@ class UIManager extends Manager
         if(uniqueType == 'moon' || (!uniqueType && this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid))
         {// onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 3)
          // onclick:e => this.ogl._notification.addToQueue(this.ogl._lang.find('notifyNoProbe'), false, true)
-            const moonIcon = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid > 0 ? Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyMoon'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:3`,child:'bedtime', parent:parent, onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 3)}) : Util.addDom('div', { parent:parent });
+            const moonIcon = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid > 0 ? Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyMoon'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:3`,child:'bedtime', parent:parent, onclick:e => this.ogl._notification.addToQueue(this.ogl._lang.find('notifyNoProbe'), false, true)}) : Util.addDom('div', { parent:parent });
             const lastMoontSpy = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.spy?.[1] || 0;
             if(serverTime.getTime() - lastMoontSpy < this.ogl.db.options.spyIndicatorDelay)
             {
