@@ -2435,7 +2435,7 @@ class UIManager extends Manager
         if(uniqueType == 'planet' || !uniqueType)
         {// onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 1)
          // onclick:e => this.ogl._notification.addToQueue(this.ogl._lang.find('notifyNoProbe'), false, true)
-            const planetIcon = Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyPlanet'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:1`, child:'language', parent:parent, onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 1) });
+            const planetIcon = Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyPlanet'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:1`, child:'language', parent:parent, onclick:e => this.ogl._notification.addToQueue(this.ogl._lang.find('notifyNoProbe'), false, true) });
             const lastPlanetSpy = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.spy?.[0] || 0;
             if(serverTime.getTime() - lastPlanetSpy < this.ogl.db.options.spyIndicatorDelay)
             {
