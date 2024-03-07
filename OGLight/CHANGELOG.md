@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.0.5] - 2024/03/07 14:30:00
+- In spy reports, just show the reports of that page
+- Add total time to build, energy consuption and energy production when click on arrows to see the next levels of buildings/researchs
+
 ### [5.0.4] - 2024/03/05 15:10:00
 - Update flow to check new versions
 
