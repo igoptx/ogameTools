@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.0.6
+// @version      5.0.7
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -999,7 +999,8 @@ class LangManager extends Manager
             shipLimit: 'Ship limit',
             ignoreFood : 'Ignore food',
             force : 'Force',
-            jumpgate: 'Jumpgate'
+            jumpgate: 'Jumpgate',
+            empty: 'Empty'
         };
 
         this.fr =
@@ -1149,7 +1150,8 @@ class LangManager extends Manager
             shipLimit: 'Ship limit',
             ignoreFood : 'Ignore food',
             force : 'Force',
-            jumpgate: 'Jumpgate'
+            jumpgate: 'Jumpgate',
+            empty: 'Empty'
         };
 
         this.pt =
@@ -1297,7 +1299,8 @@ class LangManager extends Manager
             shipLimit: 'Limite de Naves',
             ignoreFood : 'Ignorar Comida',
             force : 'Forçar',
-            jumpgate: 'Portal de Salto'
+            jumpgate: 'Portal de Salto',
+            empty: 'Vazio'
         };
     }
 
@@ -5110,7 +5113,7 @@ class GalaxyManager extends Manager
         }
 
         data.system.galaxyContent.forEach(line =>
-        {
+                                          {
             const position = line.position;
             const debris = { metal:0, crystal:0, deut:0, total:0 };
             const row = document.querySelector(`#galaxyRow${position}`);
@@ -5289,6 +5292,12 @@ class GalaxyManager extends Manager
             }
         });
 
+        if (data.system.galaxyContent.length == 15) {
+            let row16 = document.querySelector(`#galaxyRow16`);
+            let debris16 = { metal:0, crystal:0, deut:0, total:0 };
+            this.updateDebrisP16(debris16, row16);
+        }
+
         // send positions data to the PTRE server
         if(Object.keys(ptrePositions).length > 0) PTRE.postPositions(ptrePositions);
 
@@ -5350,25 +5359,37 @@ class GalaxyManager extends Manager
             let content = row.querySelectorAll('.ListLinks li');
             if(!content[0]) content = document.querySelectorAll('#debris16 .ListLinks li');
 
-            let scouts = content[3];
-            let action = content[4];
+            let scouts = '';
+            let action = '';
+            if(content[3]) scouts = content[3].innerHTML;
+            if(content[4]) action = content[4].innerHTML;
 
             if(debris.total >= this.ogl.db.options.resourceTreshold) document.querySelector('.expeditionDebrisSlotBox').classList.add('ogl_important');
 
-            document.querySelector('.expeditionDebrisSlotBox').innerHTML = `
-                <div>
+            document.querySelector('.expeditionDebrisSlotBox').innerHTML = `<div>
                     <div class="material-icons">debris</div>
                 </div>
-                <div>
+                <div id="expeditionDebrisSlotDebrisContainer">
                     <div class="ogl_icon ogl_metal">${Util.formatNumber(debris.metal)}</div>
                     <div class="ogl_icon ogl_crystal">${Util.formatNumber(debris.crystal)}</div>
                     <div class="ogl_icon ogl_deut">${Util.formatNumber(debris.deut)}</div>
                 </div>
                 <div>
-                    <div>${scouts.innerText}</div>
-                    <div>${action.outerHTML}</div>
+                    <div>${scouts}</div>
+                    <div>${action}</div>
+                </div>`;
+        } else {
+            document.querySelector('.expeditionDebrisSlotBox').innerHTML = `<div>
+                    <div class="material-icons">debris</div>
                 </div>
-            `;
+                <div id="expeditionDebrisSlotDebrisContainer">
+<div id="expeditionDebrisSlotDebrisContainer">
+                    ${this.ogl._lang.find('empty')}
+                </div>
+                </div>
+                <div>
+
+                </div>`;
         }
     }
 
@@ -8087,12 +8108,24 @@ class ShortcutManager extends Manager
             this.add('galaxyRight', () => submitOnKey('ArrowRight'));
             this.add('galaxySpySystem', () => document.querySelector('.spysystemlink').click());
             this.add('discovery', () =>
-            {
+                     {
                 if(this.discoveryReady)
                 {
                     this.discoveryReady = false;
                     const discoveryTarget = document.querySelector('a.planetDiscover');
-                    if(discoveryTarget) discoveryTarget.click();
+                    if(discoveryTarget) {
+                        discoveryTarget.click();
+                    }
+
+                } else {
+                    var elemento = document.querySelector('a.yes');
+                    if(elemento) {
+                        var elemento2 = document.getElementById('errorBoxDecisionYes');
+
+                        if (elemento2 && elemento2.innerText !== '.') {
+                            elemento.click();
+                        }
+                    }
                 }
             });
         }
