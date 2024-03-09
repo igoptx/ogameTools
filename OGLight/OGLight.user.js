@@ -999,7 +999,9 @@ class LangManager extends Manager
             ignoreFood : 'Ignore food',
             force : 'Force',
             jumpgate: 'Jumpgate',
-            empty: 'Empty'
+            empty: 'Empty',
+            interface: 'Interface',
+            cargoPerHour: 'cargo per hour since the spy'
         };
 
         this.fr =
@@ -1153,7 +1155,9 @@ class LangManager extends Manager
             ignoreFood : 'Ignore food',
             force : 'Force',
             jumpgate: 'Jumpgate',
-            empty: 'Empty'
+            empty: 'Empty',
+            interface: 'Interface',
+            cargoPerHour: 'cargo per hour since the spy'
         };
 
         this.pt =
@@ -1179,7 +1183,7 @@ class LangManager extends Manager
             displayPlanetTimers:"Mostrar temporizador nos planetas",
             disablePlanetTooltips:"Desabilitar o menu popup dos planetas",
             showMenuResources:"Layout dos menus dos planetas",
-            reduceLargeImages:"Reduzid imagens grandes",
+            reduceLargeImages:"Reduzir imagens grandes",
             ignoreExpeShips:"Ignorar naves encontradas nas expedições",
             ignoreExpeShipsLoss:"Ignorar naves perdidas nas expedições",
             ignoreConsumption:"Ignorar consumo das naves",
@@ -1305,7 +1309,9 @@ class LangManager extends Manager
             ignoreFood : 'Ignorar Comida',
             force : 'Forçar',
             jumpgate: 'Portal de Salto',
-            empty: 'Vazio'
+            empty: 'Vazio',
+            interface: 'Interface',
+            cargoPerHour: 'cargueiros por hora desde a hora do relatório'
         };
     }
 
@@ -6730,7 +6736,7 @@ class MessageManager extends Manager
             let spyLine = Util.addDom('div', { class:'ogl_spyLine', parent:this.spytable, 'data-id':report.id });
 
             let div = Util.addDom('div',
-            {
+                                  {
                 parent:spyLine,
                 child:
                 `
@@ -6740,7 +6746,7 @@ class MessageManager extends Manager
                     <span class="ogl_type"></span>
                     <span class="ogl_destination"><span data-galaxy="${report.coords.join(':')}">${report.coords.join(':')}</span></span>
                     <a class="${report.status} tooltip overlay" data-title="${report.name}" href="https://${window.location.host}/game/index.php?page=messages&messageId=${report.id}&tabid=20&ajax=1">${report.name}</a>
-                    <a class="ogl_reportTotal ogl_textRight tooltip" data-title="${ogl._lang.find(this.ogl.db.options.defaultShip)}: ${Util.formatNumber(requiredShips)}<div class='ogl_sidenote'>+4.2% cargo per hour since the spy</div>" href="https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${report.coords[0]}&system=${report.coords[1]}&position=${report.coords[2]}&type=${report.typeID}&mission=1&am${this.ogl.db.options.defaultShip}=${requiredShips}&oglmode=4" data-value="${report.total}">${Util.formatToUnits(report.total)}</a>
+                    <a class="ogl_reportTotal ogl_textRight tooltip" data-title="${ogl._lang.find(this.ogl.db.options.defaultShip)}: ${Util.formatNumber(requiredShips)}<div class='ogl_sidenote'>+4.2% ${ogl._lang.find('cargoPerHour')}</div>" href="https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${report.coords[0]}&system=${report.coords[1]}&position=${report.coords[2]}&type=${report.typeID}&mission=1&am${this.ogl.db.options.defaultShip}=${requiredShips}&oglmode=4" data-value="${report.total}">${Util.formatToUnits(report.total)}</a>
                     <span class="ogl_reportFleet ogl_textRight" data-value="${report.fleet}" style="${report.fleet != 0 ? 'background:linear-gradient(192deg, #622a2a, #3c1717 70%)' : ''}">${report.fleet >= 0 ? Util.formatToUnits(report.fleet, 0) : '?'}</span>
                     <span class="ogl_textRight" style="${report.def != 0 ? 'background:linear-gradient(192deg, #622a2a, #3c1717 70%)' : ''}">${report.def >= 0 ? Util.formatToUnits(report.def, 0) : '?'}</span>
                     <span class="ogl_actions"></span>
