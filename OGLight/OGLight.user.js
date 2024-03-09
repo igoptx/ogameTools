@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.0.7
+// @version      5.0.8
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -47,6 +47,16 @@ function goodbyeTipped()
 }
 
 goodbyeTipped();
+
+new MutationObserver(function() // update body attributes as fast as possible
+{
+    if(document.body)
+    {
+        document.body.setAttribute('data-minipics', localStorage.getItem('ogl_minipics') || false);
+        document.body.setAttribute('data-menulayout', localStorage.getItem('ogl_menulayout') || 0);
+        this.disconnect();
+    }
+}).observe(document.documentElement, {childList: true});
 
 if(typeof GM_getTab == typeof undefined)
 {
@@ -130,7 +140,8 @@ class OGLight
         this.db.options.expeditionRedirect = this.db.options.expeditionRedirect || false;
         this.db.options.expeditionShipRatio = Math.min(this.db.options.expeditionShipRatio, 100);
         this.db.options.displayPlanetTimers = this.db.options.displayPlanetTimers === false ? false : true;
-        this.db.options.reduceLargeImages = this.db.options.reduceLargeImages === false ? false : true;
+        this.db.options.reduceLargeImages = this.db.options.reduceLargeImages || false;
+        this.db.options.showMenuResources = this.db.options.showMenuResources || 0;
         this.db.options.autoCleanReports = this.db.options.autoCleanReports || false;
         this.db.options.tooltipDelay = this.db.options.tooltipDelay !== false ? Math.max(this.db.options.tooltipDelay, 100) : 400;
         this.db.options.spyIndicatorDelay = this.db.options.spyIndicatorDelay || 3600000; // 1h
@@ -139,6 +150,8 @@ class OGLight
         this.db.options.sim = this.db.options.sim || false;
         this.db.options.boardTab = this.db.options.boardTab === false ? false : true;
         this.db.options.msu = this.db.options.msu || '1:2:3';
+        this.db.options.disablePlanetTooltips = this.db.options.disablePlanetTooltips || false;
+        this.db.options.displaySpyTable = this.db.options.displaySpyTable === false ? false : true;
 
         this.db.options.keyboardActions = this.db.options.keyboardActions || {};
         this.db.options.keyboardActions.menu = this.db.options.keyboardActions.menu || '²';
@@ -165,35 +178,7 @@ class OGLight
         this.db.options.keyboardActions.backFirstFleet = this.db.options.keyboardActions.backFirstFleet || 'f';
         this.db.options.keyboardActions.backLastFleet = this.db.options.keyboardActions.backLastFleet || 'l';
         this.db.options.keyboardActions.discovery = this.db.options.keyboardActions.discovery || 'u';
-
-        if(this.db.options.reduceLargeImages)
-        {
-            GM_addStyle(`
-                .maincontent > div header, .maincontent .planet-header
-                {
-                    height:34px !important;
-                }
-
-                .maincontent #overviewcomponent #planet,
-                .maincontent #overviewcomponent #detailWrapper
-                {
-                    height:auto !important;
-                    min-height:208px !important;
-                    position:relative !important;
-                }
-
-                .maincontent #technologydetails_wrapper:not(.slide-down)
-                {
-                    position:relative !important;
-                }
-
-                .maincontent #detail.detail_screen
-                {
-                    height:300px !important;
-                    position:relative !important;
-                }
-            `);
-        }
+        this.db.options.keyboardActions.showMenuResources = this.db.options.keyboardActions.showMenuResources || 'v';
 
         // init OGL when DOM is loaded
         if(document.readyState !== 'loading') // safari mac OS fix
@@ -208,7 +193,7 @@ class OGLight
                 {
                     this.isReady = true;
                     this.init(params.cache);
-                }
+                } 
             };
         }
     }
@@ -216,7 +201,16 @@ class OGLight
     init(cache)
     {
         document.body.classList.add('oglight');
-        //if(this.db.options.reduceLargeImages) document.querySelector('.maincontent')?.classList.add('ogl_alt');
+
+        if(this.db.options.showMenuResources)
+        {
+            CSSManager.miniMenu(this.db.options.showMenuResources);
+        }
+
+        if(this.db.options.reduceLargeImages)
+        {
+            CSSManager.miniImage(this.db.options.reduceLargeImages);
+        }
 
         this.id = GM_getValue('ogl_id') || false;
         this.version = GM_info.script.version.indexOf('b') > -1 ? oglVersion+betaVersion : oglVersion;
@@ -279,6 +273,8 @@ class OGLight
         }
 
         this.cache = cache || {};
+        if(window.location.href.indexOf('&relogin=1') > -1) this.cache = {};
+
         this.updateJQuerySettings();
 
         if(this.page != 'empire')
@@ -298,10 +294,10 @@ class OGLight
             new LangManager(this);
             new TimeManager(this);
             new FetchManager(this);
-
+    
             this.getPlanetData();
             this.getServerData();
-
+    
             new UIManager(this);
             new ShortcutManager(this);
             new TopbarManager(this);
@@ -411,7 +407,7 @@ class OGLight
 
         //if(unload) unsafeWindow.ogl = null;
     }
-
+    
     getServerData()
     {
         if(!this.db.serverData.topScore || Date.now() > this.db.lastServerUpdate + 3600000) // 1h
@@ -493,7 +489,7 @@ class OGLight
             // update top icon storage indicator
             const box = document.querySelector(`#${resource.replace('deut', 'deuterium')}_box`);
             if(this.currentPlanet.obj.type == 'moon' || box.querySelector('.ogl_resourceBoxStorage')) return;
-
+            
             prod = prod * 3600;
             const storage = this.currentPlanet.obj[`${resource}Storage`];
             const timeLeft = prod > 0 ? Math.floor((storage - this.currentPlanet.obj[resource]) / prod) || 0 : Infinity;
@@ -527,7 +523,7 @@ class OGLight
             });
 
             this.addRefreshTimer(id, planet);
-
+            
             if(!this.db.options.displayPlanetTimers)
             {
                 document.querySelector('#planetList').classList.add('ogl_alt');
@@ -601,12 +597,12 @@ class OGLight
             else if(settings.url.indexOf('action=fetchGalaxyContent') >= 0) // check galaxy on system change
             {
                 self._galaxy.check(JSON.parse(xhr.responseText));
-                self._shortcut.discoveryReady = true;
+                //self._shortcut.discoveryReady = true;
             }
-            else if(settings.url.indexOf('action=sendDiscoveryFleet') >= 0) // discovery action done
+            /*else if(settings.url.indexOf('action=sendDiscoveryFleet') >= 0) // discovery action done
             {
                 self._shortcut.discoveryReady = true;
-            }
+            }*/
             else if(settings.url.indexOf('action=checkTarget') >= 0) // fleetdispatcher fetchTargetPlayerData()
             {
                 document.querySelector('#planetList').classList.remove('ogl_notReady');
@@ -692,9 +688,9 @@ class OGLight
                     {
                         this.db.lastPinnedList = Array.from(new Set([id, ...this.db.lastPinnedList]));
                     });
-
+                    
                     if(this.db.lastPinnedList.length > 30) this.db.lastPinnedList.length = 30;
-
+        
                     // add v4 tagged planets
                     legacyDB.positions.filter(position => position.color).forEach(position =>
                     {
@@ -756,7 +752,7 @@ class OGLight
                     delete this.db.stats[midnight];
                 }
             });
-
+            
             this.db.dataFormat = 15;
         }
 
@@ -779,7 +775,7 @@ class OGLight
                 delete this.db.stats[oldKey.join('-')];
                 this.db.stats[key] = value;
             });
-
+            
             this.db.dataFormat = 16;
         }
     }
@@ -801,7 +797,7 @@ class OGLight
 
         const base = (this.account.class == 3 ? treshold.max * 3 * this.server.economySpeed : treshold.max * 2);
         const maxResources = this.db.options.expeditionValue || base * (1+(this.db.lfBonuses?.Characterclasses3?.bonus||0)/100) * (1+(this.db.lfBonuses?.ResourcesExpedition?.bonus||0)/100);
-
+    
         return { max:Math.round(maxResources), treshold:treshold };
     }
 }
@@ -871,7 +867,10 @@ class LangManager extends Manager
             defaultMission:"Default mission type",
             useClientTime:"Use client time",
             displayMiniStats:"Stats range",
+            displaySpyTable:"Display spy table",
             displayPlanetTimers:"Display planets timer",
+            disablePlanetTooltips:"Disable planets menu tooltips",
+            showMenuResources:"Planets menu layout",
             reduceLargeImages:"Fold large images",
             ignoreExpeShips:"Ignore ships found in expeditions",
             ignoreExpeShipsLoss:"Ignore ships lost in expeditions",
@@ -1022,7 +1021,10 @@ class LangManager extends Manager
             defaultMission:"Type de mission par défaut",
             useClientTime:"Utiliser l'heure du client",
             displayMiniStats:"Fourchette",
+            displaySpyTable:"Afficher le tableau d'espio",
             displayPlanetTimers:"Afficher les timers des planètes",
+            disablePlanetTooltips:"Cacher les tooltips du menu des planètes",
+            showMenuResources:"Affichage du menu des planètes",
             reduceLargeImages:"Réduire les grandes images",
             ignoreExpeShips:"Ignorer les vaisseaux trouvés en expédition",
             ignoreExpeShipsLoss:"Ignorer les vaisseaux perdus en expédition",
@@ -1173,7 +1175,10 @@ class LangManager extends Manager
             defaultMission:"Tipo de missão pre-definida",
             useClientTime:"Usar horas do cliente",
             displayMiniStats:"Intervalo das estatísticas",
+            displaySpyTable:"Mostrar tabela de Relatório de Espionagem",
             displayPlanetTimers:"Mostrar temporizador nos planetas",
+            disablePlanetTooltips:"Desabilitar o menu popup dos planetas",
+            showMenuResources:"Layout dos menus dos planetas",
             reduceLargeImages:"Reduzid imagens grandes",
             ignoreExpeShips:"Ignorar naves encontradas nas expedições",
             ignoreExpeShipsLoss:"Ignorar naves perdidas nas expedições",
@@ -1414,7 +1419,7 @@ class TimeManager extends Manager
                     const offset = self.ogl.db.options.useClientTime ? self.clientTimeZoneOffset : self.serverTimeZoneOffset;
                     const UTCdate = self.dateStringToTime(target.textContent) + self.serverTimeZoneOffset;
                     const date = new Date(UTCdate - offset);
-
+    
                     target.setAttribute('data-output-date', date.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'}));
                     target.setAttribute('data-output-time', date.toLocaleTimeString('de-DE'));
                     target.setAttribute('data-time-utc', UTCdate);
@@ -1423,7 +1428,7 @@ class TimeManager extends Manager
                 }
 
                 action();
-
+    
                 Util.observe(target, {childList:true}, action);
             });
         });
@@ -1620,7 +1625,7 @@ class FetchManager extends Manager
                     if(!xml.querySelector('playerdata')) return;
 
                     const apiTime = parseInt(xml.querySelector('playerdata').getAttribute('timestamp')) * 1000;
-
+    
                     if(!player.name) player.name = xml.querySelector('playerdata').getAttribute('name');
                     player.score = player.score || {};
 
@@ -1659,7 +1664,7 @@ class FetchManager extends Manager
                             planet.api = apiTime;
                             if(index == 0) planet.home = true;
                         }
-
+        
                         if(player.planets.indexOf(coords) < 0) player.planets.push(coords);
                     });
 
@@ -1753,12 +1758,26 @@ class UIManager extends Manager
         this.lastOpenedSide = pin;
 
         this.ogl._shortcut.updateShortcutsPosition();
+        document.querySelectorAll('.ogl_inputCheck').forEach(e => Util.formatInput(e));
     }
 
     attachGlobalClickEvent(reloaded)
     {
         if(!reloaded)
         {
+            document.addEventListener('keyup', event =>
+            {
+                let activeElement = document.activeElement.tagName;
+
+                if(activeElement == 'INPUT' || activeElement == 'TEXTAREA')
+                {
+                    if(document.activeElement.classList.contains('ogl_inputCheck'))
+                    {
+                        Util.formatInput(document.activeElement);
+                    }
+                }
+            });
+
             document.querySelectorAll('.planetlink, .moonlink').forEach(target =>
             {
                 target.addEventListener('pointerenter', event =>
@@ -1810,7 +1829,7 @@ class UIManager extends Manager
                 {
                     this.ogl._tooltip.close();
                 }
-
+                
                 if(event.target.getAttribute('data-galaxy'))
                 {
                     let coords = event.target.getAttribute('data-galaxy').split(':');
@@ -1862,10 +1881,18 @@ class UIManager extends Manager
                     }
                 }
 
-                if(event.target.getAttribute('data-api-code'))
+                if(event.target.getAttribute('data-api-code')) // copy api code
                 {
                     navigator.clipboard.writeText(event.target.getAttribute('data-api-code'));
                     fadeBox('API code copied');
+                }
+
+                if(event.target.classList.contains('js_actionKillAll')) // clear ogl reports cache
+                {
+                    if(ogame?.messages?.getCurrentMessageTab() == 20)
+                    {
+                        ogl.cache.reports = {};
+                    }
                 }
             });
         }
@@ -1956,7 +1983,7 @@ class UIManager extends Manager
             }
         });
 
-        container.querySelectorAll('.ogl_inputCheck').forEach(e => Util.formatInput(e));
+        //container.querySelectorAll('.ogl_inputCheck').forEach(e => Util.formatInput(e));
 
         return container;
     }
@@ -2038,7 +2065,7 @@ class UIManager extends Manager
     {
         const container = Util.addDom('div', {class:'ogl_manageData'});
         Util.addDom('h2', { parent:container, child:this.ogl._lang.find('manageData') });
-
+        
         const grid = Util.addDom('div', { class:'ogl_grid', parent:container });
 
         // import
@@ -2184,7 +2211,7 @@ class UIManager extends Manager
 
         dom.addEventListener('click', event =>
         {
-            if(id == this.ogl.account.id) return;
+            if(id == this.ogl.account.id || event.ctrlKey) return;
             event.preventDefault();
             this.ogl._topbar.openPinnedDetail(id);
         });
@@ -2253,7 +2280,7 @@ class UIManager extends Manager
         {
             this.ogl._tooltip.close();
         }});
-
+        
         // ignore
         Util.addDom('div', { child:'block', class:'material-icons ogl_button', parent:container.querySelector('.ogl_actions'), onclick:() =>
         {
@@ -2578,13 +2605,13 @@ class UIManager extends Manager
 
                     let xml = new DOMParser().parseFromString(data, 'text/html');
                     highscore.timestamps[typesList[currentType]] = parseInt(xml.querySelector('highscore').getAttribute('timestamp')) * 1000;
-
+    
                     xml.querySelectorAll('player').forEach(player =>
                     {
                         const id = player.getAttribute('id');
                         const score = parseInt(player.getAttribute('score'));
                         const position = parseInt(player.getAttribute('position'));
-
+    
                         if(!highscore[id] || typeof highscore[id] != typeof {}) highscore[id] = {};
                         highscore[id][typesList[currentType]] = score;
 
@@ -2594,7 +2621,7 @@ class UIManager extends Manager
                             this.ogl.db.udb[id].score[typesList[currentType]+'Ranking'] = position;
                         }*/
                     });
-
+    
                     localStorage.setItem(`${window.location.host}_highscore`, JSON.stringify(highscore));
                     if(currentType == 0) this.displayScoreDiff(highscore);
                 }
@@ -2622,7 +2649,7 @@ class UIManager extends Manager
                     console.log('ranking status fetched');
                     let xml = new DOMParser().parseFromString(data, 'text/html');
                     highscore.statusTimestamp = parseInt(xml.querySelector('players').getAttribute('timestamp')) * 1000;
-
+    
                     xml.querySelectorAll('player').forEach(player =>
                     {
                         const id = player.getAttribute('id');
@@ -2631,12 +2658,12 @@ class UIManager extends Manager
                         if(status.indexOf('v') > -1  && status != 'status_abbr_active') status = 'status_abbr_vacation';
                         else if(status === "I") status = 'status_abbr_longinactive';
                         else if(status === "i") status = 'status_abbr_inactive';
-
+    
                         if(!highscore[id] || typeof highscore[id] != typeof {}) highscore[id] = {};
                         highscore[id].status = status;
                         if(this.ogl.db.udb[id]) this.ogl.db.udb[id].status = status;
                     });
-
+    
                     localStorage.setItem(`${window.location.host}_highscore`, JSON.stringify(highscore));
                     this.displayStatus(highscore);
                 }
@@ -2683,7 +2710,7 @@ class UIManager extends Manager
             {
                 nameDiv.querySelector('.playername').innerText = this.ogl.db.udb[id].name;
             }
-
+            
             if(highscore[id]) nameDiv.querySelector('.playername').classList.add(highscore[id].status);
             this.turnIntoPlayerLink(id, nameDiv);
             if(!line.querySelector('.ogl_flagPicker')) this.addPinButton(line.querySelector('.position'), id);
@@ -2756,11 +2783,11 @@ class UIManager extends Manager
             this.resourceDiv.classList.add('tooltipClick');
             this.resourceDiv.classList.add('tooltipClose');
             this.resourceDiv.classList.add('tooltipUpdate');
-
+    
             this.resourceDiv.addEventListener('tooltip', () =>
             {
                 const container = Util.addDom('div', { class:'ogl_resourcesDetail' });
-
+    
                 container.innerHTML =
                 `
                     <div>
@@ -2795,7 +2822,7 @@ class UIManager extends Manager
                         <div class="ogl_deut">${Util.formatToUnits(this.resources.total.deut)}</div>
                     </div>
                 `;
-
+    
                 this.ogl._tooltip.update(container);
             });
         }
@@ -2930,7 +2957,7 @@ class TopbarManager extends Manager
             const id = line.getAttribute('id').replace('planet-', '');
             const planet = this.ogl.db.myPlanets[id];
             const name = line.querySelector('.planet-name').innerText;
-
+            
             // coords
             let coordDiv = Util.addDom('div',
             {
@@ -2942,7 +2969,7 @@ class TopbarManager extends Manager
             if(line.getAttribute('data-group')) coordDiv.setAttribute('data-group', line.getAttribute('data-group'));
 
             // planet picture
-            Util.addDom('a',
+            Util.addDom('a', 
             {
                 parent:container,
                 href:line.querySelector('.planetlink').getAttribute('href'),
@@ -2955,7 +2982,7 @@ class TopbarManager extends Manager
             // moon picture
             if(line.querySelector('.moonlink'))
             {
-                Util.addDom('a',
+                Util.addDom('a', 
                 {
                     parent:container,
                     href:line.querySelector('.moonlink').getAttribute('href'),
@@ -3069,10 +3096,11 @@ class TopbarManager extends Manager
         let options =
         [
             'defaultShip', 'defaultMission', 'profileButton',
-            'resourceTreshold', 'msu', 'tooltipDelay', 'sim', 'useClientTime', 'displayPlanetTimers', 'reduceLargeImages', 'keyboardActions',
+            'resourceTreshold', 'msu', 'sim', 'useClientTime', 'keyboardActions',
+            'showMenuResources', 'tooltipDelay', 'disablePlanetTooltips', 'reduceLargeImages', 'displayPlanetTimers',
             'expeditionValue', 'expeditionRandomSystem', 'expeditionRedirect', 'expeditionBigShips',
             'expeditionShipRatio', 'ignoreExpeShipsLoss', 'ignoreConsumption',
-            'autoCleanReports', 'boardTab',
+            'displaySpyTable', 'autoCleanReports', 'boardTab',
             'ptreTeamKey', 'ptreLogs',
             'manageData', 'debugMode',
         ];
@@ -3087,9 +3115,10 @@ class TopbarManager extends Manager
 
             if(opt == 'defaultShip') subContainer = 'fleet';
             else if(opt == 'resourceTreshold') subContainer = 'general';
+            else if(opt == 'showMenuResources') subContainer = 'interface';
             else if(opt == 'expeditionValue') subContainer = 'expeditions';
             else if(opt == 'expeditionShipRatio') subContainer = 'stats';
-            else if(opt == 'autoCleanReports') subContainer = 'messages';
+            else if(opt == 'displaySpyTable') subContainer = 'messages';
             else if(opt == 'ptreTeamKey') subContainer = 'PTRE';
             else if(opt == 'manageData') subContainer = 'data';
 
@@ -3136,14 +3165,14 @@ class TopbarManager extends Manager
                         this.ogl.db.options.defaultShip = shipID;
                         label.querySelector('.ogl_active')?.classList.remove('ogl_active');
                         element.classList.add('ogl_active');
-
+        
                         if(this.ogl.page == 'fleetdispatch')
                         {
                             document.querySelectorAll('.ogl_fav').forEach(e => e.remove());
                             Util.addDom('div', { class:'material-icons ogl_fav', child:'star', parent:document.querySelector(`[data-technology="${this.ogl.db.options.defaultShip}"] .ogl_shipFlag`) });
                         }
                     }});
-
+        
                     if(this.ogl.db.options.defaultShip == shipID) div.classList.add('ogl_active');
                 });
             }
@@ -3157,7 +3186,7 @@ class TopbarManager extends Manager
                         label.querySelector('.ogl_active')?.classList.remove('ogl_active');
                         element.classList.add('ogl_active');
                     }});
-
+        
                     if(this.ogl.db.options.defaultMission == missionID) div.classList.add('ogl_active');
                 });
             }
@@ -3189,6 +3218,22 @@ class TopbarManager extends Manager
                     }
                 }});
             }
+            else if(opt == 'showMenuResources')
+            {
+                label.innerHTML = ``;
+                const select = Util.addDom('select', { parent:label, onchange:() =>
+                {
+                    this.ogl.db.options[opt] = parseInt(select.value);
+                    localStorage.setItem('ogl_menulayout', this.ogl.db.options[opt]);
+                    document.body.setAttribute('data-menulayout', select.value);
+                }});
+
+                ['All', 'Coords', 'Resources'].forEach((entry, index) =>
+                {
+                    const selectOption = Util.addDom('option', { parent:select, child:entry, value:index });
+                    if(this.ogl.db.options[opt] == index) selectOption.selected = true;
+                });
+            }
             else if(isBoolean && opt != 'sim')
             {
                 if(opt == 'boardTab' && this.ogl.server.lang != 'fr') { label.remove(); return; }
@@ -3212,7 +3257,8 @@ class TopbarManager extends Manager
                     }
                     else if(opt == 'reduceLargeImages')
                     {
-                        window.location.reload();
+                        localStorage.setItem('ogl_minipics', this.ogl.db.options[opt]);
+                        document.body.setAttribute('data-minipics', this.ogl.db.options[opt]);
                     }
                 }});
 
@@ -3226,14 +3272,14 @@ class TopbarManager extends Manager
                     {
                         if(opt == 'expeditionShipRatio') // min & max
                         {
-                            if(parseInt(input.value.replace(/\s/g, '')) < 0) input.value = 0;
-                            else if(parseInt(input.value.replace(/\s/g, '')) > 100) input.value = 100;
+                            if(parseInt(input.value.replace(/\D/g, '')) < 0) input.value = 0;
+                            else if(parseInt(input.value.replace(/\D/g, '')) > 100) input.value = 100;
                         }
 
-                        this.ogl.db.options[opt] = (parseInt(input.value.replace(/\s/g, '')) || false);
+                        this.ogl.db.options[opt] = (parseInt(input.value.replace(/\D/g, '')) || false);
 
                         if(opt == 'expeditionShipRatio') this.ogl._stats.miniStats();
-                    }, 5);
+                    }, 200);
                 }});
 
                 if(opt == 'expeditionValue')
@@ -3242,7 +3288,7 @@ class TopbarManager extends Manager
                     input.setAttribute('placeholder', `(${Util.formatNumber(this.ogl.calcExpeditionMax().max)})`);
                 }
 
-                Util.formatInput(input);
+                //Util.formatInput(input);
             }
             else if(opt == 'keyboardActions')
             {
@@ -3465,9 +3511,9 @@ class TopbarManager extends Manager
         {
             const player = this.ogl.db.udb[id];
             if(!player) return;
-
+    
             const container = Util.addDom('div', { class:'ogl_pinDetail' });
-
+    
             Util.addDom('div', { parent:container, class:'material-icons ogl_back', child:'arrow_back', onclick:() => { this.openPinned() } })
             const title = Util.addDom('h2', { class:player.status || 'status_abbr_active', parent:container, child:player.name });
             const score = Util.addDom('div', { class:'ogl_score', parent:container });
@@ -3496,7 +3542,7 @@ class TopbarManager extends Manager
             {
                 this.ogl._tooltip.close();
             }});
-
+            
             // ignore
             Util.addDom('div', { child:'block', class:'material-icons ogl_button', parent:actions, onclick:() =>
             {
@@ -3519,10 +3565,10 @@ class TopbarManager extends Manager
             {
                 PTRE.getPlayerPositions({ name:player.name, id:id });
             }});
-
+    
             this.ogl.db.lastPinnedList = Array.from(new Set([id, ...this.ogl.db.lastPinnedList].map(Number)));
             if(this.ogl.db.lastPinnedList.length > 30) this.ogl.db.lastPinnedList.length = 30;
-
+    
             if(!player.planets || (serverTime.getTime() - player.api > this.ogl._fetch.apiCooldown))
             {
                 Util.addDom('div', { class:'ogl_loading', parent:container });
@@ -3537,7 +3583,7 @@ class TopbarManager extends Manager
                 title.innerHTML = `${player.name} ${rankLink.outerHTML}`;
 
                 this.ogl._ui.addPinButton(title, id);
-
+                
                 score.innerHTML =
                 `
                     <div class="ogl_line"><i class="material-icons">trending_up</i><div>${Util.formatNumber(player.score.global)}</div></div>
@@ -3551,42 +3597,42 @@ class TopbarManager extends Manager
                 let lastCoords = 0;
                 let group = 1;
                 let index = 1;
-
+    
                 player.planets.sort((a, b) => Util.coordsToID(a) - Util.coordsToID(b)).forEach((planetID) =>
                 {
                     const planet = this.ogl.db.pdb[planetID];
-
+    
                     if(!planet) return;
-
+    
                     const date = new Date(planet.api);
                     const dateDiff = Math.floor((serverTime.getTime() - date) / (1000 * 3600 * 24));
                     const hourDiff = Math.round(((serverTime.getTime() - date % 86400000) % 3600000) / 60000);
                     const line = Util.addDom('div', { parent:list });
-
+    
                     if(planet.home) line.classList.add('ogl_home');
 
                     let newCoords = Util.coordsToID(planet.coo).slice(0, -3);
                     if(lastCoords === newCoords) line.setAttribute('data-group', group);
                     else if(line.previousElementSibling?.getAttribute('data-group')) group++;
                     lastCoords = newCoords;
-
+    
                     Util.addDom('div', { child:index, parent:line });
                     Util.addDom('div', { child:planet.coo, parent:line, 'data-galaxy':planet.coo });
                     Util.addDom('div', { class:'tooltip', 'data-title':'Debris<br>'+Util.formatNumber(planet.debris || 0), child:Util.formatToUnits(planet.debris || 0), parent:line });
-
+    
                     this.ogl._ui.addSpyIcons(line, planet.coo.split(':'), false, true);
 
                     let ageStr = dateDiff > 0 ? `${dateDiff}${LocalizationStrings.timeunits.short.hour} ago` : `${hourDiff}${LocalizationStrings.timeunits.short.minute} ago`;
-
+    
                     const dateDiv = Util.addDom('date', { class:'tooltipLeft', child:ageStr, 'data-title':`<span>${date.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'})}</span> <span>${date.toLocaleTimeString('de-DE')}</span>`, parent:line });
                     if(dateDiff >= 5) dateDiv.classList.add('ogl_danger');
                     else if(dateDiff >= 3) dateDiv.classList.add('ogl_warning');
 
                     index += 1;
-
+                    
                     //Util.addDom('date', { child:`<span>${date.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'})}</span><span>${date.toLocaleTimeString('de-DE')}</span>`, parent:line });
                 });
-
+    
                 this.ogl._ui.openSide(container, id);
                 setTimeout(() => this.ogl._shortcut.load(), 50);
             }
@@ -3626,24 +3672,51 @@ class TopbarManager extends Manager
                 }
                 else
                 {
-                    Util.addDom('button', { class:'ogl_button', child:'Use as quick raid list', parent:list, onclick:() =>
+                    /*Util.addDom('button', { class:'ogl_button', child:'Use as quick raid list', parent:list, onclick:() =>
                     {
                         this.ogl.db.quickRaidList = this.tmpRaidList;
                         this.ogl._notification.addToQueue(`You can now use [${this.ogl.db.options.keyboardActions.quickRaid}] on the fleet page to use this list`, true);
                         setTimeout(() => this.ogl._shortcut.load(), 50);
-                    }});
+                    }});*/
 
+                    let nextTargetFound = false;
+                    let newList = [];
+        
                     items.forEach((item, index) =>
                     {
                         const coords = item.match(/.{1,3}/g).map(Number).join(':');
+                        const coordsID = Util.coordsToID(coords);
 
                         const line = Util.addDom('div', { parent:list });
                         Util.addDom('div', { child:index+1, parent:line });
-                        Util.addDom('div', { child:coords, 'data-galaxy':coords, parent:line });
+                        Util.addDom('div', { child:coords, 'data-galaxy':coords, parent:line});
+                        const target = Util.addDom('div', { class:'material-icons tooltip ogl_nextQuickTarget', 'data-title':'Select as next quick raid target', child:'swords', parent:line, onclick:() =>
+                        {
+                            const start = Util.coordsToID(coords);
+                            const end = Util.coordsToID(`${gEnd.value}:${sEnd.value}:000`);
+                            this.getTaggedItems(start, end, true);
 
+                            this.ogl.db.quickRaidList = this.tmpRaidList;
+                            this.ogl._notification.addToQueue(`You can now use [${this.ogl.db.options.keyboardActions.quickRaid}] on fleet page to attack next target`, true);
+                            setTimeout(() => this.ogl._shortcut.load(), 50);
+
+                            list.querySelectorAll('.ogl_nextQuickTarget.ogl_active').forEach(e => e.classList.remove('ogl_active'));
+                            target.classList.add('ogl_active');
+                        }});
+
+                        if(this.ogl.db.quickRaidList[0] == coordsID)
+                        {
+                            target.classList.add('ogl_active');
+                            nextTargetFound = true;
+                        }
+
+                        if(nextTargetFound) newList.push(coordsID);
+        
                         this.ogl._ui.addSpyIcons(line, coords);
                         this.ogl._ui.addTagButton(line, coords);
                     });
+
+                    this.ogl.db.quickRaidList = nextTargetFound ? newList : [];
                 }
             }
 
@@ -3717,31 +3790,34 @@ class TopbarManager extends Manager
         }).then(container => this.ogl._ui.openSide(container, 'tagged', buttonSource));
     }
 
-    getTaggedItems(rawStart, rawEnd)
+    getTaggedItems(rawStart, rawEnd, newFlag)
     {
         rawStart = parseInt(rawStart);
         rawEnd = parseInt(rawEnd);
-
+        
         const displayNoob = this.ogl.db.lastTaggedInput[4];
         const displayVacation = this.ogl.db.lastTaggedInput[5];
 
-        if(rawStart <= rawEnd) rawEnd += 15;
-        else rawStart += 15;
+        if(!newFlag)
+        {
+            if(rawStart <= rawEnd) rawEnd += 15;
+            else rawStart += 15;
+        }
 
         this.tmpRaidList = Object.keys(this.ogl.db.tdb).sort((a, b) => rawStart <= rawEnd ? a-b : b-a).filter(position =>
         {
             const coords = position.match(/.{1,3}/g).map(Number).join(':');
-            const status = this.ogl.db.udb[this.ogl.db.pdb[coords].uid]?.status;
+            const status = this.ogl.db.udb[this.ogl.db.pdb[coords]?.uid]?.status;
 
             return this.ogl.db.tags[this.ogl.db.tdb[position].tag]
             && (rawStart <= rawEnd ? position >= rawStart && position <= rawEnd : position <= rawStart && position >= rawEnd)
-            && (displayNoob || (!displayNoob && status.indexOf('noob') < 0))
-            && (displayVacation || (!displayVacation && (status.indexOf('vacation') < 0 && status.indexOf('banned') < 0)))
+            && (displayNoob || !status || (!displayNoob && status?.indexOf('noob') < 0))
+            && (displayVacation || !status || (!displayVacation && (status?.indexOf('vacation') < 0 && status?.indexOf('banned') < 0)))
         });
 
         return this.tmpRaidList;
     }
-
+    
     checkUpgrade()
     {
         this.PlanetBuildingtooltip = this.PlanetBuildingtooltip || {};
@@ -3778,7 +3854,7 @@ class TopbarManager extends Manager
 
                             const name = this.ogl.db.serverData[upgrade.id] || upgrade.id;
                             Util.addDom('li', { parent:this.PlanetBuildingtooltip[id], child:`<i class="material-icons">fiber_manual_record</i><span class="ogl_slidingText" data-text="${name}"></span><i class="material-icons">east</i><b>${upgrade.lvl}</b>` });
-
+                        
                             if(upgrade.type == 'baseBuilding' || upgrade.type == 'baseResearch') hasBaseBuilding = true;
                             else if(upgrade.type == 'ship' || upgrade.type == 'def') hasBaseShip = true;
                             else if(upgrade.type == 'lfBuilding' || upgrade.type == 'lfResearch') hasLFBuilding = true;
@@ -3821,7 +3897,7 @@ class FleetManager extends Manager
         if(this.ogl.page == 'fleetdispatch')
         {
             this.totalCapacity = 0;
-            this.capacityWrapper = Util.addDom('div', { 'class':'capacityProgress', parent:document.querySelector('#fleet1 .content') });
+            this.capacityWrapper = Util.addDom('div', { 'class':'capacityProgress', parent:document.querySelector('#fleet1 .content'), onclick:() => document.querySelector(`.ogl_requiredShips .ogl_${this.ogl.db.options.defaultShip}`).click() });
             this.capacityBar = Util.addDom('progress', { 'data-capacity':'', max:100, value:0, parent:this.capacityWrapper });
 
             this.resOnPlanet = { metal:'metalOnPlanet', crystal:'crystalOnPlanet', deut:'deuteriumOnPlanet', food:'foodOnPlanet' };
@@ -3877,7 +3953,7 @@ class FleetManager extends Manager
         fleetDispatcher.refreshDataAfterAjax = data =>
         {
             fleetDispatcher.setOrders(data.orders);
-
+            
             fleetDispatcher.mission = 0;
 
             fleetDispatcher.setTargetInhabited(data.targetInhabited);
@@ -3907,7 +3983,7 @@ class FleetManager extends Manager
             {
                 const hasMission = (fleetDispatcher.getAvailableMissions() || []).indexOf(fleetDispatcher.mission) > -1;
 
-
+                
                 if(!hasMission && this.lastMissionOrder && (fleetDispatcher.getAvailableMissions() || []).indexOf(this.lastMissionOrder) > -1)
                 {
                     fleetDispatcher.mission = this.lastMissionOrder;
@@ -3932,15 +4008,17 @@ class FleetManager extends Manager
         fleetDispatcher.selectShip = (shipId, number) =>
         {
             let shipsAvailable = fleetDispatcher.getNumberOfShipsOnPlanet(shipId);
+            const input = document.querySelector(`[data-technology="${shipId}"] input`);
 
-            if(shipsAvailable === 0 || (number > shipsAvailable && !document.querySelector(`[data-technology="${shipId}"]`)?.classList.contains('ogl_notEnough'))) document.querySelector(`[data-technology="${shipId}"] input`)?.classList.add('ogl_flashNotEnough');
-            else document.querySelector(`[data-technology="${shipId}"] input`).classList.remove('ogl_flashNotEnough');
+            if(shipsAvailable === 0 || (number > shipsAvailable && !document.querySelector(`[data-technology="${shipId}"]`)?.classList.contains('ogl_notEnough'))) input?.classList.add('ogl_flashNotEnough');
+            else input.classList.remove('ogl_flashNotEnough');
             number = Math.min(shipsAvailable, number);
 
             if (number <= 0) fleetDispatcher.removeShip(shipId);
             else if (fleetDispatcher.hasShip(shipId)) fleetDispatcher.updateShip(shipId, number);
             else fleetDispatcher.addShip(shipId, number);
 
+            Util.formatInput(input, false, true);
             fleetDispatcher.refresh();
         }
 
@@ -3952,6 +4030,11 @@ class FleetManager extends Manager
 
             if(fleetDispatcher.validateFleet1() === false)
             {
+                if(this.hasBeenInitialized && fleetDispatcher.shipsToSend.length == 0)
+                {
+                    document.querySelector(`.ogl_requiredShips .ogl_${this.ogl.db.options.defaultShip}`).click();
+                }
+
                 this.validationReady = true;
                 return;
             }
@@ -3961,8 +4044,8 @@ class FleetManager extends Manager
 
         Util.overWrite('refresh', fleetDispatcher, false, () =>
         {
-            if(fleetDispatcher.shipsToSend.length > 0) document.body.classList.add('ogl_destinationPicker');
-            else if(!document.body.classList.contains('ogl_initHarvest')) document.body.classList.remove('ogl_destinationPicker');
+            /*if(fleetDispatcher.shipsToSend.length > 0) document.body.classList.add('ogl_destinationPicker');
+            else if(!document.body.classList.contains('ogl_initHarvest')) document.body.classList.remove('ogl_destinationPicker');*/
 
             // capacity bar
             let totalResources = fleetDispatcher.metalOnPlanet + fleetDispatcher.crystalOnPlanet + fleetDispatcher.deuteriumOnPlanet + fleetDispatcher.foodOnPlanet;
@@ -3976,6 +4059,7 @@ class FleetManager extends Manager
             this.capacityWrapper.style.setProperty('--currentCapacityPercent', Math.min(94, percentCapacity)+'%');
 
             this.capacityWrapper.setAttribute('data-percentResources', Math.min(100, percentResources));
+            this.capacityWrapper.setAttribute('data-rawCargo', `${Util.formatNumber(fleetDispatcher.getCargoCapacity())} / ${Util.formatNumber(this.totalCapacity)} - (req. ${Util.formatNumber(totalResources)})`);
             this.capacityBar.setAttribute('max', 100);
             this.capacityBar.setAttribute('value', percentCapacity);
 
@@ -4015,10 +4099,12 @@ class FleetManager extends Manager
         {
             if(fleetDispatcher.currentPage == 'fleet2')
             {
+                document.body.classList.add('ogl_destinationPicker');
                 fleetDispatcher.focusSendFleet();
             }
             else if(fleetDispatcher.currentPage == 'fleet1')
             {
+                document.body.classList.remove('ogl_destinationPicker');
                 fleetDispatcher.focusSubmitFleet1();
             }
         });
@@ -4179,7 +4265,7 @@ class FleetManager extends Manager
         {
             this.setRealTarget(fleetDispatcher.realTarget, { type:fleetDispatcher.realTarget.type == 1 ? 3 : 1 });
         }
-
+        
         this.addLimiters();
 
         if(this.ogl.mode === 1 || this.ogl.mode === 2 || this.ogl.mode === 5)
@@ -4199,7 +4285,7 @@ class FleetManager extends Manager
                 curmulRes[1] = curmulRes[1] + build.cost.crystal;
                 curmulRes[2] = curmulRes[2] + build.cost.deut;
             });
-
+            
             maxRes[0] = Math.min(fleetDispatcher.metalOnPlanet, curmulRes[0]);
             maxRes[1] = Math.min(fleetDispatcher.crystalOnPlanet, curmulRes[1]);
             maxRes[2] = Math.min(fleetDispatcher.deuteriumOnPlanet, curmulRes[2]);
@@ -4271,7 +4357,7 @@ class FleetManager extends Manager
                 document.querySelector('#resetall').classList.add('material-icons');
                 document.querySelector('#resetall').innerText = 'exposure_zero';
             });
-
+    
             Util.addDom('div', { child:'cube-send', class:'material-icons tooltipRight tooltipClose tooltipClick tooltipUpdate', parent:document.querySelector('.secondcol'), ontooltip:() =>
             {
                 const container = Util.addDom('div', { class:'ogl_resourcesPreselection' });
@@ -4285,7 +4371,7 @@ class FleetManager extends Manager
                         fleetDispatcher[this.cargo[resourceName]] = input.value;
                         input.dispatchEvent(new Event('input'));
                     }});
-
+    
                     const input = Util.addDom('input', { type:'text', parent:item,
                     onclick:e =>
                     {
@@ -4301,28 +4387,28 @@ class FleetManager extends Manager
                         });
                     }});
                 });
-
+    
                 Util.addDom('hr', { parent:container });
-
+    
                 Util.addDom('div', { class:'ogl_button ogl_formValidation', child:'OK', parent:container, onclick:() =>
                 {
                     let total = 0;
-
+    
                     container.querySelectorAll('input').forEach(input =>
                     {
                         total += parseInt(input.value.replace(/\D/g, '')) || 0;
                     });
-
+    
                     if(total > 0) fleetDispatcher.selectShip(this.ogl.db.options.defaultShip, this.shipsForResources(false, total));
 
                     container.querySelectorAll('input').forEach((input, index) => fleetDispatcher[this.cargo[resources[index]]] = parseInt(input.value.replace(/\D/g, '') || 0));
 
                     this.ogl._tooltip.close();
-
+    
                     fleetDispatcher.refresh();
                     setTimeout(() => fleetDispatcher.focusSubmitFleet1(), 50);
                 }});
-
+    
                 //this.ogl._popup.open(container);
                 this.ogl._tooltip.update(container);
                 container.querySelector('input').focus();
@@ -4338,6 +4424,8 @@ class FleetManager extends Manager
                 fleetDispatcher.refresh();
             }});
         });
+
+        if(!this.ogl.mode) this.hasBeenInitialized = true;
     }
 
     setRealTarget(obj, forceParam)
@@ -4404,7 +4492,7 @@ class FleetManager extends Manager
 
         if(this.isQuickRaid) this.ogl.db.quickRaidList.shift();
         if(this.ogl.mode === 5 && fleetDispatcher.mission !== 15 && this.ogl.db.options.expeditionRedirect) this.ogl.mode = 0;
-        this.prepareRedirection();
+        if(this.ogl.mode != 1 && this.ogl.mode != 2 && this.ogl.mode != 5) this.prepareRedirection();
 
         if(this.ogl.mode === 1 || this.ogl.mode === 2 || (this.ogl.mode === 5 && this.ogl.db.options.expeditionRedirect))
         {
@@ -4415,7 +4503,7 @@ class FleetManager extends Manager
         {
             let cumul = [0,0,0];
             let urlParams = new URLSearchParams(window.location.search);
-
+            
             if(urlParams.get('substractMode') && urlParams.get('targetid'))
             {
                 const targetID = urlParams.get('targetid');
@@ -4425,7 +4513,7 @@ class FleetManager extends Manager
             }
 
             this.ogl.cache.toSend.forEach(build =>
-            {
+            {                    
                 const id = new URLSearchParams(window.location.search).get('targetid');
                 const cost = this.ogl.db.myPlanets[id].todolist[build.id][build.level].cost;
 
@@ -4510,7 +4598,7 @@ class FleetManager extends Manager
         if(this.ogl.db.fleetLimiter.resourceActive) limitResourceCheckbox.checked = true;
         if(this.ogl.db.fleetLimiter.shipActive) limitShipCheckbox.checked = true;
         if(this.ogl.db.fleetLimiter.ignoreFood) limitFoodCheckbox.checked = true;
-
+        
         this.updateLimiter();
     }
 
@@ -4557,16 +4645,18 @@ class FleetManager extends Manager
                 text.innerHTML = `<b>-${Util.formatToUnits(this.ogl.db.fleetLimiter.shipActive ? Math.max(this.ogl.db.fleetLimiter.data[entry.id], forced) : forced)}</b>`;
                 text.addEventListener('click', () => { Util.runAsync(() => this.ogl._ui.openFleetProfile()).then(e => this.ogl._popup.open(e)); });
 
+                if(!this.ogl.db.fleetLimiter.shipActive && this.ogl.db.keepEnoughCapacityShip != entry.id) text.classList.add('ogl_hidden');
+    
                 if(entry.number <= 0)
                 {
                     techDom.classList.add('ogl_notEnough');
                     fleetDispatcher.removeShip(entry.id);
                 }
                 else techDom.classList.remove('ogl_notEnough');
-
+    
                 this.totalCapacity += this.ogl.db.shipsCapacity[entry.id] * entry.number;
 
-                techDom.querySelector('input').classList.add('ogl_inputCheck');
+                //techDom.querySelector('input').classList.add('ogl_inputCheck');
             }
 
             document.querySelectorAll(`.ogl_flashNotEnough`).forEach(e => { if(e.value == 0) e.classList.remove('ogl_flashNotEnough') });
@@ -4604,7 +4694,7 @@ class FleetManager extends Manager
         fleetDispatcher.refresh();
         this.updateRequiredShips();
     }
-
+    
     updateRequiredShips()
     {
         const requiredShips = document.querySelector('.ogl_requiredShips') || Util.addDom('span', { class:'ogl_requiredShips', parent:document.querySelector("#civilships #civil") || document.querySelector('#warning') });
@@ -4621,11 +4711,11 @@ class FleetManager extends Manager
                 fleetDispatcher.refresh();
                 fleetDispatcher.focusSubmitFleet1();
             }});
-
+            
             if((fleetDispatcher.shipsOnPlanet.find(e => e.id == shipID)?.number || 0) < amount) item.classList.add('ogl_notEnough');
         });
-
-
+        
+    
         this.ogl.shipsList.forEach(shipID =>
         {
             const domElement = document.querySelector(`[data-technology="${shipID}"]`);
@@ -4634,7 +4724,7 @@ class FleetManager extends Manager
             {
                 const shipFlag = domElement.querySelector('.ogl_shipFlag') || Util.addDom('div', { class:'ogl_shipFlag', parent:domElement });
                 shipFlag.innerText = '';
-
+    
                 if(this.ogl.db.options.defaultShip == shipID) Util.addDom('div', { class:'material-icons ogl_fav', child:'star', parent:shipFlag });
                 if(this.ogl.db.keepEnoughCapacityShip == shipID) Util.addDom('div', { class:'material-icons ogl_shipLock', child:'lock', parent:shipFlag });
             }
@@ -4727,7 +4817,7 @@ class FleetManager extends Manager
             type:1,
             name:fleetDispatcher.loca.LOCA_EVENTH_ENEMY_INFINITELY_SPACE
         });
-
+    
         fleetDispatcher.selectMission(15);
         fleetDispatcher.expeditionTime = 1;
         fleetDispatcher.updateExpeditionTime();
@@ -4790,11 +4880,11 @@ class FleetManager extends Manager
         const nextCoords = this.ogl.currentPlanet.dom.next.querySelector('.planet-koords').innerText;
         const nextNextCoords = this.ogl.currentPlanet.dom.nextNext?.querySelector('.planet-koords')?.innerText;
         const type = fleetDispatcher.realTarget.type;
-
+        
         let coords = `${fleetDispatcher.realTarget.galaxy}:${fleetDispatcher.realTarget.system}:${fleetDispatcher.realTarget.position}`.split(':');
         let destCoords = `${fleetDispatcher.realTarget.galaxy}:${fleetDispatcher.realTarget.system}:${fleetDispatcher.realTarget.position}`;
         let sourceCoords = `${this.ogl.db.harvestCoords?.source?.galaxy}:${this.ogl.db.harvestCoords?.source?.system}:${this.ogl.db.harvestCoords?.source?.position}`;
-
+        
         if(isInit)
         {
             if(this.redirectionReady)
@@ -4829,7 +4919,7 @@ class FleetManager extends Manager
         {
             prevID = this.ogl.db.harvestCoords?.source?.type == 1 ? this.ogl.currentPlanet.dom.prevWithMoon.getAttribute('id').replace('planet-', '') : this.ogl.currentPlanet.dom.prevWithMoon.querySelector('.moonlink').getAttribute('href').match(/cp=(\d+)/)[1];
             nextID = this.ogl.db.harvestCoords?.source?.type == 1 ? this.ogl.currentPlanet.dom.nextWithMoon.getAttribute('id').replace('planet-', '') : this.ogl.currentPlanet.dom.nextWithMoon.querySelector('.moonlink').getAttribute('href').match(/cp=(\d+)/)[1];
-
+        
             this.ogl.prevRedirection = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&cp=${prevID}&oglmode=2`;
             this.ogl.nextRedirection = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&cp=${nextID}&oglmode=2`;
         }
@@ -4858,7 +4948,7 @@ class FleetManager extends Manager
         this.spyQueue.push({ order:order, galaxy:galaxy, system:system, position:position, type:type, shipCount:shipCount, callback:callback });
 
         document.querySelectorAll(`[data-spy-coords="${galaxy}:${system}:${position}:${type}"]`).forEach(e => e.setAttribute('data-spy', 'prepare'));
-
+        
         if(!this.spyInterval)
         {
             this.spyInterval = setInterval(() => this.spy(), 500);
@@ -4935,6 +5025,16 @@ class FleetManager extends Manager
                         {
                             self.ogl.db.pdb[`${params.galaxy}:${params.system}:${params.position}`].spy[1] = serverTime.getTime();
                         }
+                    }
+
+                    if(data.response.slots && document.querySelector('#galaxycomponent #slotUsed'))
+                    {
+                        document.querySelector('#galaxycomponent #slotUsed').innerText = data.response.slots;
+                    }
+
+                    if(data.response.probes && document.querySelector('#galaxycomponent #probeValue'))
+                    {
+                        document.querySelector('#galaxycomponent #probeValue').innerText = data.response.probes;
                     }
                 }
                 else if(data.response.coordinates && !data.response.success)
@@ -5111,9 +5211,9 @@ class GalaxyManager extends Manager
             if(element.activity.showActivity == 15) return '*'; // acti
             else return element.activity.idleTime || 60;
         }
-
+        
         data.system.galaxyContent.forEach(line =>
-                                          {
+        {
             const position = line.position;
             const debris = { metal:0, crystal:0, deut:0, total:0 };
             const row = document.querySelector(`#galaxyRow${position}`);
@@ -5143,7 +5243,7 @@ class GalaxyManager extends Manager
             let moonSize = -1;
 
             row.querySelector('.cellDebris').classList.remove('ogl_important');
-
+            
             line.planets.forEach(element =>
             {
                 if(element.planetType == 1) // planet
@@ -5169,7 +5269,7 @@ class GalaxyManager extends Manager
             });
 
             if(line.player.isAdmin) return;
-
+            
             const oldEntry = this.ogl.db.pdb[coords] || { pid:-1, mid:-1 };
 
             if(this.ogl.ptreKey)
@@ -5281,7 +5381,7 @@ class GalaxyManager extends Manager
                     ptreActivities[coords].position = position;
                     ptreActivities[coords].main = this.ogl.db.pdb[coords].home || false;
                     ptreActivities[coords].cdr_total_size = debris.total;
-
+    
                     if(moonID > -1)
                     {
                         ptreActivities[coords].moon = {};
@@ -5291,12 +5391,6 @@ class GalaxyManager extends Manager
                 }
             }
         });
-
-        if (data.system.galaxyContent.length == 15) {
-            let row16 = document.querySelector(`#galaxyRow16`);
-            let debris16 = { metal:0, crystal:0, deut:0, total:0 };
-            this.updateDebrisP16(debris16, row16);
-        }
 
         // send positions data to the PTRE server
         if(Object.keys(ptrePositions).length > 0) PTRE.postPositions(ptrePositions);
@@ -5350,7 +5444,7 @@ class GalaxyManager extends Manager
                 div.closest('.cellDebris').classList.add('ogl_important');
             }
         }
-    }
+}
 
     updateDebrisP16(debris, row)
     {
@@ -5359,43 +5453,37 @@ class GalaxyManager extends Manager
             let content = row.querySelectorAll('.ListLinks li');
             if(!content[0]) content = document.querySelectorAll('#debris16 .ListLinks li');
 
-            let scouts = '';
-            let action = '';
-            if(content[3]) scouts = content[3].innerHTML;
-            if(content[4]) action = content[4].innerHTML;
+            let scouts = content[3];
+            let action = content[4];
 
             if(debris.total >= this.ogl.db.options.resourceTreshold) document.querySelector('.expeditionDebrisSlotBox').classList.add('ogl_important');
 
-            document.querySelector('.expeditionDebrisSlotBox').innerHTML = `<div>
+            (document.querySelector('.expeditionDebrisSlotBox .ogl_expeditionRow') || Util.addDom('div', { class:'ogl_expeditionRow', prepend:document.querySelector('.expeditionDebrisSlotBox') })).innerHTML = `
+                <div>
                     <div class="material-icons">debris</div>
                 </div>
-                <div id="expeditionDebrisSlotDebrisContainer">
+                <div class="ogl_expeditionDebris">
                     <div class="ogl_icon ogl_metal">${Util.formatNumber(debris.metal)}</div>
                     <div class="ogl_icon ogl_crystal">${Util.formatNumber(debris.crystal)}</div>
                     <div class="ogl_icon ogl_deut">${Util.formatNumber(debris.deut)}</div>
                 </div>
                 <div>
-                    <div>${scouts}</div>
-                    <div>${action}</div>
-                </div>`;
-        } else {
-            document.querySelector('.expeditionDebrisSlotBox').innerHTML = `<div>
-                    <div class="material-icons">debris</div>
+                    <div>${scouts.innerText}</div>
+                    <div>${action.outerHTML}</div>
                 </div>
-                <div id="expeditionDebrisSlotDebrisContainer">
-<div id="expeditionDebrisSlotDebrisContainer">
-                    ${this.ogl._lang.find('empty')}
-                </div>
-                </div>
-                <div>
-
-                </div>`;
+            `;
         }
+
+        row.classList.remove('ogl_hidden');
     }
 
     unloadSystem()
     {
-        //document.querySelector(`#galaxyRow16`)?.remove();
+        if(document.querySelector('#galaxyRow16'))
+        {
+            document.querySelector('#galaxyRow16').classList.add('ogl_hidden');
+            document.querySelector('#galaxyRow16').classList.remove('ogl_important');
+        }
 
         for(let i=1; i<16; i++)
         {
@@ -5492,7 +5580,7 @@ class JumpgateManager extends Manager
         if(!document.querySelector('#jumpgate') || document.querySelector('#jumpgateNotReady')) return;
 
         const sendAllJson = {};
-
+        
         document.querySelectorAll('#jumpgate .ship_input_row').forEach(line =>
         {
             if(line.previousElementSibling.classList.contains('tdInactive')) return;
@@ -5533,7 +5621,7 @@ class JumpgateManager extends Manager
 
         container.appendChild(clock);
         const refresh =  Util.addDom('span', { parent:container, child:' - <b>0s</b>' });
-
+        
         setInterval(() =>
         {
             const currentTime = parseInt(document.querySelector('.OGameClock').getAttribute('data-time-server'));
@@ -5549,7 +5637,7 @@ class JumpgateManager extends Manager
         {
             return (0.25 * Math.pow(level, 2) - 7.57 * level + 67.34) / this.ogl.server.warFleetSpeed * 60000;
         }
-
+        
         jumpgateDone = a =>
         {
             var a = $.parseJSON(a);
@@ -5648,7 +5736,7 @@ class TooltipManager extends Manager
 
             if(sender.title) sender.setAttribute('data-title', sender.title);
             sender.removeAttribute('title');
-
+            
             const isClick = sender.classList.contains('tooltipClick');
             const isCustom = sender.classList.contains('tooltipCustom');
             const isClose = sender.classList.contains('tooltipClose');
@@ -5658,11 +5746,11 @@ class TooltipManager extends Manager
             const isTagPicker = sender.classList.contains('ogl_tagPicker');
             const delay = isClick || isFlagPicker || isTagPicker ? 1 : 0;
 
-            let eventType = isClick ? 'click' : 'pointerenter';
+            let eventType = isClick ? 'click' : 'mouseenter';
 
             if(eventType == 'click')
             {
-                sender.addEventListener('pointerenter', () =>
+                sender.addEventListener('mouseenter', () =>
                 {
                     this.lastActiveSender = sender;
                     this.lastSender = sender;
@@ -5721,7 +5809,7 @@ class TooltipManager extends Manager
 
                     if(isClick || isClose) this.closeBtn = Util.addDom('div', { class:'material-icons ogl_close', child:'close-thick', parent:self.tooltip, onclick:() => self.close() });
                     self.triangle = Util.addDom('div', { class:'ogl_tooltipTriangle', parent:self.tooltip });
-
+                    
                     const position = self.recalcPosition(sender, self);
                     if(position == 0) return;
 
@@ -5748,7 +5836,7 @@ class TooltipManager extends Manager
 
             if(!isClick && hoveredList.find(e => e == sender))
             {
-                sender.dispatchEvent(new Event('pointerenter'));
+                sender.dispatchEvent(new Event('mouseenter'));
             }
 
             sender.addEventListener('pointerleave', () =>
@@ -5820,7 +5908,7 @@ class TooltipManager extends Manager
                         class:'ogl_button',
                         parent:container,
                         child:'<span class="material-icons">letter_s</span><span>Simulate</span>',
-                        onclick:() =>
+                        onclick:() => 
                         {
                             if(Array.from(document.querySelectorAll('.planet-koords')).find(e => e.innerText == origin))
                             {
@@ -5844,6 +5932,14 @@ class TooltipManager extends Manager
         }
         else if(this.lastSender.classList.contains('planetlink'))
         {
+            if(this.ogl.db.options.disablePlanetTooltips)
+            {
+                this.tooltip.innerText = '';
+                clearTimeout(this.openTimeout);
+                this.close();
+                return;
+            }
+
             const planetID = this.lastSender.parentNode.getAttribute('id').replace('planet-', '');
             const name = this.lastSender.querySelector('.planet-name').innerText;
             const data = this.ogl.db.myPlanets[planetID];
@@ -5871,6 +5967,14 @@ class TooltipManager extends Manager
         }
         else if(this.lastSender.classList.contains('moonlink'))
         {
+            if(this.ogl.db.options.disablePlanetTooltips)
+            {
+                this.tooltip.innerText = '';
+                clearTimeout(this.openTimeout);
+                this.close();
+                return;
+            }
+
             const urlParams = new URLSearchParams(this.lastSender.getAttribute('href'));
             const planetID = urlParams.get('cp').split('#')[0];
             const name = this.lastSender.querySelector('.icon-moon').getAttribute('alt');
@@ -5956,7 +6060,7 @@ class TooltipManager extends Manager
 
             self.tooltip.setAttribute('data-direction', 'right');
             self.tooltip.style.transform = `translateX(${Math.floor(x)}px) translateY(${Math.floor(y)}px)`;
-
+            
             self.triangle.style.top = senderRect.top + senderRect.height/2 - y - offset - triangleOffset + window.scrollY + 'px';
             self.triangle.style.left = '-5px';
         }
@@ -6004,7 +6108,7 @@ class NotificationManager extends Manager
         this.hideTimer = 5000;
         this.step = 200;
         this.currentValue = this.hideTimer;
-
+        
         this.start = 0;
         this.timeLeft = this.hideTimer;
         this.elapsedInterval;
@@ -6129,7 +6233,7 @@ class NotificationManager extends Manager
         this.blocks.push({ time:serverTime.getTime(), message:message, data:data, success:(success = success === true ? 1 : success === false ? -1 : 0) });
         this.blocks.sort((a, b) => a.time - b.time);
         this.blocks = this.blocks.filter(e => serverTime.getTime() < e.time + this.hideTimer);
-
+    
         this.open();
     }
 
@@ -6284,13 +6388,14 @@ class MessageManager extends Manager
         let tabID = ogame.messages.getCurrentMessageTab();
 
         if(tabID == 20 || tabID == 11) this.checkReports(tabID);
-        else if(tabID == 21) this.checkRaids();
+        else if(tabID == 21) this.checkRaids(tabID);
         else if(tabID == 22)
         {
             this.checkExpeditions();
             this.checkDiscovery();
         }
         else if(tabID == 24) this.checkRR();
+        else if(tabID == 12) this.checkRaids(tabID, true);
         /*else if(tabID == 23) this.checkTransports();
         else if(tabID == 24) this.checkDebris();
         else if(tabID == 25) this.checkTrash();*/
@@ -6349,7 +6454,7 @@ class MessageManager extends Manager
 
                     document.querySelectorAll('.ogl_spyHeader .ogl_active').forEach(e => e.classList.remove('ogl_active'));
                     event.target.classList.add('ogl_active');
-
+    
                     this.ogl.db.spytableSort = this.ogl.db.spytableSort !== filter ? filter : filter.indexOf('DESC') < 0 ? filter+'DESC' : filter.replace('DESC', '');
                     this.buildTable();
                 }
@@ -6360,7 +6465,7 @@ class MessageManager extends Manager
                 if(this.ogl.db.spytableSort.startsWith(e.getAttribute('data-filter'))) e.classList.add('ogl_active');
             });
         }
-
+        
         // clean button
         if(!document.querySelector('#fleetsgenericpage .ogl_trashCounterSpy'))
         {
@@ -6376,7 +6481,7 @@ class MessageManager extends Manager
 
                     if(totalValue + fleetValue < this.ogl.db.options.resourceTreshold) this.addToDeleteQueue(id);
                 });
-            }});
+            }}); 
         }
 
         let ptreActivities = {}; // ptre activities data
@@ -6403,7 +6508,7 @@ class MessageManager extends Manager
                         const coords = [params.get('galaxy') || "0", params.get('system') || "0", params.get('position') || "0"];
                         const type = a.querySelector('figure.moon') ? 3 : 1;
                         const timestamp = message.querySelector('.msg_date.ogl_updated').getAttribute('data-time-server');
-
+        
                         ptreActivities[report.id] = {};
                         ptreActivities[report.id].player_id = uid;
                         ptreActivities[report.id].teamkey = this.ogl.ptreKey;
@@ -6412,7 +6517,7 @@ class MessageManager extends Manager
                         ptreActivities[report.id].position = coords[2];
                         ptreActivities[report.id].spy_message_ts = timestamp;
                         ptreActivities[report.id].moon = {};
-
+        
                         if(type == 1)
                         {
                             ptreActivities[report.id].activity = '*';
@@ -6484,7 +6589,7 @@ class MessageManager extends Manager
                     class:'ogl_messageButton',
                     parent:message.querySelector('.msg_actions message-footer-actions')
                 });
-
+    
                 this.ogl._ui.addTagButton(colorButton, report.coords);
             }
 
@@ -6516,8 +6621,11 @@ class MessageManager extends Manager
             this.ogl.cache.reportsToShow.push(report.id);
         });
 
-        this.buildTable();
-        tabContent.parentNode.insertBefore(this.spytable, tabContent);
+        if(this.ogl.db.options.displaySpyTable)
+        {
+            this.buildTable();
+            tabContent.parentNode.insertBefore(this.spytable, tabContent);
+        }
 
         if(Object.keys(ptreActivities).length > 0) PTRE.postActivities(ptreActivities);
     }
@@ -6614,8 +6722,6 @@ class MessageManager extends Manager
             else if(delta > 3600000) age = Math.floor(delta / (1000 * 3600)) + LocalizationStrings.timeunits.short.hour;
             else age = Math.floor(delta / (1000 * 60)) + LocalizationStrings.timeunits.short.minute;
 
-            if(delta > 86400000 * 2) return;
-
             let bonusFleetSpeed = this.ogl.server.warFleetSpeed == 1 ? 0.42 : 0;
             let bonusCargo = 1 + (Math.ceil(delta / 3600000) * .042) + bonusFleetSpeed; // +4.2% cargo per hour (100% per 24h)
 
@@ -6633,8 +6739,8 @@ class MessageManager extends Manager
                     <span class="ogl_activity ogl_textCenter">${report.activity < 15 ? '*' : report.activity}</span>
                     <span class="ogl_type"></span>
                     <span class="ogl_destination"><span data-galaxy="${report.coords.join(':')}">${report.coords.join(':')}</span></span>
-                    <span class="${report.status} tooltip" data-title="${report.name}">${report.name}</span>
-                    <a class="ogl_reportTotal ogl_textRight" href="https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${report.coords[0]}&system=${report.coords[1]}&position=${report.coords[2]}&type=${report.typeID}&mission=1&am${this.ogl.db.options.defaultShip}=${requiredShips}" data-value="${report.total}">${Util.formatToUnits(report.total)}</a>
+                    <a class="${report.status} tooltip overlay" data-title="${report.name}" href="https://${window.location.host}/game/index.php?page=messages&messageId=${report.id}&tabid=20&ajax=1">${report.name}</a>
+                    <a class="ogl_reportTotal ogl_textRight tooltip" data-title="${ogl._lang.find(this.ogl.db.options.defaultShip)}: ${Util.formatNumber(requiredShips)}<div class='ogl_sidenote'>+4.2% cargo per hour since the spy</div>" href="https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${report.coords[0]}&system=${report.coords[1]}&position=${report.coords[2]}&type=${report.typeID}&mission=1&am${this.ogl.db.options.defaultShip}=${requiredShips}&oglmode=4" data-value="${report.total}">${Util.formatToUnits(report.total)}</a>
                     <span class="ogl_reportFleet ogl_textRight" data-value="${report.fleet}" style="${report.fleet != 0 ? 'background:linear-gradient(192deg, #622a2a, #3c1717 70%)' : ''}">${report.fleet >= 0 ? Util.formatToUnits(report.fleet, 0) : '?'}</span>
                     <span class="ogl_textRight" style="${report.def != 0 ? 'background:linear-gradient(192deg, #622a2a, #3c1717 70%)' : ''}">${report.def >= 0 ? Util.formatToUnits(report.def, 0) : '?'}</span>
                     <span class="ogl_actions"></span>
@@ -6643,6 +6749,10 @@ class MessageManager extends Manager
 
             if(report.activity <= 15) div.querySelector('.ogl_activity').classList.add('ogl_danger');
             else if(report.activity < 60) div.querySelector('.ogl_activity').classList.add('ogl_warning');
+
+            if(report.total >= this.ogl.db.options.resourceTreshold) div.querySelector('.ogl_reportTotal').classList.add('ogl_important');
+
+            
 
             // spy action
             this.addSpyIcons(div.querySelector('.ogl_type'), report.coords, report.type);
@@ -6664,13 +6774,13 @@ class MessageManager extends Manager
             this.ogl._ui.addTagButton(div.querySelector('.ogl_destination'), report.coords.join(':'));
 
             // details action
-            Util.addDom('a',
+           /* Util.addDom('a',
             {
                 class:'ogl_button material-icons msg_action_link overlay',
                 parent:div.querySelector('.ogl_actions'),
                 child:'expand_content',
                 href:`https://${window.location.host}/game/index.php?page=messages&messageId=${report.id}&tabid=20&ajax=1`
-            });
+            });*/
 
             // more action
             const moreBtn = Util.addDom('div',
@@ -6775,9 +6885,11 @@ class MessageManager extends Manager
         this.spytable.setAttribute('data-total', 'Total: '+Util.formatNumber(total));
     }
 
-    checkRaids()
+    checkRaids(tabID, ignored)
     {
-        const messages = document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg');
+        const activeSubtab = document.querySelector(`.ui-tabs-tab[data-tabid="${tabID}"]`).getAttribute('aria-labelledby');
+        const tabContent = document.querySelector(`.ui-tabs-panel[aria-labelledby="${activeSubtab}"]`);
+        const messages = tabContent.querySelectorAll('.msg');
 
         messages.forEach(message =>
         {
@@ -6795,7 +6907,7 @@ class MessageManager extends Manager
                 before:message.querySelector('.msg_actions'),
                 child:'<div class="ogl_loading"></div>'
             });
-
+            
             if(this.ogl.cache.raids[id])
             {
                 this.buildRecap(this.ogl.cache.raids[id], message);
@@ -6842,13 +6954,13 @@ class MessageManager extends Manager
                         {
                             // probes only
                             if(Object.keys(Object.values(atkRounds[0].ships)[0]).length == 1 && Object.keys(Object.values(atkRounds[0].ships)[0])[0] == 210) battle.probesOnly = true;
-
+                        
                             // defender losses
                             for(let [shipID, value] of Object.entries(defRounds[defRounds.length-1].losses?.[fleet] || {}))
                             {
                                 battle.loss[-shipID] = (battle.loss[-shipID] || 0) + parseInt(value);
                             }
-
+    
                             // attacker losses
                             for(let [shipID, value] of Object.entries(atkRounds[atkRounds.length-1].losses?.[fleet] || {}))
                             {
@@ -6872,7 +6984,7 @@ class MessageManager extends Manager
 
                         this.ogl.cache.raids[id] = battle;
                         this.buildRecap(battle, message);
-                        if(!battle.probesOnly) this.updateStats(battle);
+                        if(!battle.probesOnly && !ignored) this.updateStats(battle);
                     }
                 });
             }
@@ -6942,12 +7054,12 @@ class MessageManager extends Manager
                     const regexBefore = new RegExp(`(\\d+) (?:${typeName}|${typeRaw})`, 'g');
                     const regexAfter = new RegExp(`(?:${typeName}|${typeRaw}) (\\d+)`, 'g');
                     const foundValue = parseInt(regexBefore.exec(content)?.[1]?.replace(/\D/g,'') || regexAfter.exec(content)?.[1]?.replace(/\D/g,''));
-
+    
                     if(foundValue)
                     {
                         result.resultType = !isNaN(typeID) ? 'ship' : typeID == 'dm' ? 'darkmatter' : 'resource';
                         result.gain[typeID] = foundValue;
-
+    
                         if(typeID == 'metal')
                         {
                             result.percentage = 100 - Math.round(((this.ogl.db.expeditionMaxResources - parseInt(foundValue)) / this.ogl.db.expeditionMaxResources) * 100);
@@ -6962,7 +7074,7 @@ class MessageManager extends Manager
                         }
                     }
                 });
-
+    
                 // item
                 if(message.querySelector('.msg_content a[href*="page=shop"]'))
                 {
@@ -6973,7 +7085,7 @@ class MessageManager extends Manager
             if(this.ogl.db.options.debugMode)
             {
                 this.ogl.cache.expeFix = this.ogl.cache.expeFix || {};
-
+    
                 if(this.ogl.account.lang == 'fr')
                 {
                     this.ogl.cache.expeFix[result.id] = result.resultType;
@@ -7162,7 +7274,7 @@ class MessageManager extends Manager
                     class:'ogl_messageButton',
                     parent:dialog.querySelector('.msg_actions')
                 });
-
+    
                 this.ogl._ui.addTagButton(colorButton, coords);
             }
 
@@ -7212,7 +7324,7 @@ class MessageManager extends Manager
         }
 
         const recap = {};
-
+        
         if(data.percentage)
         {
             domRecap.setAttribute('data-title', `${data.percentage}% max.`);
@@ -7226,7 +7338,7 @@ class MessageManager extends Manager
             {
                 recap[res] = (recap[res] || 0) + amount;
             }
-
+    
             // fight loss
             for(let [shipID, amount] of Object.entries(data.loss || {}))
             {
@@ -7235,7 +7347,7 @@ class MessageManager extends Manager
                     recap[res] = (recap[res] || 0) - value * amount;
                 }
             }
-
+    
             // recap div
             ['metal', 'crystal', 'deut'].forEach(res =>
             {
@@ -7350,7 +7462,7 @@ class MessageManager extends Manager
     {
         const div = Util.addDom('div', { id:'oglBoardTab', parent:document.querySelector('.js_tabs') });
         const ctn = Util.addDom('div', { class:'tab_ctn', parent:div });
-        const inner = Util.addDom('div', { class:'tab_inner', parent:ctn });
+        const inner = Util.addDom('div', { class:'tab_inner', parent:ctn }); 
         const li = Util.addDom('li', { class:'list_item ui-tabs-tab ui-corner-top ui-state-default ui-tab ogl_boardMessageTab', parent:document.querySelector('ul.tabs_btn'), onclick:() =>
         {
             if(li.querySelector('.new_msg_count')) li.querySelector('.new_msg_count').remove();
@@ -7426,12 +7538,12 @@ class MessageManager extends Manager
                 {
                     const xml = new DOMParser().parseFromString(result.responseText, 'text/xml');
                     this.ogl.db.lastBoardPosts[0] = 0;
-
+        
                     const items = xml.querySelectorAll('item');
                     items.forEach((item, index) =>
                     {
                         const date = new Date(item.querySelector('pubDate').textContent).getTime();
-
+        
                         if(date > this.ogl.db.lastBoardPosts[1])
                         {
                             this.ogl.db.lastBoardPosts[0]++;
@@ -7439,7 +7551,7 @@ class MessageManager extends Manager
 
                         if(index == 0) this.ogl.db.lastBoardPosts[1] = date;
                     });
-
+        
                     if(this.ogl.db.lastBoardPosts[0] > 0)
                     {
                         const count = document.querySelector('.comm_menu.messages .new_msg_count') || Util.addDom('span', { class:'new_msg_count totalMessages news' });
@@ -7447,7 +7559,7 @@ class MessageManager extends Manager
                     }
 
                     this.ogl.db.lastBoardPosts[2] = Date.now();
-
+        
                     if(this.ogl.page == 'messages') this.addBoardTab();
                 }
             });
@@ -7486,7 +7598,7 @@ class MessageManager extends Manager
                 (activity[0] == '*' && isRecent) ? activityDom.classList.add('ogl_danger') : (activity[0] == 60 && isRecent) ? activityDom.classList.add('ogl_ok') : activityDom.classList.add('ogl_warning');
             }
         }
-
+        
         if(uniqueType == 'moon' || (!uniqueType && this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid))
         {
             const moonIcon = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid > 0 ? Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyMoon'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:3`,child:'bedtime', parent:parent, onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 3)}) : Util.addDom('div', { parent:parent });
@@ -7525,19 +7637,19 @@ class MovementManager extends Manager
             refreshFleetEvents = force =>
             {
                 if(!eventlistLink) return;
-
+    
                 document.querySelector('#eventboxContent').innerHTML = '<img height="16" width="16" src="//gf3.geo.gfsrv.net/cdne3/3f9884806436537bdec305aa26fc60.gif" />';
-
+    
                 fetch(eventlistLink, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(response => response.text())
                 .then(data =>
                 {
                     $('#eventboxContent').html(data);
                     toggleEvents.loaded = true;
-
+    
                     let movements = {};
                     let ignored = [];
-
+    
                     let xml = new DOMParser().parseFromString(data, 'text/html');
                     xml.querySelectorAll('#eventContent tbody tr').forEach(line =>
                     {
@@ -7547,24 +7659,24 @@ class MovementManager extends Manager
                         movement.mission = line.getAttribute('data-mission-type');
                         movement.isBack = line.getAttribute('data-return-flight') === 'true';
                         movement.arrivalTime = parseInt(line.getAttribute('data-arrival-time')) * 1000;
-
+    
                         ignored.push(movement.id + 1);
                         if(ignored.indexOf(movement.id) > -1) return;
-
+    
                         movement.from = {};
                         movement.from.anotherPlayer = !Boolean(Array.from(document.querySelectorAll('#planetList .planet-koords')).find(p => p.innerText === line.querySelector('.coordsOrigin').innerText.trim().slice(1, -1)));
                         movement.from.isMoon = Boolean(line.querySelector('.originFleet figure.moon'));
                         movement.from.coords = line.querySelector('.coordsOrigin').innerText.trim().slice(1, -1);
-
+    
                         movement.to = {};
                         movement.to.anotherPlayer = !Boolean(Array.from(document.querySelectorAll('#planetList .planet-koords')).find(p => p.innerText === line.querySelector('.destCoords').innerText.trim().slice(1, -1)));
                         movement.to.isMoon = Boolean(line.querySelector('.destFleet figure.moon'));
                         movement.to.coords = line.querySelector('.destCoords').innerText.trim().slice(1, -1);
-
+    
                         if((movement.mission == 1 || movement.mission == 6) && movement.from.anotherPlayer)
                         {
                             const dest = Array.from(document.querySelectorAll('#planetList .planet-koords')).find(p => p.innerText === line.querySelector('.destCoords').innerText.trim().slice(1, -1));
-
+                            
                             if(dest)
                             {
                                 const destSmallPlanet = dest.closest('.smallplanet');
@@ -7572,7 +7684,7 @@ class MovementManager extends Manager
                                 destTarget.classList.add('ogl_attacked');
                             }
                         }
-
+    
                         tooltip.querySelectorAll('.fleetinfo tr').forEach(subline =>
                         {
                             if(subline.querySelector('td') && subline.querySelector('.value'))
@@ -7580,42 +7692,42 @@ class MovementManager extends Manager
                                 let name = subline.querySelector('td').innerText.replace(':', '');
                                 let key = Object.entries(this.ogl.db.serverData).find(entry => entry[1] === name)?.[0];
                                 let value = subline.querySelector('.value').innerText.replace(/\.|,| /g, '');
-
+    
                                 if(key) movement[key] = Number(value);
                             }
                         });
-
+    
                         let target;
                         if(movement.isBack) target = movement.from.coords + ':B';
                         else if(movement.to.anotherPlayer) target = movement.from.coords;
                         else if(movement.from.anotherPlayer) target = movement.to.coords + ':B';
                         else target = movement.to.coords;
-
+    
                         if(target)
                         {
                             movements[target] = movements[target] || [];
                             movements[target].push(movement);
                         }
                     });
-
+    
                     this.ogl.cache.movements = movements;
-
+                    
                     document.querySelectorAll('.smallplanet').forEach(planet =>
                     {
                         const coords = planet.querySelector('.planet-koords').innerText;
                         planet.querySelectorAll('.ogl_fleetIcon').forEach(e => e.remove());
-
+            
                         if(this.ogl.cache?.movements?.[coords])
                         {
                             this.addFleetIcon(this.ogl.cache.movements[coords], planet);
                         }
-
+            
                         if(this.ogl.cache?.movements?.[coords+':B'])
                         {
                             this.addFleetIcon(this.ogl.cache.movements[coords+':B'], planet, true);
                         }
                     });
-
+            
                     Util.runAsync(() =>
                     {
                         this.ogl._ui.displayResourcesRecap();
@@ -7652,8 +7764,8 @@ class MovementManager extends Manager
                 let shipAmount = 0;
                 Object.keys(line).filter(element => parseInt(element)).forEach(shipID => shipAmount += line[shipID]);
 
-                const domLine = Util.addDom('div', { class:`ogl_mission${line.mission} ogl_sideFleetIcon`, child:`<div>[${line.from.coords}]</div><span>${Util.formatToUnits(shipAmount)}</span><img src="${fleetImg}"><div>[${line.to.coords}]</div>`, parent:container });
-
+                const domLine = Util.addDom('div', { class:`ogl_mission${line.mission} ogl_sideFleetIcon`, child:`<div class="material-icons">${line.from.isMoon ? 'bedtime' : 'language'}</div><div>[${line.from.coords}]</div><span>${Util.formatToUnits(shipAmount)}</span><img src="${fleetImg}"><div class="material-icons">${line.mission == 8 ? 'debris' : line.to.isMoon ? 'bedtime' : 'language'}</div><div>[${line.to.coords}]</div>`, parent:container });
+            
                 ['metal', 'crystal', 'deut'].forEach(res =>
                 {
                     Util.addDom('div', { class:`ogl_icon ogl_${res}`, parent:domLine, child:Util.formatToUnits(line[res] || 0) });
@@ -7663,7 +7775,7 @@ class MovementManager extends Manager
                 domLine.prepend(this.ogl._time.convertTimestampToDate(this.ogl._time.serverToClient(line.arrivalTime)));
             });
 
-            const total = Util.addDom('div', { class:`ogl_sideFleetIcon`, child:`<span></span><span></span><span></span><span></span><span></span>`, parent:container });
+            const total = Util.addDom('div', { class:`ogl_sideFleetIcon`, child:`<span></span><span></span><span></span><span></span><span></span><span></span><span></span>`, parent:container });
             ['metal', 'crystal', 'deut'].forEach(res => Util.addDom('div', { class:`ogl_icon ogl_${res}`, parent:total, child:Util.formatToUnits(cumul[res] || 0) }));
 
             this.ogl._popup.open(container);
@@ -7736,7 +7848,7 @@ class MovementManager extends Manager
             else Util.addDom('div', { child:'-', parent:timeBlockRight });
             if(parent.querySelector('.nextTimer')) timeBlockRight.appendChild(parent.querySelector('.nextTimer'));
             else Util.addDom('div', { child:'-', parent:timeBlockRight });
-
+            
             Util.addDom('div', { class:`ogl_icon ogl_mission${parent.getAttribute('data-mission-type')}`, prepend:actionsBlock });
             actionsBlock.appendChild(parent.querySelector('.route a'));
             //if(parent.querySelector('.openDetails')) actionsBlock.appendChild(parent.querySelector('.openDetails'));
@@ -7758,11 +7870,11 @@ class ShortcutManager extends Manager
     load()
     {
         document.querySelector('.ogl_shortcuts')?.remove();
-
+        
         this.keyList = {};
         this.shortcutDiv = Util.addDom('div', { class:'ogl_shortcuts' });
         this.locked = false;
-        this.discoveryReady = true;
+        //this.discoveryReady = true;
 
         if(!this.loaded)
         {
@@ -7770,16 +7882,10 @@ class ShortcutManager extends Manager
             {
                 let activeElement = document.activeElement.tagName;
 
-                if(activeElement == 'INPUT' || activeElement == 'TEXTAREA')
-                {
-                    if(document.activeElement.classList.contains('ogl_inputCheck'))
-                    {
-                        Util.formatInput(document.activeElement);
-                    }
-                }
+                if(activeElement == 'INPUT' || activeElement == 'TEXTAREA') return;
                 else if(this.keyList[event.key.toLowerCase()] && !this.locked && !event.ctrlKey && !event.shiftKey) // can use !event.repeat instead of this.locked
                 {
-                    if(event.key.toLowerCase() != this.ogl.db.options.keyboardActions.discovery) this.locked = true;
+                    //if(event.key.toLowerCase() != this.ogl.db.options.keyboardActions.discovery) this.locked = true;
                     this.keyList[event.key.toLowerCase()]();
                 }
                 else if(!isNaN(event.key) && this.keyList['2-9'] && !this.locked && !event.ctrlKey && !event.shiftKey) // can use !event.repeat instead of this.locked
@@ -7866,6 +7972,14 @@ class ShortcutManager extends Manager
             else this.ogl._topbar.openSettings();
         });
 
+        this.add('showMenuResources', () =>
+        {
+            this.ogl.db.options.showMenuResources++;
+            if(this.ogl.db.options.showMenuResources > 2) this.ogl.db.options.showMenuResources = 0;
+            localStorage.setItem('ogl_menulayout', this.ogl.db.options.showMenuResources);
+            document.body.setAttribute('data-menulayout', this.ogl.db.options.showMenuResources);
+        });
+
         this.add('previousPlanet', () =>
         {
             localStorage.setItem('ogl-redirect', false);
@@ -7886,10 +8000,10 @@ class ShortcutManager extends Manager
         });
 
         this.add('nextPlanet', () =>
-                 {
+        {
             localStorage.setItem('ogl-redirect', false);
             document.body.classList.remove('ogl_destinationPicker');
-
+                
             if(this.ogl.mode === 1 || this.ogl.mode === 2 || this.ogl.mode === 5)
             {
                 if(this.ogl._fleet.redirectionReady) window.location.href = this.ogl.nextRedirection;
@@ -7913,7 +8027,7 @@ class ShortcutManager extends Manager
                     const arr = Array.from(document.querySelectorAll('.ogl_pinDetail [data-galaxy]'));
                     const index = arr.findLastIndex(e => e.classList.contains('ogl_active'));
                     const target = Util.reorderArray(arr, index)[1];
-
+    
                     if(target) target.click();
                 }
                 else
@@ -7932,7 +8046,7 @@ class ShortcutManager extends Manager
             this.add('expeditionPF', () => { if(fleetDispatcher.currentPage == 'fleet1') this.ogl._fleet.selectExpedition(219) }, 'fleet');
 
             this.add('fleetRepeat', () =>
-                     {
+            {
                 if(fleetDispatcher.currentPage == 'fleet1')
                 {
                     fleetDispatcher.resetShips();
@@ -7989,13 +8103,13 @@ class ShortcutManager extends Manager
                     if(fleetDispatcher.currentPage == 'fleet1')
                     {
                         fleetDispatcher.resetShips();
-
+    
                         this.ogl._fleet.isQuickRaid = true;
-
+                        
                         const target = this.ogl.db.quickRaidList[0].match(/.{1,3}/g).map(Number);
                         const amount = this.ogl._fleet.shipsForResources(this.ogl.db.options.defaultShip, this.ogl.db.options.resourceTreshold);
                         fleetDispatcher.selectShip(this.ogl.db.options.defaultShip, amount);
-
+    
                         fleetDispatcher.realTarget.galaxy = target[0];
                         fleetDispatcher.realTarget.system = target[1];
                         fleetDispatcher.realTarget.position = target[2];
@@ -8007,7 +8121,7 @@ class ShortcutManager extends Manager
                         fleetDispatcher.cargoDeuterium = 0;
                         fleetDispatcher.mission = 1;
                         fleetDispatcher.speedPercent = 10;
-
+    
                         fleetDispatcher.refresh();
                         fleetDispatcher.focusSubmitFleet1();
                     }
@@ -8034,7 +8148,7 @@ class ShortcutManager extends Manager
                     {
                         fleetDispatcher[this.ogl._fleet.cargo[type]] = Math.min(fleetDispatcher[this.ogl._fleet.resOnPlanet[type]] - fleetDispatcher[this.ogl._fleet.cargo[type]], fleetDispatcher.getFreeCargoSpace());
                     });
-
+                    
                     fleetDispatcher.refresh();
                 }
             }, 'fleet');
@@ -8107,6 +8221,8 @@ class ShortcutManager extends Manager
             this.add('galaxyDown', () => submitOnKey('ArrowDown'));
             this.add('galaxyRight', () => submitOnKey('ArrowRight'));
             this.add('galaxySpySystem', () => document.querySelector('.spysystemlink').click());
+            this.add('discovery', () => sendSystemDiscoveryMission());
+            /*
             this.add('discovery', () =>
                      {
                 if(this.discoveryReady)
@@ -8128,6 +8244,7 @@ class ShortcutManager extends Manager
                     }
                 }
             });
+            */
         }
         else if(this.ogl.page == 'movement')
         {
@@ -8210,17 +8327,17 @@ class TechManager extends Manager
                 {
                     this.xhr.abort();
                 }
-
+    
                 const wrapper = document.querySelector('#technologydetails_wrapper');
                 const content = wrapper.querySelector('#technologydetails_content');
-
+    
                 if(!content.querySelector('.ogl_loading'))
                 {
                     content.innerHTML = '<div class="ogl_wrapperloading"><div class="ogl_loading"></div></div>';
                 }
-
+                
                 wrapper.classList.add('ogl_active');
-
+    
                 this.xhr = $.ajax(
                 {
                     url:technologyDetails.technologyDetailsEndpoint,
@@ -8229,7 +8346,7 @@ class TechManager extends Manager
                 .done(data =>
                 {
                     const json = JSON.parse(data);
-
+    
                     if(json.status === 'failure') technologyDetails.displayErrors(json.errors);
                     else
                     {
@@ -8239,7 +8356,7 @@ class TechManager extends Manager
                     }
                 });
             }
-
+    
             technologyDetails.hide = () =>
             {
                 const wrapper = document.querySelector('#technologydetails_wrapper');
@@ -8248,7 +8365,7 @@ class TechManager extends Manager
                 technologyDetails.id = false;
                 technologyDetails.lvl = false;
             }
-
+    
             const urlTech = new URLSearchParams(window.location.search).get('openTech');
             if(urlTech) technologyDetails.show(urlTech);
         }
@@ -8290,13 +8407,13 @@ class TechManager extends Manager
                         this.displayLevel(id, this.initialLevel + this.levelOffset, data, details);
                     }
                 }});
-
+                
                 Util.addDom('div', { parent:actions, class:'material-icons ogl_button', child:'close', onclick:() =>
                 {
                     this.levelOffset = 0;
                     this.displayLevel(id, this.initialLevel, data, details);
                 }});
-
+        
                 Util.addDom('div', { parent:actions, class:'material-icons ogl_button', child:'chevron_right', onclick:() =>
                 {
                     this.levelOffset++;
@@ -8340,7 +8457,7 @@ class TechManager extends Manager
                 {
                     const value = parseInt(amount.value) || 0;
                     amount.value = Math.min(99999, value);
-
+    
                     if(amount.value)
                     {
                         setTimeout(() => this.displayLevel(id, value, data, details));
@@ -8433,7 +8550,7 @@ class TechManager extends Manager
         {
             this.detailCumul[id][lvl][costID] = cost;
         }
-
+        
         for(let [cumulLvl, cumulCost] of Object.entries(this.detailCumul[id] || {}))
         {
             if(cumulLvl >= this.initialLevel && cumulLvl <= this.initialLevel + this.levelOffset)
@@ -8473,7 +8590,7 @@ class TechManager extends Manager
         const costsWrapper = details.querySelector('.ogl_costsWrapper') || Util.addDom('div', { class:'ogl_costsWrapper', parent:details.querySelector('.costs') });
         costsWrapper.innerText = '';
 
-
+        
         details.querySelector('.build_duration time').innerText = techData.target.timeresult;
         if(details.querySelector('.additional_energy_consumption .value'))
         {
@@ -8552,7 +8669,7 @@ class TechManager extends Manager
         {
             const todolist = this.ogl.currentPlanet.obj.todolist;
             const entryLvl = entry.level || Date.now() + performance.now();
-
+    
             todolist[entry.id] = todolist[entry.id] || {};
             todolist[entry.id][entryLvl] = todolist[entry.id][entryLvl] || {};
             todolist[entry.id][entryLvl].id = entry.id;
@@ -8670,12 +8787,12 @@ class TechManager extends Manager
                     this.checkTodolist();
                     return;
                 }
-
+    
                 header.innerHTML = this.ogl.db.serverData[blockID];
                 header.innerHTML += ` (<b>${checkedCount}</b>/${maxCount})`;
-
+    
                 if(checkedCount != maxCount && footer && footer.querySelector('input:checked')) footer.querySelector('input:checked').checked = false;
-
+                
                 if(Object.entries(toSend).length > 0) sendButton.classList.remove('ogl_disabled');
                 else sendButton.classList.add('ogl_disabled');
             });
@@ -8884,7 +9001,7 @@ class TechManager extends Manager
         {
             const coloID = line.getAttribute('id').replace('planet-', '');
             const colo = this.ogl.db.myPlanets[coloID];
-
+            
             if(!colo) return;
 
             if(planetID != coloID && colo[31] >= labRequired[id]) baseLabs.push(colo[31]); // base labo
@@ -8894,7 +9011,7 @@ class TechManager extends Manager
         {
             const id = line.getAttribute('id').replace('planet-', '');
             const colo = this.ogl.db.myPlanets[id];
-
+            
             if(!colo) return;
             colo.activeLFTechs = colo.activeLFTechs || [];
 
@@ -9068,7 +9185,7 @@ class TechManager extends Manager
             tech.bonus.duration += cumul[14207] * Datafinder.getTech(14207).bonus1BaseValue / 100 ;
             tech.bonus.duration += cumul[14213] * Datafinder.getTech(14213).bonus1BaseValue / 100;
         }
-
+ 
         if(planet.lifeform == 2 && (tech.id == 1 || tech.id == 2 || tech.id == 3 || tech.id == 4 || tech.id == 12 || tech.id == 12101 || tech.id == 12102))
         {
             tech.bonus.price += planetData[12111] * Datafinder.getTech(12111).bonus1BaseValue / 100;
@@ -9153,7 +9270,7 @@ class TechManager extends Manager
             if(tech.id == 4) tech.target.prodEnergy = Math.floor(20 * level * Math.pow(1.1, level)) - Math.floor(20 * (level-1) * Math.pow(1.1, level-1));
             if(tech.id == 12) tech.target.prodEnergy = Math.floor(30 * level * Math.pow((1.05 + (planetData[113] || 0) * 0.01), level)) - Math.floor(30 * (level-1) * Math.pow((1.05 + (planetData[113] || 0) * 0.01), level-1));
 
-            if(tech.isBaseBuilding) tech.target.duration = (rawMetal + rawCrystal) / (2500 * Math.max(id == 43 ? 1 : 4 - level / 2, 1)  * (1 + (planetData[14] || 0)) * (Math.pow(2, planetData[15] || 0))) * 3600 * 1000;
+            if(tech.isBaseBuilding) tech.target.duration = (rawMetal + rawCrystal) / (2500 * Math.max((id == 41 || id == 42 || id == 43) ? 1 : 4 - level / 2, 1)  * (1 + (planetData[14] || 0)) * (Math.pow(2, planetData[15] || 0))) * 3600 * 1000;
             else tech.target.duration = (rawMetal + rawCrystal) / (1000 * (1 + (planetData[31] || 0) + bestLabs)) * 3600 * 1000;
         }
         else if(tech.isLfBuilding || tech.isLfResearch)
@@ -9602,10 +9719,10 @@ class StatsManager extends Manager
             let height = Math.ceil(Math.abs(value) / (Math.max(Math.abs(highest), Math.abs(lowest)) / 100));
             height = height > 0 ? Math.max(height, 5) : 0;
             const color = value > 0 ? '#35cf95' : '#e14848';
-
+            
             const content = Util.addDom('div', { parent:bar });
             content.style.background = `linear-gradient(to top, ${color} ${height}%, #0e1116 ${height}%)`;
-
+            
 
             if(value != 0) bar.classList.add('ogl_active');
         });
@@ -9668,7 +9785,7 @@ class StatsManager extends Manager
             if(resource == 'send') Util.addDom('div', { class:`ogl_textCenter ogl_icon material-icons`, child:'send', parent:header });
             else Util.addDom('div', { class:`ogl_icon ogl_${resource}`, parent:header });
         });
-
+        
         ['expe', 'raid', 'conso', 'u', 'total'].forEach(type =>
         {
             const typeLabel = type == 'u' ? 'average' : type;
@@ -9836,10 +9953,10 @@ class StatsManager extends Manager
 
             if(slice && hex != hoveredColor) drawPie(slice);
             else if(!slice && hex != hoveredColor) drawPie();
-
+            
             if(slice || hex == hoveredColor) canvas.classList.add('ogl_interactive');
             else canvas.classList.remove('ogl_interactive');
-
+            
         }*/});
 
         const ctx = canvas.getContext('2d', { willReadFrequently:true });
@@ -9862,11 +9979,11 @@ class StatsManager extends Manager
                 slice.angle = (value / total) * 2 * Math.PI;
                 slice.endAngle = cumulAngle + slice.angle;
                 slice.color = colors[title];
-
+    
                 slices.push(slice);
-
+    
                 cumulAngle = slice.endAngle;
-
+    
                 Util.addDom('div', { class:'ogl_pieLegend', 'data-resultType':slice.title, 'data-entry':slice.title, parent:legend, child:`<div>${this.ogl._lang.find(title)}</div><span>${Util.formatToUnits(value)}</span><i>${slice.percent}%</i>` });
             }
         }
@@ -9959,7 +10076,7 @@ class EmpireManager extends Manager
                     {
                         const data = this.ogl.db.myPlanets[planet.id.replace('planet', '')];
                         if(!data) return;
-
+    
                         Util.addDom('div', { class:'material-icons ogl_empireJumpgate', child:'jump_to_element', parent:planet.querySelectorAll('.row')[1], onclick:e =>
                         {
                             e.preventDefault();
@@ -10129,7 +10246,7 @@ class EmpireManager extends Manager
         if(source || this.ogl.page == 'lfbonuses' || this.ogl.page == 'lfsettings')
         {
             this.ogl.db.lfBonuses = this.ogl.db.lfBonuses || {};
-
+    
             htmlSource.querySelectorAll('lifeform-item, .lifeform-item').forEach(item =>
             {
                 const lifeform = item.querySelector('.lifeform-item-icon').className.replace(/lifeform-item-icon| /g, '');
@@ -10166,7 +10283,7 @@ class EmpireManager extends Manager
 
 class Util
 {
-    static get ogl() { return unsafeWindow.ogl }
+    static get ogl() { return unsafeWindow.ogl || ogl }
     static get simList()
     {
         return {
@@ -10298,7 +10415,7 @@ class Util
         return parseInt(value);
     }
 
-    static formatInput(input, callback)
+    static formatInput(input, callback, canBeEmpty)
     {
         setTimeout(() =>
         {
@@ -10325,6 +10442,8 @@ class Util
 
             cursorPosition += input.value.length > oldLength ? 1 : input.value.length < oldLength ? -1 : 0;
             input.setSelectionRange(cursorPosition, cursorPosition);
+
+            if(input.value == 0 && canBeEmpty) input.value = '';
 
             if(callback) callback();
         }, 5);
@@ -10625,7 +10744,7 @@ class PTRE
 {
     // const
     static get url() { return `https://ptre.chez.gg/scripts/` }
-    static get ogl() { return unsafeWindow.ogl }
+    static get ogl() { return unsafeWindow.ogl || ogl }
     static get playerPositionsDelay() { return 10 * 60 * 1000 }
     static get manageSyncedListUrl() { return `https://ptre.chez.gg/?page=players_list` }
 
@@ -10700,7 +10819,7 @@ class PTRE
             PTRE.ogl.cache.ptreLogs.forEach(log =>
             {
                 const time = PTRE.ogl._time.convertTimestampToDate(log.id);
-
+    
                 Util.addDom('div', { child:`<div>${time.outerHTML}</div><div>${log.code}</div><div>${log.message}</div>`, prepend:container });
             });
 
@@ -10740,7 +10859,7 @@ class PTRE
                 {
                     const parent = document.querySelector(`.msg[data-msg-id="${id}"] .msg_title`);
                     if(parent && !document.querySelector(`.msg[data-msg-id="${id}"] .ogl_checked`)) Util.addDom('div', { class:'material-icons ogl_checked tooltipLeft ogl_ptre', child:'ptre', title:PTRE.ogl._lang.find('ptreActivityImported'), parent:parent });
-
+                
                     if(PTRE.ogl.page == 'messages') PTRE.ogl.cache.counterSpies.push(id);
                 });
             }
@@ -11065,7 +11184,7 @@ class Datafinder
             217: { metal:2000,      crystal:2000,       deut:1000 },
             218: { metal:85000,     crystal:55000,      deut:20000 },
             219: { metal:8000,      crystal:15000,      deut:8000 },
-
+            
             // def
             401: { metal:2000,  crystal:0,      deut:0 },
             402: { metal:1500,  crystal:500,    deut:0 },
@@ -11090,7 +11209,7 @@ class Datafinder
 }
 
 
-const css =
+const css = 
 `
 /*css*/
 
@@ -11109,6 +11228,9 @@ const css =
     --metal:hsl(229.85deg 48.01% 62.14%);
     --crystal:hsl(201.27deg 73.83% 75.93%);
     --deut:hsl(166.15deg 41.73% 62.16%);
+    --metal:hsl(240deg 24% 68%);
+    --crystal:hsl(199deg 72% 74%);
+    --deut:hsl(172deg 45% 46%);
     --energy:#f5bbb4;
     --dm:#b58cdb;
     --food:hsl(316deg 21% 70%);
@@ -11127,7 +11249,7 @@ const css =
     --early:#79a2ff;
     --late:#df5252;
     --trader:#ff7d30;
-
+    
     --red:#f9392b;
     --pink:#ff7ba8;
     --purple:#ba68c8;
@@ -11176,10 +11298,10 @@ const css =
     -webkit-font-smoothing:antialiased;
 }
 
-body
+/*body
 {
     background-attachment:fixed;
-}
+}*/
 
 /*body
 {
@@ -11196,11 +11318,12 @@ body
 
 body.ogl_destinationPicker #planetList:before
 {
-    animation:border-dance 1s infinite linear;
+    /*animation:border-dance 1s infinite linear;
     background-image:linear-gradient(90deg, var(--ogl) 50%, transparent 50%), linear-gradient(90deg, var(--ogl) 50%, transparent 50%), linear-gradient(0deg, var(--ogl) 50%, transparent 50%), linear-gradient(0deg, var(--ogl) 50%, transparent 50%);
     background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
     background-size: 15px 2px, 15px 2px, 2px 15px, 2px 15px;
-    background-position: left top, right bottom, left bottom, right top;
+    background-position: left top, right bottom, left bottom, right top;*/
+    border:2px solid #fff;
     bottom:-2px;
     content:'';
     left:-2px;
@@ -11211,11 +11334,11 @@ body.ogl_destinationPicker #planetList:before
     z-index:2;
 }
 
-@keyframes border-dance
+/*@keyframes border-dance
 {
     0% { background-position:left top, right bottom, left bottom, right top; }
     100% { background-position:left 15px top, right 15px bottom, left bottom 15px, right top 15px; }
-}
+}*/
 
 line.ogl_line
 {
@@ -11261,33 +11384,35 @@ line.ogl_line
 [class*="ogl_lifeform"] { color:var(--lifeform) !important; }
 .ogl_msu { color:var(--msu) !important; }
 
-.ogl_mission1, [data-mission-type="1"]:not(.fleetDetails) { color:var(--mission1) !important; }
-.ogl_mission2, [data-mission-type="2"]:not(.fleetDetails) { color:var(--mission2) !important; }
-.ogl_mission3, [data-mission-type="3"]:not(.fleetDetails) { color:var(--mission3) !important; }
-.ogl_mission4, [data-mission-type="4"]:not(.fleetDetails) { color:var(--mission4) !important; }
-.ogl_mission5, [data-mission-type="5"]:not(.fleetDetails) { color:var(--mission5) !important; }
-.ogl_mission6, [data-mission-type="6"]:not(.fleetDetails) { color:var(--mission6) !important; }
-.ogl_mission7, [data-mission-type="7"]:not(.fleetDetails) { color:var(--mission7) !important; }
-.ogl_mission8, [data-mission-type="8"]:not(.fleetDetails) { color:var(--mission8) !important; }
-.ogl_mission9, [data-mission-type="9"]:not(.fleetDetails) { color:var(--mission9) !important; }
-.ogl_mission10, [data-mission-type="10"]:not(.fleetDetails) { color:var(--mission10) !important; }
-.ogl_mission11, [data-mission-type="11"]:not(.fleetDetails) { color:var(--mission11) !important; }
-.ogl_mission12, [data-mission-type="12"]:not(.fleetDetails) { color:var(--mission12) !important; }
-.ogl_mission13, [data-mission-type="13"]:not(.fleetDetails) { color:var(--mission13) !important; }
-.ogl_mission14, [data-mission-type="14"]:not(.fleetDetails) { color:var(--mission14) !important; }
-.ogl_mission15, [data-mission-type="15"]:not(.fleetDetails) { color:var(--mission15) !important; }
-.ogl_mission18, [data-mission-type="18"]:not(.fleetDetails) { color:var(--mission18) !important; }
+.ogl_mission1, [data-mission-type="1"]:not(.fleetDetails) .detailsFleet { color:var(--mission1) !important; }
+.ogl_mission2, [data-mission-type="2"]:not(.fleetDetails) .detailsFleet { color:var(--mission2) !important; }
+.ogl_mission3, [data-mission-type="3"]:not(.fleetDetails) .detailsFleet { color:var(--mission3) !important; }
+.ogl_mission4, [data-mission-type="4"]:not(.fleetDetails) .detailsFleet { color:var(--mission4) !important; }
+.ogl_mission5, [data-mission-type="5"]:not(.fleetDetails) .detailsFleet { color:var(--mission5) !important; }
+.ogl_mission6, [data-mission-type="6"]:not(.fleetDetails) .detailsFleet { color:var(--mission6) !important; }
+.ogl_mission7, [data-mission-type="7"]:not(.fleetDetails) .detailsFleet { color:var(--mission7) !important; }
+.ogl_mission8, [data-mission-type="8"]:not(.fleetDetails) .detailsFleet { color:var(--mission8) !important; }
+.ogl_mission9, [data-mission-type="9"]:not(.fleetDetails) .detailsFleet { color:var(--mission9) !important; }
+.ogl_mission10, [data-mission-type="10"]:not(.fleetDetails) .detailsFleet { color:var(--mission10) !important; }
+.ogl_mission11, [data-mission-type="11"]:not(.fleetDetails) .detailsFleet { color:var(--mission11) !important; }
+.ogl_mission12, [data-mission-type="12"]:not(.fleetDetails) .detailsFleet { color:var(--mission12) !important; }
+.ogl_mission13, [data-mission-type="13"]:not(.fleetDetails) .detailsFleet { color:var(--mission13) !important; }
+.ogl_mission14, [data-mission-type="14"]:not(.fleetDetails) .detailsFleet { color:var(--mission14) !important; }
+.ogl_mission15, [data-mission-type="15"]:not(.fleetDetails) .detailsFleet { color:var(--mission15) !important; }
+.ogl_mission18, [data-mission-type="18"]:not(.fleetDetails) .detailsFleet { color:var(--mission18) !important; }
 
-[data-mission-type="1"] { background:#361610 !important; }
-[data-mission-type="2"] { background:#361610 !important; }
-[data-mission-type="3"] { background:#19340f !important; }
-[data-mission-type="4"] { background:#112e2b !important; }
-[data-mission-type="5"] { background:#462714 !important; }
-[data-mission-type="6"] { background:#42381c !important; }
-[data-mission-type="7"] { background:#103348 !important; }
-[data-mission-type="8"] { background:#032e07 !important; }
-[data-mission-type="15"] { background:#121a2a !important; }
-[data-mission-type="18"] { background:#0e1c24 !important; }
+[data-mission-type] { background: #121b22 !important; }
+
+[data-mission-type="1"] { background:linear-gradient(to right, #121b22, #482018, #121b22) !important; }
+[data-mission-type="2"] { background:linear-gradient(to right, #121b22, #54271f, #121b22) !important; }
+[data-mission-type="3"] { background:linear-gradient(to right, #121b22, #2c4a14, #121b22) !important; }
+[data-mission-type="4"] { background:linear-gradient(to right, #121b22, #104841, #121b22) !important; }
+[data-mission-type="5"] { background:linear-gradient(to right, #121b22, #643d25, #121b22) !important; }
+[data-mission-type="6"] { background:linear-gradient(to right, #121b22, #4c401f, #121b22) !important; }
+[data-mission-type="7"] { background:linear-gradient(to right, #121b22, #214350, #121b22) !important; }
+[data-mission-type="8"] { background:linear-gradient(to right, #121b22, #004011, #121b22) !important; }
+[data-mission-type="15"] { background:linear-gradient(to right, #121b22, #182542, #121b22) !important; }
+[data-mission-type="18"] { background:linear-gradient(to right, #121b22, #203642, #121b22) !important; }
 
 .ogl_icon, .ogl_metal.ogl_icon, .ogl_crystal.ogl_icon, .ogl_deut.ogl_icon, .ogl_food.ogl_icon,
 .ogl_dm.ogl_icon, .ogl_energy.ogl_icon, .ogl_artefact.ogl_icon, .ogl_population.ogl_icon,
@@ -12002,6 +12127,21 @@ time span
     position:relative;
 }
 
+#fleet1 .capacityProgress::before
+{
+    background:#0c1014;
+    border-radius:18px;
+    content:attr(data-rawCargo);
+    display:inline-block;
+    font-size:11px;
+    left:50%;
+    padding:5px 10px;
+    position:absolute;
+    text-align:center;
+    top:8px;
+    transform:translateX(-50%);
+}
+
 #fleet1 .capacityProgress::after
 {
     content:attr(data-percentResources)'%';
@@ -12036,6 +12176,7 @@ time span
     align-items:center;
     display:grid;
     justify-content:center;
+    user-select:none;
     width:80px;
 }
 
@@ -12196,7 +12337,6 @@ time span
 .technology.ogl_notEnough
 {
     filter:none;
-    pointer-events:none;
 }
 
 .technology.ogl_notEnough .icon
@@ -12339,7 +12479,7 @@ time span
     box-sizing:border-box;
     display:flex;
     grid-gap:10px;
-    margin:20px 5px 5px 5px;
+    margin:30px 5px 5px 5px;
     padding:12px;
     width:656px;
 }
@@ -12488,7 +12628,7 @@ time span
 
 #bannerSkyscrapercomponent
 {
-    margin-left:275px !important;
+    margin-left:290px !important;
 }
 
 #planetbarcomponent #rechts
@@ -12550,12 +12690,12 @@ time span
     display:grid;
     font-size:9px;
     font-weight:bold;
-    line-height:9px;
+    line-height:11px;
     opacity:1;
     position:absolute;
     right:3px;
     text-align:right;
-    top:7px;
+    top:4px;
     width:auto;
 }
 
@@ -12567,13 +12707,15 @@ time span
 .smallplanet
 {
     background:linear-gradient(341deg, transparent 29%, #283748);
+    background:#0e1116;
     border-radius:0 !important;
     display:grid;
     font-size:10px;
     grid-gap:2px;
-    grid-template-columns:140px 64px;
-    height:43px !important;
+    grid-template-columns:139px 64px;
+    height:41px !important;
     margin:0 !important;
+    padding:1px;
     position:relative !important;
     width:100% !important;
 }
@@ -12621,7 +12763,7 @@ time span
 
 .smallplanet .planetlink, .smallplanet .moonlink
 {
-    border-radius:0 !important;
+    border-radius:4px !important;
     background-position:initial !important;
     height:43px !important;
     overflow:hidden !important;
@@ -12633,7 +12775,7 @@ time span
 
 .smallplanet .planetlink:hover
 {
-    background:linear-gradient(207deg, transparent 29%, #46688d);
+    background:linear-gradient(207deg, #0d1014, #4869c7);
 }
 
 .smallplanet:last-child .planetlink:hover
@@ -12643,7 +12785,7 @@ time span
 
 .smallplanet .moonlink:hover
 {
-    background:linear-gradient(-207deg, transparent 29%, #46688d);
+    background:linear-gradient(-207deg, #0d1014, #4869c7);
 }
 
 .smallplanet:last-child .moonlink:hover
@@ -12653,12 +12795,12 @@ time span
 
 .ogl_destinationPicker .smallplanet .planetlink.ogl_currentDestination
 {
-    background:linear-gradient(207deg, transparent 29%, #bb8c22) !important;
+    background:linear-gradient(207deg, #0d1014, #bb8c22) !important;
 }
 
 .ogl_destinationPicker .smallplanet .moonlink.ogl_currentDestination
 {
-    background:linear-gradient(-207deg, transparent 29%, #bb8c22) !important;
+    background:linear-gradient(-207deg, #0d1014, #bb8c22) !important;
 }
 
 .ogl_destinationPicker .smallplanet .ogl_currentDestination .planetPic,
@@ -12676,7 +12818,7 @@ time span
     font-size:20px;
     left:6px;
     position:absolute;
-    top:19px;
+    top:12px;
 }
 
 .ogl_destinationPicker .smallplanet .moonlink.ogl_currentDestination:after
@@ -12696,14 +12838,34 @@ time span
     pointer-events:none;
 }
 
+.smallplanet .planetlink
+{
+    background:linear-gradient(207deg, #0d1014, #212b34);
+}
+
+.smallplanet .moonlink
+{
+    background:linear-gradient(-207deg, #0d1014, #212b34);
+}
+
 .smallplanet.hightlightPlanet .planetlink
 {
-    background:linear-gradient(207deg, transparent 29%, #46688d);
+    background:linear-gradient(207deg, #0d1014, #4869c7);
 }
 
 .smallplanet.hightlightMoon .moonlink
 {
-    background:linear-gradient(-207deg, transparent 29%, #46688d);
+    background:linear-gradient(-207deg, #0d1014, #4869c7);
+}
+
+.ogl_destinationPicker .smallplanet .planetlink.ogl_disabled
+{
+    background:linear-gradient(207deg, #0d1014, #c74848) !important;
+}
+
+.ogl_destinationPicker .smallplanet .moonlink.ogl_disabled
+{
+    background:linear-gradient(-207deg, #0d1014, #c74848) !important;
 }
 
 .smallplanet .planetlink.ogl_attacked,
@@ -12729,21 +12891,24 @@ time span
 
 .smallplanet .planet-name
 {
-    color:#fff !important;
+    color:hsl(208deg 32% 63%) !important;
     font-size:10px !important;
-    top:8px !important;
+    font-weight:bold !important;
+    top:9px !important;
 }
 
 .smallplanet .planet-koords
 {
-    bottom:11px !important;
-    color:#a5a5a5 !important;
+    bottom:10px !important;
+    color:hsl(208deg 3% 57%) !important;
+    letter-spacing:-0.05em;
     font-size:11px !important;
     top:auto !important;
 }
 
 .smallplanet .planetPic
 {
+    background:#1a2534;
     box-shadow:0 0 8px #000000 !important;
     height:22px !important;
     left:-1px !important;
@@ -12756,6 +12921,7 @@ time span
 
 .smallplanet .icon-moon
 {
+    background:#1a2534;
     box-shadow:0 0 8px #000000 !important;
     height:16px !important;
     left:0px !important;
@@ -12840,7 +13006,7 @@ time span
     align-items:center;
     cursor:pointer;
     display:flex !important;
-    font-size:16px !important;
+    font-size:14px !important;
 }
 
 .smallplanet .ogl_sideIconInfo > *
@@ -13095,6 +13261,11 @@ time span
     margin-top:55px;
 }
 
+.ogl_spytable a.ogl_important span
+{
+    color:#fff !important;
+}
+
 .ogl_spytable hr
 {
     background:#1e252e;
@@ -13104,7 +13275,7 @@ time span
     width:100%;
 }
 
-.ogl_spytable a:not(.ogl_button), .ogl_spytable [data-galaxy]:not(.ogl_button)
+.ogl_spytable a:not(.ogl_button):not([class*="status_abbr"]), .ogl_spytable [data-galaxy]:not(.ogl_button)
 {
     color:inherit !important;
 }
@@ -13129,11 +13300,6 @@ time span
     counter-increment:spy;
 }
 
-.ogl_spytable [class*="status_abbr"]
-{
-    cursor:default !important;
-}
-
 .ogl_spytable .ogl_spyLine > div > span,
 .ogl_spytable .ogl_spyLine > div > a
 {
@@ -13147,6 +13313,11 @@ time span
     position:relative;
     text-overflow:ellipsis;
     white-space:nowrap;
+}
+
+.ogl_spytable .ogl_spyLine > div > a
+{
+    text-decoration:none;
 }
 
 .ogl_spytable .ogl_spyLine > div > span:nth-child(5), .ogl_spytable > div > span:nth-child(6), .ogl_spytable > div > span:nth-child(7) { justify-content:right; }
@@ -13177,11 +13348,12 @@ time span
     text-decoration:none;
 }
 
-.ogl_spytable .ogl_spyLine a:not(.ogl_button):hover
+.ogl_spytable .ogl_spyLine a:not(.ogl_button):hover,
+.ogl_spytable .ogl_spyLine [data-galaxy]:hover
 {
     color:#fff !important;
-    box-shadow:0 0 0 2px var(--ogl);
-    text-decoration:none !important;
+    cursor:pointer !important;
+    text-decoration:underline !important;
 }
 
 .ogl_spytable .ogl_spyHeader b
@@ -13220,7 +13392,6 @@ time span
 .ogl_spytable [data-title]:not(.ogl_spyIcon):not([class*="status_abbr"])
 {
     color:inherit !important;
-    cursor:default !important;
 }
 
 .ogl_spytable [data-filter]:after
@@ -13334,6 +13505,11 @@ time span
 .galaxyTable
 {
     background:#10151a !important;
+}
+
+#galaxycomponent .systembuttons img
+{
+    pointer-events:none;
 }
 
 #galaxyContent .ctContentRow .galaxyCell
@@ -13453,7 +13629,8 @@ time span
 }
 
 #galaxyContent .ctContentRow .galaxyCell.cellDebris.ogl_important,
-#galaxyContent .expeditionDebrisSlotBox.ogl_important
+#galaxyContent .expeditionDebrisSlotBox.ogl_important,
+.ogl_spytable .ogl_important
 {
     background:linear-gradient(192deg, #a96510, #6c2c0d 70%) !important;
 }
@@ -13845,6 +14022,7 @@ time span
 
 .ogl_topbar
 {
+    border-bottom:2px solid #0e1116;
     color:#546a89;
     display:grid;
     font-size:16px;
@@ -13925,7 +14103,7 @@ time span
 .ogl_config label
 {
     align-items:center;
-    background:var(--secondaryReversed);
+    background:linear-gradient(-207deg, #0d1014, #212b34);
     border-radius:3px;
     color:#c7c7c7;
     display:flex;
@@ -13964,7 +14142,7 @@ time span
     font-size:12px;
     height:22px;
     visibility:visible !important;
-    width:120px;
+    width:105px;
 }
 
 .ogl_config label > input[type="checkbox"],
@@ -14043,7 +14221,7 @@ time span
 
 .ogl_config [data-container]
 {
-    background:linear-gradient(0deg, #0d1014, #1b222a);
+    background:#0e1116;
     border-radius:3px;
     max-height:24px;
     overflow:hidden;
@@ -14094,13 +14272,14 @@ time span
     margin-right:5px;
 }
 
-.ogl_config > div:nth-child(2) h3:before { content:'\\e961'; }
-.ogl_config > div:nth-child(3) h3:before { content:'\\e9e8'; }
-.ogl_config > div:nth-child(4) h3:before { content:'\\ea41'; }
-.ogl_config > div:nth-child(5) h3:before { content:'\\ea3e'; }
-.ogl_config > div:nth-child(6) h3:before { content:'\\e9be'; }
-.ogl_config > div:nth-child(7) h3:before { content:'\\ea1e'; }
-.ogl_config > div:nth-child(8) h3:before { content:'\\ea3f'; }
+.ogl_config [data-container="fleet"] h3:before { content:'\\e961'; }
+.ogl_config [data-container="general"] h3:before { content:'\\e9e8'; }
+.ogl_config [data-container="interface"] h3:before { content:'\\e95d'; }
+.ogl_config [data-container="expeditions"] h3:before { content:'\\ea41'; }
+.ogl_config [data-container="stats"] h3:before { content:'\\ea3e'; }
+.ogl_config [data-container="messages"] h3:before { content:'\\e9be'; }
+.ogl_config [data-container="PTRE"] h3:before { content:'\\ea1e'; }
+.ogl_config [data-container="data"] h3:before { content:'\\ea3f'; }
 
 .ogl_config h3:after
 {
@@ -14845,6 +15024,7 @@ label.ogl_off:hover
 
 .ogl_recap
 {
+    border-top:2px solid #0e1116;
     cursor:pointer;
     padding:10px 6px;
     position:relative;
@@ -14936,6 +15116,7 @@ label.ogl_off:hover
 }
 
 .ogl_shortcuts [data-key-id="menu"]:after { content:'\\e91d'; }
+.ogl_shortcuts [data-key-id="showMenuResources"]:after { content:'\\e95d'; }
 .ogl_shortcuts [data-key-id="previousPlanet"]:after { content:'\\ea39'; }
 .ogl_shortcuts [data-key-id="nextPlanet"]:after { content:'\\ea2a'; }
 .ogl_shortcuts [data-key-id="expeditionSC"]:after { color:var(--mission15);content:'\\ea41'; }
@@ -15750,6 +15931,18 @@ label.ogl_off:hover
 .ogl_tagPicker[data-tag="gray"]:before, .ogl_tagSelector [data-tag="gray"]:before { color:#75a1b7; }
 [data-tag].ogl_off { opacity:.2; }
 
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="red"]) { box-shadow:inset 0 0 100px rgba(255, 0, 0, .2); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="orange"]) { box-shadow:inset 0 0 100px rgba(235, 108, 59, .3); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="yellow"]) { box-shadow:inset 0 0 100px rgba(235, 181, 59, .3); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="lime"]) { box-shadow:inset 0 0 100px rgba(167, 235, 59, .2); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="green"]) { box-shadow:inset 0 0 100px rgba(59, 235, 89, .3); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="blue"]) { box-shadow:inset 0 0 100px rgba(59, 162, 235, .3); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="dblue"]) { box-shadow:inset 0 0 100px rgba(59, 81, 235, .3); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="violet"]) { box-shadow:inset 0 0 100px rgba(110, 59, 235, .3); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="magenta"]) { box-shadow:inset 0 0 100px rgba(235, 59, 165, .3); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="pink"]) { box-shadow:inset 0 0 100px rgba(255, 124, 179, .3); }
+#galaxyContent .ctContentRow .galaxyCell:has([data-tag="brown"]) { box-shadow:inset 0 0 100px rgba(149, 111, 89, .3); }
+
 .galaxyRow:has([data-tag="gray"]) { opacity:.2; }
 
 .galaxyTable .ogl_tagPicker,
@@ -16008,6 +16201,17 @@ label.ogl_off:hover
 .ogl_pinDetail date span:nth-child(1) { color:var(--date); }
 .ogl_pinDetail date span:nth-child(2) { color:var(--time); }
 
+.ogl_nextQuickTarget
+{
+    color:#687a89;
+    font-size:16px !important;
+}
+
+.ogl_nextQuickTarget.ogl_active
+{
+    color:var(--red);
+}
+
 .ogl_tagged .ogl_grid
 {
     align-items:center;
@@ -16024,7 +16228,7 @@ label.ogl_off:hover
 
 .ogl_tagged .ogl_list > div
 {
-    grid-template-columns:30px auto 30px 30px 30px;
+    grid-template-columns:30px auto 30px 30px 30px 30px;
 }
 
 .ogl_tagged .ogl_list > div > div:first-child
@@ -16454,6 +16658,12 @@ label.ogl_off:hover
     width:642px !important;
 }
 
+.expeditionDebrisSlotBox.ogl_hidden,
+.expeditionDebrisSlotBox > div:has(h3), #expeditionDebrisSlotDebrisContainer
+{
+    display:none !important;
+}
+
 .expeditionDebrisSlotBox li
 {
     list-style:none;
@@ -16484,6 +16694,21 @@ label.ogl_off:hover
     text-decoration:underline;
 }
 
+.ogl_expeditionRow > div:not(:last-child)
+{
+    display:flex;
+}
+
+.ogl_expeditionDebris
+{
+    grid-gap:10px;
+}
+
+#galaxyContent .expeditionDebrisSlotBox > div
+{
+    flex:none !important;
+}
+
 .ogl_sideFleetTooltip:not(.ogl_tooltipTriangle):not(.ogl_close)
 {
     display:grid !important;
@@ -16496,8 +16721,8 @@ label.ogl_off:hover
 {
     align-items:center;
     display:grid;
-    grid-gap:10px;
-    grid-template-columns:70px 70px 60px 20px 70px 98px 98px 98px;
+    grid-gap:5px;
+    grid-template-columns:70px 30px 70px 60px 20px 30px 70px 98px 98px 98px;
     justify-content:center;
 }
 
@@ -16512,6 +16737,13 @@ label.ogl_off:hover
     line-height:24px;
     padding:0 3px;
     text-align:center;
+}
+
+.ogl_sideFleetIcon .material-icons
+{
+    color:#fff;
+    font-size:14px !important;
+    line-height:24px !important;
 }
 
 .ogl_sideFleetIcon > span
@@ -16536,7 +16768,7 @@ label.ogl_off:hover
     font-weight:normal;
 }
 
-gradient-button .custom_btn
+.msg gradient-button .custom_btn
 {
     border:none !important;
 }
@@ -16864,7 +17096,8 @@ message-footer-actions gradient-button[sq30]
     width:100%;
 }
 
-#eventboxContent .eventFleet > td:not(.icon_movement):not(.icon_movement_reserve) { background:inherit !important;padding:2px 2px; }
+#eventboxContent .eventFleet { td.arrivalTime, td.coordsOrigin, td.destCoords { justify-content:center; }}
+#eventboxContent .eventFleet > td:not(.icon_movement):not(.icon_movement_reserve) { padding:2px 2px; }
 #eventboxContent .eventFleet > td:nth-child(3) { background:none !important; }
 #eventboxContent .eventFleet > td:nth-child(5) { grid-column:4;grid-row:1; }
 
@@ -17635,6 +17868,7 @@ message-footer-actions gradient-button[sq30]
 #jumpgate #selecttarget select
 {
     display:block !important;
+    visibility:visible !important;
 }
 
 #jumpgate #selecttarget .dropdown
@@ -17765,6 +17999,12 @@ message-footer-actions gradient-button[sq30]
     display:none !important;
 }
 
+.ogl_sidenote
+{
+    color:#aaa;
+    font-style:italic;
+}
+
 `;
 
 GM_addStyle(css);
@@ -17781,3 +18021,150 @@ const oglMaterial =
 `;
 
 GM_addStyle(oglMaterial);
+
+const miniImage =
+`
+/*css*/
+body[data-minipics="true"]
+{
+    .maincontent > div header, .maincontent .planet-header
+    {
+        height:34px !important;
+    }
+
+    .maincontent #overviewcomponent #planet,
+    .maincontent #overviewcomponent #detailWrapper
+    {
+        height:auto !important;
+        min-height:208px !important;
+        position:relative !important;
+    }
+
+    .maincontent #technologydetails_wrapper:not(.slide-down)
+    {
+        position:relative !important;
+    }
+
+    .maincontent #detail.detail_screen
+    {
+        height:300px !important;
+        position:relative !important;
+    }
+}
+/*!css*/
+`;
+
+GM_addStyle(miniImage);
+
+const altStyle =
+`
+/*css*/
+body[data-menulayout="1"], body[data-menulayout="2"]
+{
+    #bannerSkyscrapercomponent
+    {
+        margin-left:260px !important;
+    }
+
+    #pageContent, #mainContent
+    {
+        width:1016px !important;
+    }
+
+    .ogl_topbar
+    {
+        font-size:15px;
+        width:100%;
+    }
+
+    #planetbarcomponent #rechts
+    {
+        width:170px !important;
+    }
+
+    #planetList
+    {
+        transform:translate(0);
+        width:100%;
+    }
+
+    .smallplanet
+    {
+        background:#0e1116;
+        box-sizing:border-box;
+        height:38px !important;
+    }
+
+    .smallplanet .planetlink, .smallplanet .moonlink
+    {
+        border-radius:4px !important;
+        height:100% !important;
+    }
+
+    .smallplanet .planet-name
+    {
+        top:6px !important;
+    }
+
+    .smallplanet .planet-koords
+    {
+        bottom:7px !important;
+    }
+
+    .smallplanet .planetPic
+    {
+        box-shadow:0 0 2px #000000 !important;
+        left:8px !important;
+        top:7px !important;
+        transform:scale(1.2);
+    }
+
+    .smallplanet .icon-moon
+    {
+        box-shadow:0 0 3px #000000 !important;
+        left:11px !important;
+        top:11px !important;
+        transform:scale(1.1);
+    }
+}
+
+body[data-menulayout="1"]
+{
+    .smallplanet { grid-template-columns:127px 38px; }
+    .smallplanet .ogl_available { display:none; }
+    .smallplanet .planet-name, .smallplanet .planet-koords { left:40px !important; }
+    .ogl_refreshTimer { background:none;font-size:11px;left:auto;right:3px; }
+    &.ogl_destinationPicker .smallplanet .planetlink.ogl_currentDestination:after { top:9px !important;left:9px !important; }
+    &.ogl_destinationPicker .smallplanet .moonlink.ogl_currentDestination:after { top:9px !important;left:10px !important; }
+    .ogl_buildIconList { left:4px; }
+}
+
+body[data-menulayout="2"]
+{
+    .smallplanet { grid-template-columns:101px 64px; }
+    .smallplanet .ogl_available { line-height:10px; }
+    .smallplanet .planet-name, .smallplanet .planet-koords { opacity:0 !important; }
+    .smallplanet .icon-moon { left:4px !important; }
+    &.ogl_destinationPicker .smallplanet .planetlink.ogl_currentDestination:after { top:9px !important;left:9px !important; }
+    &.ogl_destinationPicker .smallplanet .moonlink.ogl_currentDestination:after { top:9px !important;left:4px !important; }
+}
+
+/*!css*/
+`;
+
+GM_addStyle(altStyle);
+
+class CSSManager
+{
+    static miniMenu(layout)
+    {
+        document.body.setAttribute('data-menulayout', layout);
+        localStorage.setItem('ogl_menulayout', layout)
+    }
+
+    static miniImage(state)
+    {
+        document.body.setAttribute('data-minipics', state);
+        localStorage.setItem('ogl_minipics', state)
+    }
+}

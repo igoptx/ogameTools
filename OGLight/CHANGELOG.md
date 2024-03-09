@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.0.8] - 2024/03/09 10:20:00
+- Update with OGLight 5.0.1
+
 ### [5.0.7] - 2024/03/08 14:20:00
 - Fix another bug in Galaxy View (not showing debris on slot 16) due to Ogame Version 11.11.2
 
