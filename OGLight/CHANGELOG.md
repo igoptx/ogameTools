@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.0.9] - 2024/03/09 11:45:00
+- Fix bug on galaxy view - not showing pos 16 if there is no debris
+
 ### [5.0.8] - 2024/03/09 10:20:00
 - Update with OGLight 5.0.1
 

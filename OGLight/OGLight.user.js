@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.0.8
+// @version      5.0.9
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -5217,7 +5217,14 @@ class GalaxyManager extends Manager
             if(element.activity.showActivity == 15) return '*'; // acti
             else return element.activity.idleTime || 60;
         }
-        
+
+        if(data.system.galaxyContent.length == 15)
+        {
+            const row = document.querySelector(`#galaxyRow16`);
+            const debris = { metal:0, crystal:0, deut:0, total:0 };
+            this.updateDebrisP16(debris, row);
+        }
+
         data.system.galaxyContent.forEach(line =>
         {
             const position = line.position;
@@ -5450,35 +5457,39 @@ class GalaxyManager extends Manager
                 div.closest('.cellDebris').classList.add('ogl_important');
             }
         }
-}
+    }
 
     updateDebrisP16(debris, row)
     {
-        if(debris.total > 0)
-        {
-            let content = row.querySelectorAll('.ListLinks li');
-            if(!content[0]) content = document.querySelectorAll('#debris16 .ListLinks li');
+        let content = row.querySelectorAll('.ListLinks li');
+        if(!content[0]) content = document.querySelectorAll('#debris16 .ListLinks li');
 
-            let scouts = content[3];
-            let action = content[4];
+        let scouts = '';
+        let action = '';
+        if(content[3]) scouts = content[3].innerHTML;
+        if(content[4]) action = content[4].innerHTML;
 
-            if(debris.total >= this.ogl.db.options.resourceTreshold) document.querySelector('.expeditionDebrisSlotBox').classList.add('ogl_important');
+        if(debris.total >= this.ogl.db.options.resourceTreshold) document.querySelector('.expeditionDebrisSlotBox').classList.add('ogl_important');
+let resourcesOnDebris = '';
 
-            (document.querySelector('.expeditionDebrisSlotBox .ogl_expeditionRow') || Util.addDom('div', { class:'ogl_expeditionRow', prepend:document.querySelector('.expeditionDebrisSlotBox') })).innerHTML = `
+        if (debris.total > 0) {
+            resourcesOnDebris = `<div class="ogl_icon ogl_metal">${Util.formatNumber(debris.metal)}</div>
+                    <div class="ogl_icon ogl_crystal">${Util.formatNumber(debris.crystal)}</div>
+                    <div class="ogl_icon ogl_deut">${Util.formatNumber(debris.deut)}</div>`;
+        }
+
+        (document.querySelector('.expeditionDebrisSlotBox .ogl_expeditionRow') || Util.addDom('div', { class:'ogl_expeditionRow', prepend:document.querySelector('.expeditionDebrisSlotBox') })).innerHTML = `
                 <div>
                     <div class="material-icons">debris</div>
                 </div>
                 <div class="ogl_expeditionDebris">
-                    <div class="ogl_icon ogl_metal">${Util.formatNumber(debris.metal)}</div>
-                    <div class="ogl_icon ogl_crystal">${Util.formatNumber(debris.crystal)}</div>
-                    <div class="ogl_icon ogl_deut">${Util.formatNumber(debris.deut)}</div>
+                    ${resourcesOnDebris}
                 </div>
                 <div>
-                    <div>${scouts.innerText}</div>
-                    <div>${action.outerHTML}</div>
+                    <div>${scouts}</div>
+                    <div>${action}</div>
                 </div>
             `;
-        }
 
         row.classList.remove('ogl_hidden');
     }
