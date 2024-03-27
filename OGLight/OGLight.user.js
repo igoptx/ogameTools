@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.0.9
+// @version      5.0.10
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -1001,7 +1001,9 @@ class LangManager extends Manager
             jumpgate: 'Jumpgate',
             empty: 'Empty',
             interface: 'Interface',
-            cargoPerHour: 'cargo per hour since the spy'
+            cargoPerHour: 'cargo per hour since the spy',
+            moon: 'Moon',
+            planet: 'Planet'
         };
 
         this.fr =
@@ -1157,7 +1159,9 @@ class LangManager extends Manager
             jumpgate: 'Jumpgate',
             empty: 'Empty',
             interface: 'Interface',
-            cargoPerHour: 'cargo per hour since the spy'
+            cargoPerHour: 'cargo per hour since the spy',
+            moon: 'Moon',
+            planet: 'Planet'
         };
 
         this.pt =
@@ -1311,7 +1315,9 @@ class LangManager extends Manager
             jumpgate: 'Portal de Salto',
             empty: 'Vazio',
             interface: 'Interface',
-            cargoPerHour: 'cargueiros por hora desde a hora do relatório'
+            cargoPerHour: 'cargueiros por hora desde a hora do relatório',
+            moon: 'Lua',
+            planet: 'Planeta'
         };
     }
 
@@ -4048,7 +4054,7 @@ class FleetManager extends Manager
             fleetDispatcher.switchToPage('fleet2');
         }
 
-        Util.overWrite('refresh', fleetDispatcher, false, () =>
+        Util.overWrite('refresh', fleetDispatcher, false, (event) =>
         {
             /*if(fleetDispatcher.shipsToSend.length > 0) document.body.classList.add('ogl_destinationPicker');
             else if(!document.body.classList.contains('ogl_initHarvest')) document.body.classList.remove('ogl_destinationPicker');*/
@@ -4074,11 +4080,19 @@ class FleetManager extends Manager
             {
                 const apiRaw = (apiButton.getAttribute('title') || apiButton.getAttribute('data-title') || apiButton.getAttribute('data-api-code')).match(/coords;[a-zA-Z0-9-:|;]*/);
 
-                if(apiRaw)
+                const apiJson = (apiButton.getAttribute('title') || apiButton.getAttribute('data-title') || apiButton.getAttribute('data-api-code')).match(/{([^"]*)}/);
+
+                let api = '';
+
+                if(apiJson)
                 {
-                    const api = apiRaw[0];
-                    apiButton.setAttribute('data-api-code', api);
+                    api = apiJson[0].replace(/&quot;/g, '"');
+                }else if(apiRaw)
+                {
+                    api = apiRaw[0];
                 }
+
+                apiButton.setAttribute('data-api-code', api);
             }
         });
 
@@ -5042,6 +5056,18 @@ class FleetManager extends Manager
                     {
                         document.querySelector('#galaxycomponent #probeValue').innerText = data.response.probes;
                     }
+
+                    var message = `${data.response.message} `;
+
+                    if (data.response.planetType == 3) {
+                        message = message + self.ogl._lang.find('moon')+ " ";
+                    } else if (data.response.planetType == 1) {
+                        message = message + self.ogl._lang.find('planet') + " ";
+                    }
+
+                    message = message + `[${data.response.coordinates.galaxy}:${data.response.coordinates.system}:${data.response.coordinates.position}]`;
+
+                    self.ogl._notification.addToQueue(message, true);
                 }
                 else if(data.response.coordinates && !data.response.success)
                 {
@@ -15136,6 +15162,8 @@ label.ogl_off:hover
 .ogl_shortcuts [data-key-id="showMenuResources"]:after { content:'\\e95d'; }
 .ogl_shortcuts [data-key-id="previousPlanet"]:after { content:'\\ea39'; }
 .ogl_shortcuts [data-key-id="nextPlanet"]:after { content:'\\ea2a'; }
+.ogl_shortcuts [data-key-id="expeditionLCFast"]:after { color:red;content:'\\ea41'; }
+.ogl_shortcuts [data-key-id="expeditionRecFast"]:after { color:green;content:'\\ea41'; }
 .ogl_shortcuts [data-key-id="expeditionSC"]:after { color:var(--mission15);content:'\\ea41'; }
 .ogl_shortcuts [data-key-id="expeditionLC"]:after { color:var(--mission15);content:'\\ea41'; }
 .ogl_shortcuts [data-key-id="expeditionPF"]:after { color:var(--mission15);content:'\\ea41'; }

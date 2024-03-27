@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.0.10] - 2024/03/27 13:05:00
+- Change the version of Fleet API copied when click in the API Button (now it's the V2)
+- Add notification when you spy planets/moons
+
 ### [5.0.9] - 2024/03/09 11:45:00
 - Fix bug on galaxy view - not showing pos 16 if there is no debris
 
