@@ -1,5 +1,10 @@
 # OGLight - Changelog
 
+### [5.1.0] - 2024/04/01 14:20:00
+- Add new shortcut 'M' to enable/disable the tooltips on our planets/moons list
+- Add new shortcuts 'Z' and 'X' to change quickly the default transportation ship
+- Show the default transportation ship bellow the 'All Resources' info
+
 ### [5.0.10] - 2024/03/27 13:05:00
 - Change the version of Fleet API copied when click in the API Button (now it's the V2)
 - Add notification when you spy planets/moons

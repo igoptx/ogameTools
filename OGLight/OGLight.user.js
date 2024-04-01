@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.0.10
+// @version      5.1.0
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -167,6 +167,9 @@ class OGLight
 
         this.db.options.keyboardActions.expeditionLCFast = this.db.options.keyboardActions.expeditionLCFast || 'b';
         this.db.options.keyboardActions.expeditionRecFast = this.db.options.keyboardActions.expeditionRecFast || 'n';
+        this.db.options.keyboardActions.popupPlanets = this.db.options.keyboardActions.popupPlanets || 'm';
+        this.db.options.keyboardActions.nextDefaultShip = this.db.options.keyboardActions.nextDefaultShip || 'x';
+        this.db.options.keyboardActions.previousDefaultShip = this.db.options.keyboardActions.previousDefaultShip || 'z';
 
         this.db.options.keyboardActions.quickRaid = this.db.options.keyboardActions.quickRaid || 't';
         this.db.options.keyboardActions.fleetResourcesSplit = this.db.options.keyboardActions.fleetResourcesSplit || '2-9';
@@ -1003,7 +1006,10 @@ class LangManager extends Manager
             interface: 'Interface',
             cargoPerHour: 'cargo per hour since the spy',
             moon: 'Moon',
-            planet: 'Planet'
+            planet: 'Planet',
+            popupPlanets: 'Enable/Disable planets menu tooltips',
+            nextDefaultShip: 'Next default cargo ship',
+            previousDefaultShip: 'Previous default cargo ship'
         };
 
         this.fr =
@@ -1161,7 +1167,10 @@ class LangManager extends Manager
             interface: 'Interface',
             cargoPerHour: 'cargo per hour since the spy',
             moon: 'Moon',
-            planet: 'Planet'
+            planet: 'Planet',
+            popupPlanets: 'Enable/Disable planets menu tooltips',
+            nextDefaultShip: 'Next default cargo ship',
+            previousDefaultShip: 'Previous default cargo ship'
         };
 
         this.pt =
@@ -1317,7 +1326,10 @@ class LangManager extends Manager
             interface: 'Interface',
             cargoPerHour: 'cargueiros por hora desde a hora do relatório',
             moon: 'Lua',
-            planet: 'Planeta'
+            planet: 'Planeta',
+            popupPlanets: 'Mostrar/Esconder menu popup dos planetas',
+            nextDefaultShip: 'Próxima nave de transporte default',
+            previousDefaultShip: 'Nave de transporte default anterior'
         };
     }
 
@@ -1722,6 +1734,7 @@ class UIManager extends Manager
             Util.addDom('div', {class:'ogl_icon ogl_crystal', parent:this.resourceDiv, child:'0'});
             Util.addDom('div', {class:'ogl_icon ogl_deut', parent:this.resourceDiv, child:'0'});
             Util.addDom('div', {class:'ogl_icon ogl_msu', parent:this.resourceDiv, child:'0'});
+            Util.addDom('div', {class:'ogl_icon ogl_defaultship', parent:this.resourceDiv, child:'0'});
         }
 
         if(!reloaded)
@@ -2787,6 +2800,7 @@ class UIManager extends Manager
         this.resourceDiv.querySelector('.ogl_crystal').innerHTML = `<span>${Util.formatToUnits(this.resources.total.crystal)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.crystal, 1))}</span>`;
         this.resourceDiv.querySelector('.ogl_deut').innerHTML = `<span>${Util.formatToUnits(this.resources.total.deut)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.deut, 1))}</span>`;
         this.resourceDiv.querySelector('.ogl_msu').innerHTML = `<span>${Util.formatToUnits(this.resources.total.msu)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.msu, 1))}</span>`;
+        this.resourceDiv.querySelector('.ogl_defaultship').innerHTML = `<span id="defaultship_name">${this.ogl._lang.find(this.ogl.db.options.defaultShip)}</span>`;
 
         if(!this.recapReady)
         {
@@ -7907,7 +7921,6 @@ class MovementManager extends Manager
     }
 }
 
-
 class ShortcutManager extends Manager
 {
     load()
@@ -7947,6 +7960,21 @@ class ShortcutManager extends Manager
 
             visualViewport.addEventListener('resize', () => this.updateShortcutsPosition());
             visualViewport.addEventListener('scroll', () => this.updateShortcutsPosition());
+
+
+            // Begin of the update the colors of the shortcuts
+            var styleTag = document.createElement('style');
+            styleTag.id = 'custom-style';
+            document.head.appendChild(styleTag);
+
+            if (this.ogl.db.options.disablePlanetTooltips) {
+                document.getElementById('custom-style').textContent =
+                    '.ogl_shortcuts [data-key-id="popupPlanets"]:after { color: red; }';
+            } else {
+                document.getElementById('custom-style').textContent =
+                    '.ogl_shortcuts [data-key-id="popupPlanets"]:after { color: green; }';
+            }
+            // End of the update the colors of the shorcuts
         }
 
         this.loaded = true;
@@ -8005,6 +8033,8 @@ class ShortcutManager extends Manager
             }
         });
 
+        Util.addDom('div', {class:'ogl_separator', parent:this.shortcutDiv});
+
         this.add('menu', () =>
         {
             if(document.querySelector('.ogl_side.ogl_active .ogl_config'))
@@ -8022,6 +8052,68 @@ class ShortcutManager extends Manager
             localStorage.setItem('ogl_menulayout', this.ogl.db.options.showMenuResources);
             document.body.setAttribute('data-menulayout', this.ogl.db.options.showMenuResources);
         });
+
+        this.add('popupPlanets', () => {
+            if (!document.getElementById('custom-style')) {
+                var styleTag = document.createElement('style');
+                styleTag.id = 'custom-style';
+                document.head.appendChild(styleTag);
+            }
+
+            if (this.ogl.db.options.disablePlanetTooltips) {
+                this.ogl.db.options.disablePlanetTooltips = false;
+
+                document.getElementById('custom-style').textContent =
+                    '.ogl_shortcuts [data-key-id="popupPlanets"]:after { color: green; }';
+
+            } else {
+                this.ogl.db.options.disablePlanetTooltips = true;
+
+                document.getElementById('custom-style').textContent =
+                    '.ogl_shortcuts [data-key-id="popupPlanets"]:after { color: red; }';
+            }
+        });
+
+        Util.addDom('div', {class:'ogl_separator', parent:this.shortcutDiv});
+
+        this.add('previousDefaultShip', () => {
+            var numero_naves = this.ogl.fretShips.length;
+            var indice = this.ogl.fretShips.indexOf(this.ogl.db.options.defaultShip);
+            indice = indice - 1;
+            if (indice < 0) {
+                indice = numero_naves - 1;
+            }
+            this.ogl.db.options.defaultShip = this.ogl.fretShips[indice];
+
+            var elemento = document.getElementById('defaultship_name');
+
+            if (elemento) {
+                elemento.innerText = this.ogl._lang.find(this.ogl.db.options.defaultShip);
+            }
+
+            this.ogl._notification.addToQueue("Default ship: "+this.ogl._lang.find(this.ogl.fretShips[indice]), true);
+        });
+
+        this.add('nextDefaultShip', () => {
+            var numero_naves = this.ogl.fretShips.length;
+            var indice = this.ogl.fretShips.indexOf(this.ogl.db.options.defaultShip);
+            indice = indice + 1;
+            if (indice >= numero_naves) {
+                indice = 0;
+            }
+            this.ogl.db.options.defaultShip = this.ogl.fretShips[indice];
+
+            var elemento = document.getElementById('defaultship_name');
+
+            if (elemento) {
+                elemento.innerText = this.ogl._lang.find(this.ogl.db.options.defaultShip);
+            }
+
+            this.ogl._notification.addToQueue("Default ship: "+this.ogl._lang.find(this.ogl.fretShips[indice]), true);
+        });
+
+
+        Util.addDom('div', {class:'ogl_separator', parent:this.shortcutDiv});
 
         this.add('previousPlanet', () =>
         {
@@ -11598,6 +11690,18 @@ line.ogl_line
     justify-content:center;
 }
 
+.ogl_icon.ogl_defaultship:before
+{
+    align-items:center;
+    background:none;
+    color:#fff;
+    font-family: 'Material Icons';
+    content:'\\ea64';
+    display:flex;
+    font-size:11px;
+    justify-content:center;
+}
+
 .ogl_gridIcon .ogl_icon
 {
     display:grid;
@@ -15164,6 +15268,9 @@ label.ogl_off:hover
 .ogl_shortcuts [data-key-id="nextPlanet"]:after { content:'\\ea2a'; }
 .ogl_shortcuts [data-key-id="expeditionLCFast"]:after { color:red;content:'\\ea41'; }
 .ogl_shortcuts [data-key-id="expeditionRecFast"]:after { color:green;content:'\\ea41'; }
+.ogl_shortcuts [data-key-id="popupPlanets"]:after { color:green;content:'\\e95d'; }
+.ogl_shortcuts [data-key-id="nextDefaultShip"]:after { color:red;content:'\\ea64'; }
+.ogl_shortcuts [data-key-id="previousDefaultShip"]:after { color:green;content:'\\ea64';transform:scaleX(-1);}
 .ogl_shortcuts [data-key-id="expeditionSC"]:after { color:var(--mission15);content:'\\ea41'; }
 .ogl_shortcuts [data-key-id="expeditionLC"]:after { color:var(--mission15);content:'\\ea41'; }
 .ogl_shortcuts [data-key-id="expeditionPF"]:after { color:var(--mission15);content:'\\ea41'; }
