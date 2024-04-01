@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.1.0
+// @version      5.1.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -48,15 +48,30 @@ function goodbyeTipped()
 
 goodbyeTipped();
 
-new MutationObserver(function() // update body attributes as fast as possible
+if(unsafeWindow?.ogl) unsafeWindow.ogl = null;
+
+// update body attributes as fast as possible
+const updateOGLBody = () =>
 {
-    if(document.body)
+    document.body.setAttribute('data-minipics', localStorage.getItem('ogl_minipics') || false);
+    document.body.setAttribute('data-menulayout', localStorage.getItem('ogl_menulayout') || 0);
+}
+
+if(document.body)
+{
+    updateOGLBody();
+}
+else
+{
+    new MutationObserver(function()
     {
-        document.body.setAttribute('data-minipics', localStorage.getItem('ogl_minipics') || false);
-        document.body.setAttribute('data-menulayout', localStorage.getItem('ogl_menulayout') || 0);
-        this.disconnect();
-    }
-}).observe(document.documentElement, {childList: true});
+        if(document.body)
+        {
+            updateOGLBody();
+            this.disconnect();
+        }
+    }).observe(document.documentElement, {childList: true});
+}
 
 if(typeof GM_getTab == typeof undefined)
 {
@@ -164,7 +179,6 @@ class OGLight
         this.db.options.keyboardActions.expeditionSC = this.db.options.keyboardActions.expeditionSC || 's';
         this.db.options.keyboardActions.expeditionLC = this.db.options.keyboardActions.expeditionLC || 'l';
         this.db.options.keyboardActions.expeditionPF = this.db.options.keyboardActions.expeditionPF || 'f';
-
         this.db.options.keyboardActions.expeditionLCFast = this.db.options.keyboardActions.expeditionLCFast || 'b';
         this.db.options.keyboardActions.expeditionRecFast = this.db.options.keyboardActions.expeditionRecFast || 'n';
         this.db.options.keyboardActions.popupPlanets = this.db.options.keyboardActions.popupPlanets || 'm';
@@ -196,7 +210,7 @@ class OGLight
                 {
                     this.isReady = true;
                     this.init(params.cache);
-                } 
+                }
             };
         }
     }
@@ -297,10 +311,10 @@ class OGLight
             new LangManager(this);
             new TimeManager(this);
             new FetchManager(this);
-    
+
             this.getPlanetData();
             this.getServerData();
-    
+
             new UIManager(this);
             new ShortcutManager(this);
             new TopbarManager(this);
@@ -372,7 +386,7 @@ class OGLight
         window.addEventListener('beforeunload', () =>
         {
             this.save();
-            unsafeWindow.ogl = null;
+            //unsafeWindow.ogl = null;
         });
 
         // save changes + allow tab sync (firefox can bug here)
@@ -410,7 +424,7 @@ class OGLight
 
         //if(unload) unsafeWindow.ogl = null;
     }
-    
+
     getServerData()
     {
         if(!this.db.serverData.topScore || Date.now() > this.db.lastServerUpdate + 3600000) // 1h
@@ -472,7 +486,7 @@ class OGLight
         this.currentPlanet.obj.lifeform = document.querySelector('#lifeform .lifeform-item-icon')?.className.replace(/\D/g, '');
         this.currentPlanet.obj.lastRefresh = this._time.serverTime;
 
-        if(this.page == 'lfresearch')
+        /*if(this.page == 'lfresearch')
         {
             this.currentPlanet.obj.activeLFTechs = [];
 
@@ -481,7 +495,7 @@ class OGLight
                 let techID = e.getAttribute('data-technology');
                 if(techID) this.currentPlanet.obj.activeLFTechs.push(techID);
             });
-        }
+        }*/
 
         ['metal', 'crystal', 'deut'].forEach(resource =>
         {
@@ -492,7 +506,7 @@ class OGLight
             // update top icon storage indicator
             const box = document.querySelector(`#${resource.replace('deut', 'deuterium')}_box`);
             if(this.currentPlanet.obj.type == 'moon' || box.querySelector('.ogl_resourceBoxStorage')) return;
-            
+
             prod = prod * 3600;
             const storage = this.currentPlanet.obj[`${resource}Storage`];
             const timeLeft = prod > 0 ? Math.floor((storage - this.currentPlanet.obj[resource]) / prod) || 0 : Infinity;
@@ -526,7 +540,7 @@ class OGLight
             });
 
             this.addRefreshTimer(id, planet);
-            
+
             if(!this.db.options.displayPlanetTimers)
             {
                 document.querySelector('#planetList').classList.add('ogl_alt');
@@ -691,9 +705,9 @@ class OGLight
                     {
                         this.db.lastPinnedList = Array.from(new Set([id, ...this.db.lastPinnedList]));
                     });
-                    
+
                     if(this.db.lastPinnedList.length > 30) this.db.lastPinnedList.length = 30;
-        
+
                     // add v4 tagged planets
                     legacyDB.positions.filter(position => position.color).forEach(position =>
                     {
@@ -755,7 +769,7 @@ class OGLight
                     delete this.db.stats[midnight];
                 }
             });
-            
+
             this.db.dataFormat = 15;
         }
 
@@ -778,7 +792,7 @@ class OGLight
                 delete this.db.stats[oldKey.join('-')];
                 this.db.stats[key] = value;
             });
-            
+
             this.db.dataFormat = 16;
         }
     }
@@ -800,7 +814,7 @@ class OGLight
 
         const base = (this.account.class == 3 ? treshold.max * 3 * this.server.economySpeed : treshold.max * 2);
         const maxResources = this.db.options.expeditionValue || base * (1+(this.db.lfBonuses?.Characterclasses3?.bonus||0)/100) * (1+(this.db.lfBonuses?.ResourcesExpedition?.bonus||0)/100);
-    
+
         return { max:Math.round(maxResources), treshold:treshold };
     }
 }
@@ -891,8 +905,6 @@ class LangManager extends Manager
             fleetSelectAll:"<div>Select all ships (fleet1)<hr>Select all resources (fleet2)</div>",
             expeditionSC:'Small cargo expedition',
             expeditionLC:'Large cargo expedition',
-            expeditionLCFast:'Fast Expedition',
-            expeditionRecFast:'Fast Recs',
             expeditionPF:'Pathfinder expedition',
             galaxySpySystem:"System spy",
             collectLinked:"Collect to linked planet/moon",
@@ -1053,8 +1065,6 @@ class LangManager extends Manager
             expeditionSC:"Expédition au petit transporteur",
             expeditionLC:"Expédition au grand transporteur",
             expeditionPF:"Expédition à l'éclaireur",
-            expeditionLCFast:'Fast Expedition',
-            expeditionRecFast:'Fast Recs',
             galaxySpySystem:"Espionnage du système",
             collectLinked:"Rapatrier vers les planètes/lunes liée",
             keyboardActions:"Raccourcis clavier",
@@ -1359,7 +1369,8 @@ class TimeManager extends Manager
         this.serverTime = serverTime.getTime();
         this.clientTime = this.UTC - this.clientTimeZoneOffset;
 
-        this.observeList = ['.OGameClock', '#fleet2 #arrivalTime', '#fleet2 #returnTime', '.ogl_backTimer', '.ogl_backWrapper'];
+        this.observeList = ['.OGameClock', '.ogl_backTimer', '.ogl_backWrapper'];
+        //this.observeList = ['.OGameClock', '#fleet2 #arrivalTime', '#fleet2 #returnTime', '.ogl_backTimer', '.ogl_backWrapper'];
         this.updateList = ['.OGameClock', '.arrivalTime', '.absTime', '.nextabsTime', '.ui-dialog .msg_date'];
 
         this.productionBoxes =
@@ -1370,6 +1381,50 @@ class TimeManager extends Manager
             restTimelfbuilding:'productionboxlfbuildingcomponent', // lifeform building
             restTimelfresearch:'productionboxlfresearchcomponent' // lifeform research
         };
+
+        if(this.ogl.page == 'fleetdispatch')
+        {
+            // update fleet2 arrival / back time to be much more precise
+            let lastLoop = 0;
+            let arrivalDom, backDom;
+
+            document.querySelectorAll('#fleet2 #arrivalTime, #fleet2 #returnTime').forEach((e, index) =>
+            {
+                if(index == 0) arrivalDom = Util.addDom('div', { class:'ogl_missionTime', parent:e.parentNode, child:'loading...' });
+                else backDom = Util.addDom('div', { class:'ogl_missionTime', parent:e.parentNode, child:'loading...' });
+                e.remove();
+            });
+
+            this.timeLoop = noLoop =>
+            {
+                const time = serverTime.getTime();
+
+                if(unsafeWindow.fleetDispatcher && (time != lastLoop || noLoop))
+                {
+                    const duration = (fleetDispatcher.getDuration() || 0) * 1000;
+                    const offset = this.ogl.db.options.useClientTime ? this.clientTimeZoneOffset : this.serverTimeZoneOffset;
+                    const UTCArrival = time + duration + this.serverTimeZoneOffset;
+                    const UTCBack = fleetDispatcher.mission == 15 ? time + duration * 2 + this.serverTimeZoneOffset + fleetDispatcher.expeditionTime * 3600000 :
+                                fleetDispatcher.mission == 5 ? time + duration * 2 + this.serverTimeZoneOffset + fleetDispatcher.holdingTime * 3600000 :
+                                time + duration * 2 + this.serverTimeZoneOffset;
+
+                    const arrival = new Date(UTCArrival - offset);
+                    const back = new Date(UTCBack - offset);
+
+                    arrivalDom.setAttribute('data-output-date', arrival.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'}));
+                    arrivalDom.setAttribute('data-output-time', arrival.toLocaleTimeString('de-DE'));
+
+                    backDom.setAttribute('data-output-date', back.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'}));
+                    backDom.setAttribute('data-output-time', back.toLocaleTimeString('de-DE'));
+
+                    lastLoop = time;
+                }
+
+                if(!noLoop) requestAnimationFrame(() => this.timeLoop());
+            }
+
+            this.timeLoop();
+        }
 
         // bottom boxes
         Object.entries(this.productionBoxes).forEach(box =>
@@ -1443,7 +1498,7 @@ class TimeManager extends Manager
                     const offset = self.ogl.db.options.useClientTime ? self.clientTimeZoneOffset : self.serverTimeZoneOffset;
                     const UTCdate = self.dateStringToTime(target.textContent) + self.serverTimeZoneOffset;
                     const date = new Date(UTCdate - offset);
-    
+
                     target.setAttribute('data-output-date', date.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'}));
                     target.setAttribute('data-output-time', date.toLocaleTimeString('de-DE'));
                     target.setAttribute('data-time-utc', UTCdate);
@@ -1452,7 +1507,7 @@ class TimeManager extends Manager
                 }
 
                 action();
-    
+
                 Util.observe(target, {childList:true}, action);
             });
         });
@@ -1649,7 +1704,7 @@ class FetchManager extends Manager
                     if(!xml.querySelector('playerdata')) return;
 
                     const apiTime = parseInt(xml.querySelector('playerdata').getAttribute('timestamp')) * 1000;
-    
+
                     if(!player.name) player.name = xml.querySelector('playerdata').getAttribute('name');
                     player.score = player.score || {};
 
@@ -1688,7 +1743,7 @@ class FetchManager extends Manager
                             planet.api = apiTime;
                             if(index == 0) planet.home = true;
                         }
-        
+
                         if(player.planets.indexOf(coords) < 0) player.planets.push(coords);
                     });
 
@@ -1854,7 +1909,7 @@ class UIManager extends Manager
                 {
                     this.ogl._tooltip.close();
                 }
-                
+
                 if(event.target.getAttribute('data-galaxy'))
                 {
                     let coords = event.target.getAttribute('data-galaxy').split(':');
@@ -2090,7 +2145,7 @@ class UIManager extends Manager
     {
         const container = Util.addDom('div', {class:'ogl_manageData'});
         Util.addDom('h2', { parent:container, child:this.ogl._lang.find('manageData') });
-        
+
         const grid = Util.addDom('div', { class:'ogl_grid', parent:container });
 
         // import
@@ -2305,7 +2360,7 @@ class UIManager extends Manager
         {
             this.ogl._tooltip.close();
         }});
-        
+
         // ignore
         Util.addDom('div', { child:'block', class:'material-icons ogl_button', parent:container.querySelector('.ogl_actions'), onclick:() =>
         {
@@ -2582,9 +2637,7 @@ class UIManager extends Manager
                         }
                     }
                 });
-
             }
-
         }
     }
 
@@ -2630,13 +2683,13 @@ class UIManager extends Manager
 
                     let xml = new DOMParser().parseFromString(data, 'text/html');
                     highscore.timestamps[typesList[currentType]] = parseInt(xml.querySelector('highscore').getAttribute('timestamp')) * 1000;
-    
+
                     xml.querySelectorAll('player').forEach(player =>
                     {
                         const id = player.getAttribute('id');
                         const score = parseInt(player.getAttribute('score'));
                         const position = parseInt(player.getAttribute('position'));
-    
+
                         if(!highscore[id] || typeof highscore[id] != typeof {}) highscore[id] = {};
                         highscore[id][typesList[currentType]] = score;
 
@@ -2646,7 +2699,7 @@ class UIManager extends Manager
                             this.ogl.db.udb[id].score[typesList[currentType]+'Ranking'] = position;
                         }*/
                     });
-    
+
                     localStorage.setItem(`${window.location.host}_highscore`, JSON.stringify(highscore));
                     if(currentType == 0) this.displayScoreDiff(highscore);
                 }
@@ -2674,7 +2727,7 @@ class UIManager extends Manager
                     console.log('ranking status fetched');
                     let xml = new DOMParser().parseFromString(data, 'text/html');
                     highscore.statusTimestamp = parseInt(xml.querySelector('players').getAttribute('timestamp')) * 1000;
-    
+
                     xml.querySelectorAll('player').forEach(player =>
                     {
                         const id = player.getAttribute('id');
@@ -2683,12 +2736,12 @@ class UIManager extends Manager
                         if(status.indexOf('v') > -1  && status != 'status_abbr_active') status = 'status_abbr_vacation';
                         else if(status === "I") status = 'status_abbr_longinactive';
                         else if(status === "i") status = 'status_abbr_inactive';
-    
+
                         if(!highscore[id] || typeof highscore[id] != typeof {}) highscore[id] = {};
                         highscore[id].status = status;
                         if(this.ogl.db.udb[id]) this.ogl.db.udb[id].status = status;
                     });
-    
+
                     localStorage.setItem(`${window.location.host}_highscore`, JSON.stringify(highscore));
                     this.displayStatus(highscore);
                 }
@@ -2735,7 +2788,7 @@ class UIManager extends Manager
             {
                 nameDiv.querySelector('.playername').innerText = this.ogl.db.udb[id].name;
             }
-            
+
             if(highscore[id]) nameDiv.querySelector('.playername').classList.add(highscore[id].status);
             this.turnIntoPlayerLink(id, nameDiv);
             if(!line.querySelector('.ogl_flagPicker')) this.addPinButton(line.querySelector('.position'), id);
@@ -2809,11 +2862,11 @@ class UIManager extends Manager
             this.resourceDiv.classList.add('tooltipClick');
             this.resourceDiv.classList.add('tooltipClose');
             this.resourceDiv.classList.add('tooltipUpdate');
-    
+
             this.resourceDiv.addEventListener('tooltip', () =>
             {
                 const container = Util.addDom('div', { class:'ogl_resourcesDetail' });
-    
+
                 container.innerHTML =
                 `
                     <div>
@@ -2848,7 +2901,7 @@ class UIManager extends Manager
                         <div class="ogl_deut">${Util.formatToUnits(this.resources.total.deut)}</div>
                     </div>
                 `;
-    
+
                 this.ogl._tooltip.update(container);
             });
         }
@@ -2983,7 +3036,7 @@ class TopbarManager extends Manager
             const id = line.getAttribute('id').replace('planet-', '');
             const planet = this.ogl.db.myPlanets[id];
             const name = line.querySelector('.planet-name').innerText;
-            
+
             // coords
             let coordDiv = Util.addDom('div',
             {
@@ -2995,7 +3048,7 @@ class TopbarManager extends Manager
             if(line.getAttribute('data-group')) coordDiv.setAttribute('data-group', line.getAttribute('data-group'));
 
             // planet picture
-            Util.addDom('a', 
+            Util.addDom('a',
             {
                 parent:container,
                 href:line.querySelector('.planetlink').getAttribute('href'),
@@ -3008,7 +3061,7 @@ class TopbarManager extends Manager
             // moon picture
             if(line.querySelector('.moonlink'))
             {
-                Util.addDom('a', 
+                Util.addDom('a',
                 {
                     parent:container,
                     href:line.querySelector('.moonlink').getAttribute('href'),
@@ -3191,14 +3244,14 @@ class TopbarManager extends Manager
                         this.ogl.db.options.defaultShip = shipID;
                         label.querySelector('.ogl_active')?.classList.remove('ogl_active');
                         element.classList.add('ogl_active');
-        
+
                         if(this.ogl.page == 'fleetdispatch')
                         {
                             document.querySelectorAll('.ogl_fav').forEach(e => e.remove());
                             Util.addDom('div', { class:'material-icons ogl_fav', child:'star', parent:document.querySelector(`[data-technology="${this.ogl.db.options.defaultShip}"] .ogl_shipFlag`) });
                         }
                     }});
-        
+
                     if(this.ogl.db.options.defaultShip == shipID) div.classList.add('ogl_active');
                 });
             }
@@ -3212,7 +3265,7 @@ class TopbarManager extends Manager
                         label.querySelector('.ogl_active')?.classList.remove('ogl_active');
                         element.classList.add('ogl_active');
                     }});
-        
+
                     if(this.ogl.db.options.defaultMission == missionID) div.classList.add('ogl_active');
                 });
             }
@@ -3514,7 +3567,7 @@ class TopbarManager extends Manager
         this.ogl._ui.turnIntoPlayerLink(player.uid, playerDiv);
 
         const page = Math.max(1, Math.ceil((player.score?.globalRanking || 100) / 100));
-        const rankLink = Util.addDom('a', { class:'ogl_ranking', href:`https://${window.location.host}/game/index.php?page=highscore&site=${page}&searchRelId=${player.uid}`, child:'#'+player.score.globalRanking });
+        const rankLink = Util.addDom('a', { class:'ogl_ranking', href:`https://${window.location.host}/game/index.php?page=highscore&site=${page}&searchRelId=${player.uid}`, child:'#'+player.score?.globalRanking || '?' });
 
         Util.addDom('div', { parent:item, child:rankLink.outerHTML });
         this.ogl._ui.addPinButton(item, player.uid);
@@ -3527,7 +3580,7 @@ class TopbarManager extends Manager
         }});
     }
 
-    openPinnedDetail(id)
+    openPinnedDetail(id, update)
     {
         id = parseInt(id);
 
@@ -3537,9 +3590,9 @@ class TopbarManager extends Manager
         {
             const player = this.ogl.db.udb[id];
             if(!player) return;
-    
+
             const container = Util.addDom('div', { class:'ogl_pinDetail' });
-    
+
             Util.addDom('div', { parent:container, class:'material-icons ogl_back', child:'arrow_back', onclick:() => { this.openPinned() } })
             const title = Util.addDom('h2', { class:player.status || 'status_abbr_active', parent:container, child:player.name });
             const score = Util.addDom('div', { class:'ogl_score', parent:container });
@@ -3568,7 +3621,7 @@ class TopbarManager extends Manager
             {
                 this.ogl._tooltip.close();
             }});
-            
+
             // ignore
             Util.addDom('div', { child:'block', class:'material-icons ogl_button', parent:actions, onclick:() =>
             {
@@ -3591,77 +3644,75 @@ class TopbarManager extends Manager
             {
                 PTRE.getPlayerPositions({ name:player.name, id:id });
             }});
-    
+
             this.ogl.db.lastPinnedList = Array.from(new Set([id, ...this.ogl.db.lastPinnedList].map(Number)));
             if(this.ogl.db.lastPinnedList.length > 30) this.ogl.db.lastPinnedList.length = 30;
-    
-            if(!player.planets || (serverTime.getTime() - player.api > this.ogl._fetch.apiCooldown))
+
+            if(!update)
             {
                 Util.addDom('div', { class:'ogl_loading', parent:container });
                 this.ogl._ui.openSide(container, id);
-                this.ogl._fetch.fetchPlayerAPI(id);
+                PTRE.getPlayerPositions({ name:player.name, id:id }); // includes _fetch.fetchPlayerAPI()
             }
-            else
+
+            const page = Math.max(1, Math.ceil((player.score?.globalRanking || 100) / 100));
+            const rankLink = Util.addDom('a', { class:'ogl_ranking', href:`https://${window.location.host}/game/index.php?page=highscore&site=${page}&searchRelId=${player.uid}`, child:'#'+player.score?.globalRanking || '?' });
+
+            title.innerHTML = `${player.name} ${rankLink.outerHTML}`;
+
+            this.ogl._ui.addPinButton(title, id);
+
+            score.innerHTML =
+            `
+                <div class="ogl_line"><i class="material-icons">trending_up</i><div>${Util.formatNumber(player.score?.global)}</div></div>
+                <div class="ogl_line"><i class="material-icons">diamond</i><div>${Util.formatNumber(player.score?.economy)}</div></div>
+                <div class="ogl_line"><i class="material-icons">science</i><div>${Util.formatNumber(player.score?.research)}</div></div>
+                <div class="ogl_line"><i class="material-icons">genetics</i><div>${Util.formatNumber(player.score?.lifeform)}</div></div>
+                <div class="ogl_line"><i class="material-icons">rocket_launch</i><div>${Util.formatNumber(Util.getPlayerScoreFD(player.score, 'fleet'))}</div></div>
+                <div class="ogl_line"><i class="material-icons">security</i><div>${Util.formatNumber(Util.getPlayerScoreFD(player.score, 'defense'))}</div></div>
+            `;
+
+            let lastCoords = 0;
+            let group = 1;
+            let index = 1;
+
+            player.planets.sort((a, b) => Util.coordsToID(a) - Util.coordsToID(b)).forEach((planetID) =>
             {
-                const page = Math.max(1, Math.ceil((player.score?.globalRanking || 100) / 100));
-                const rankLink = Util.addDom('a', { class:'ogl_ranking', href:`https://${window.location.host}/game/index.php?page=highscore&site=${page}&searchRelId=${player.uid}`, child:'#'+player.score.globalRanking });
+                const planet = this.ogl.db.pdb[planetID];
 
-                title.innerHTML = `${player.name} ${rankLink.outerHTML}`;
+                if(!planet) return;
 
-                this.ogl._ui.addPinButton(title, id);
-                
-                score.innerHTML =
-                `
-                    <div class="ogl_line"><i class="material-icons">trending_up</i><div>${Util.formatNumber(player.score.global)}</div></div>
-                    <div class="ogl_line"><i class="material-icons">diamond</i><div>${Util.formatNumber(player.score.economy)}</div></div>
-                    <div class="ogl_line"><i class="material-icons">science</i><div>${Util.formatNumber(player.score.research)}</div></div>
-                    <div class="ogl_line"><i class="material-icons">genetics</i><div>${Util.formatNumber(player.score.lifeform)}</div></div>
-                    <div class="ogl_line"><i class="material-icons">rocket_launch</i><div>${Util.formatNumber(Util.getPlayerScoreFD(player.score, 'fleet'))}</div></div>
-                    <div class="ogl_line"><i class="material-icons">security</i><div>${Util.formatNumber(Util.getPlayerScoreFD(player.score, 'defense'))}</div></div>
-                `;
+                const date = new Date(planet.api);
+                const dateDiff = Math.floor((serverTime.getTime() - date) / (1000 * 3600 * 24));
+                const hourDiff = Math.round(((serverTime.getTime() - date % 86400000) % 3600000) / 60000);
+                const line = Util.addDom('div', { parent:list });
 
-                let lastCoords = 0;
-                let group = 1;
-                let index = 1;
-    
-                player.planets.sort((a, b) => Util.coordsToID(a) - Util.coordsToID(b)).forEach((planetID) =>
-                {
-                    const planet = this.ogl.db.pdb[planetID];
-    
-                    if(!planet) return;
-    
-                    const date = new Date(planet.api);
-                    const dateDiff = Math.floor((serverTime.getTime() - date) / (1000 * 3600 * 24));
-                    const hourDiff = Math.round(((serverTime.getTime() - date % 86400000) % 3600000) / 60000);
-                    const line = Util.addDom('div', { parent:list });
-    
-                    if(planet.home) line.classList.add('ogl_home');
+                if(planet.home) line.classList.add('ogl_home');
 
-                    let newCoords = Util.coordsToID(planet.coo).slice(0, -3);
-                    if(lastCoords === newCoords) line.setAttribute('data-group', group);
-                    else if(line.previousElementSibling?.getAttribute('data-group')) group++;
-                    lastCoords = newCoords;
-    
-                    Util.addDom('div', { child:index, parent:line });
-                    Util.addDom('div', { child:planet.coo, parent:line, 'data-galaxy':planet.coo });
-                    Util.addDom('div', { class:'tooltip', 'data-title':'Debris<br>'+Util.formatNumber(planet.debris || 0), child:Util.formatToUnits(planet.debris || 0), parent:line });
-    
-                    this.ogl._ui.addSpyIcons(line, planet.coo.split(':'), false, true);
+                let newCoords = Util.coordsToID(planet.coo).slice(0, -3);
+                if(lastCoords === newCoords) line.setAttribute('data-group', group);
+                else if(line.previousElementSibling?.getAttribute('data-group')) group++;
+                lastCoords = newCoords;
 
-                    let ageStr = dateDiff > 0 ? `${dateDiff}${LocalizationStrings.timeunits.short.hour} ago` : `${hourDiff}${LocalizationStrings.timeunits.short.minute} ago`;
-    
-                    const dateDiv = Util.addDom('date', { class:'tooltipLeft', child:ageStr, 'data-title':`<span>${date.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'})}</span> <span>${date.toLocaleTimeString('de-DE')}</span>`, parent:line });
-                    if(dateDiff >= 5) dateDiv.classList.add('ogl_danger');
-                    else if(dateDiff >= 3) dateDiv.classList.add('ogl_warning');
+                Util.addDom('div', { child:index, parent:line });
+                Util.addDom('div', { child:planet.coo, parent:line, 'data-galaxy':planet.coo });
+                Util.addDom('div', { class:'tooltip', 'data-title':'Debris<br>'+Util.formatNumber(planet.debris || 0), child:Util.formatToUnits(planet.debris || 0), parent:line });
 
-                    index += 1;
-                    
-                    //Util.addDom('date', { child:`<span>${date.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'})}</span><span>${date.toLocaleTimeString('de-DE')}</span>`, parent:line });
-                });
-    
-                this.ogl._ui.openSide(container, id);
-                setTimeout(() => this.ogl._shortcut.load(), 50);
-            }
+                this.ogl._ui.addSpyIcons(line, planet.coo.split(':'), false, true);
+
+                let ageStr = !dateDiff && dateDiff !== 0 ? '?' : dateDiff > 0 ? `${dateDiff}${LocalizationStrings.timeunits.short.hour} ago` : `${hourDiff}${LocalizationStrings.timeunits.short.minute} ago`;
+
+                const dateDiv = Util.addDom('date', { class:'tooltipLeft', child:ageStr, 'data-title':`<span>${date.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'})}</span> <span>${date.toLocaleTimeString('de-DE')}</span>`, parent:line });
+                if(dateDiff >= 5) dateDiv.classList.add('ogl_danger');
+                else if(dateDiff >= 3) dateDiv.classList.add('ogl_warning');
+
+                index += 1;
+
+                //Util.addDom('date', { child:`<span>${date.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'})}</span><span>${date.toLocaleTimeString('de-DE')}</span>`, parent:line });
+            });
+
+            this.ogl._ui.openSide(container, id);
+            setTimeout(() => this.ogl._shortcut.load(), 50);
 
             this.ogl._galaxy.checkCurrentSystem();
         }
@@ -3707,7 +3758,7 @@ class TopbarManager extends Manager
 
                     let nextTargetFound = false;
                     let newList = [];
-        
+
                     items.forEach((item, index) =>
                     {
                         const coords = item.match(/.{1,3}/g).map(Number).join(':');
@@ -3730,14 +3781,14 @@ class TopbarManager extends Manager
                             target.classList.add('ogl_active');
                         }});
 
-                        if(this.ogl.db.quickRaidList[0] == coordsID)
+                        if(this.ogl.db.quickRaidList && this.ogl.db.quickRaidList?.[0] == coordsID)
                         {
                             target.classList.add('ogl_active');
                             nextTargetFound = true;
                         }
 
                         if(nextTargetFound) newList.push(coordsID);
-        
+
                         this.ogl._ui.addSpyIcons(line, coords);
                         this.ogl._ui.addTagButton(line, coords);
                     });
@@ -3820,7 +3871,7 @@ class TopbarManager extends Manager
     {
         rawStart = parseInt(rawStart);
         rawEnd = parseInt(rawEnd);
-        
+
         const displayNoob = this.ogl.db.lastTaggedInput[4];
         const displayVacation = this.ogl.db.lastTaggedInput[5];
 
@@ -3843,7 +3894,7 @@ class TopbarManager extends Manager
 
         return this.tmpRaidList;
     }
-    
+
     checkUpgrade()
     {
         this.PlanetBuildingtooltip = this.PlanetBuildingtooltip || {};
@@ -3880,7 +3931,7 @@ class TopbarManager extends Manager
 
                             const name = this.ogl.db.serverData[upgrade.id] || upgrade.id;
                             Util.addDom('li', { parent:this.PlanetBuildingtooltip[id], child:`<i class="material-icons">fiber_manual_record</i><span class="ogl_slidingText" data-text="${name}"></span><i class="material-icons">east</i><b>${upgrade.lvl}</b>` });
-                        
+
                             if(upgrade.type == 'baseBuilding' || upgrade.type == 'baseResearch') hasBaseBuilding = true;
                             else if(upgrade.type == 'ship' || upgrade.type == 'def') hasBaseShip = true;
                             else if(upgrade.type == 'lfBuilding' || upgrade.type == 'lfResearch') hasLFBuilding = true;
@@ -3939,6 +3990,11 @@ class FleetManager extends Manager
                     // initialize realTarget
                     this.setRealTarget(this.initialTarget);
 
+                    // get initial resources / ships on planet
+                    this.initialResOnPlanet = { metal:fleetDispatcher.metalOnPlanet, crystal:fleetDispatcher.crystalOnPlanet, deut:fleetDispatcher.deuteriumOnPlanet, food:fleetDispatcher.foodOnPlanet };
+                    this.initialShipsOnPlanet = JSON.parse(JSON.stringify(fleetDispatcher.shipsOnPlanet));
+
+                    /// overwrite default methods
                     if(!this.overwrited) this.overwrite();
 
                     if(!fleetDispatcher.fetchTargetPlayerDataTimeout)
@@ -3979,7 +4035,7 @@ class FleetManager extends Manager
         fleetDispatcher.refreshDataAfterAjax = data =>
         {
             fleetDispatcher.setOrders(data.orders);
-            
+
             fleetDispatcher.mission = 0;
 
             fleetDispatcher.setTargetInhabited(data.targetInhabited);
@@ -4009,7 +4065,7 @@ class FleetManager extends Manager
             {
                 const hasMission = (fleetDispatcher.getAvailableMissions() || []).indexOf(fleetDispatcher.mission) > -1;
 
-                
+
                 if(!hasMission && this.lastMissionOrder && (fleetDispatcher.getAvailableMissions() || []).indexOf(this.lastMissionOrder) > -1)
                 {
                     fleetDispatcher.mission = this.lastMissionOrder;
@@ -4105,9 +4161,10 @@ class FleetManager extends Manager
                 {
                     api = apiRaw[0];
                 }
-
                 apiButton.setAttribute('data-api-code', api);
             }
+
+            if(this.ogl._time.timeLoop) this.ogl._time.timeLoop(true);
         });
 
         Util.overWrite('updateTarget', fleetDispatcher, () =>
@@ -4116,7 +4173,7 @@ class FleetManager extends Manager
         });
 
         // fix undefined "hasEnoughFuel" value
-        fleetDispatcher.hasEnoughFuel = () => this.initialResOnPlanet.deut >= fleetDispatcher.getConsumption();
+        fleetDispatcher.hasEnoughFuel = () => (this.initialResOnPlanet?.deut || fleetDispatcher.deuteriumOnPlanet) >= fleetDispatcher.getConsumption();
 
         Util.overWrite('selectMission', fleetDispatcher, false, () =>
         {
@@ -4289,9 +4346,6 @@ class FleetManager extends Manager
     {
         this.isReady = true;
 
-        this.initialResOnPlanet = { metal:fleetDispatcher.metalOnPlanet, crystal:fleetDispatcher.crystalOnPlanet, deut:fleetDispatcher.deuteriumOnPlanet, food:fleetDispatcher.foodOnPlanet };
-        this.initialShipsOnPlanet = JSON.parse(JSON.stringify(fleetDispatcher.shipsOnPlanet));
-
         document.querySelector('.planetlink.active, .moonlink.active')?.classList.add('ogl_disabled');
 
         // preselect related planet/moon
@@ -4299,7 +4353,7 @@ class FleetManager extends Manager
         {
             this.setRealTarget(fleetDispatcher.realTarget, { type:fleetDispatcher.realTarget.type == 1 ? 3 : 1 });
         }
-        
+
         this.addLimiters();
 
         if(this.ogl.mode === 1 || this.ogl.mode === 2 || this.ogl.mode === 5)
@@ -4319,7 +4373,7 @@ class FleetManager extends Manager
                 curmulRes[1] = curmulRes[1] + build.cost.crystal;
                 curmulRes[2] = curmulRes[2] + build.cost.deut;
             });
-            
+
             maxRes[0] = Math.min(fleetDispatcher.metalOnPlanet, curmulRes[0]);
             maxRes[1] = Math.min(fleetDispatcher.crystalOnPlanet, curmulRes[1]);
             maxRes[2] = Math.min(fleetDispatcher.deuteriumOnPlanet, curmulRes[2]);
@@ -4391,7 +4445,7 @@ class FleetManager extends Manager
                 document.querySelector('#resetall').classList.add('material-icons');
                 document.querySelector('#resetall').innerText = 'exposure_zero';
             });
-    
+
             Util.addDom('div', { child:'cube-send', class:'material-icons tooltipRight tooltipClose tooltipClick tooltipUpdate', parent:document.querySelector('.secondcol'), ontooltip:() =>
             {
                 const container = Util.addDom('div', { class:'ogl_resourcesPreselection' });
@@ -4405,7 +4459,7 @@ class FleetManager extends Manager
                         fleetDispatcher[this.cargo[resourceName]] = input.value;
                         input.dispatchEvent(new Event('input'));
                     }});
-    
+
                     const input = Util.addDom('input', { type:'text', parent:item,
                     onclick:e =>
                     {
@@ -4421,28 +4475,28 @@ class FleetManager extends Manager
                         });
                     }});
                 });
-    
+
                 Util.addDom('hr', { parent:container });
-    
+
                 Util.addDom('div', { class:'ogl_button ogl_formValidation', child:'OK', parent:container, onclick:() =>
                 {
                     let total = 0;
-    
+
                     container.querySelectorAll('input').forEach(input =>
                     {
                         total += parseInt(input.value.replace(/\D/g, '')) || 0;
                     });
-    
+
                     if(total > 0) fleetDispatcher.selectShip(this.ogl.db.options.defaultShip, this.shipsForResources(false, total));
 
                     container.querySelectorAll('input').forEach((input, index) => fleetDispatcher[this.cargo[resources[index]]] = parseInt(input.value.replace(/\D/g, '') || 0));
 
                     this.ogl._tooltip.close();
-    
+
                     fleetDispatcher.refresh();
                     setTimeout(() => fleetDispatcher.focusSubmitFleet1(), 50);
                 }});
-    
+
                 //this.ogl._popup.open(container);
                 this.ogl._tooltip.update(container);
                 container.querySelector('input').focus();
@@ -4537,7 +4591,7 @@ class FleetManager extends Manager
         {
             let cumul = [0,0,0];
             let urlParams = new URLSearchParams(window.location.search);
-            
+
             if(urlParams.get('substractMode') && urlParams.get('targetid'))
             {
                 const targetID = urlParams.get('targetid');
@@ -4547,7 +4601,7 @@ class FleetManager extends Manager
             }
 
             this.ogl.cache.toSend.forEach(build =>
-            {                    
+            {
                 const id = new URLSearchParams(window.location.search).get('targetid');
                 const cost = this.ogl.db.myPlanets[id].todolist[build.id][build.level].cost;
 
@@ -4632,7 +4686,7 @@ class FleetManager extends Manager
         if(this.ogl.db.fleetLimiter.resourceActive) limitResourceCheckbox.checked = true;
         if(this.ogl.db.fleetLimiter.shipActive) limitShipCheckbox.checked = true;
         if(this.ogl.db.fleetLimiter.ignoreFood) limitFoodCheckbox.checked = true;
-        
+
         this.updateLimiter();
     }
 
@@ -4680,14 +4734,14 @@ class FleetManager extends Manager
                 text.addEventListener('click', () => { Util.runAsync(() => this.ogl._ui.openFleetProfile()).then(e => this.ogl._popup.open(e)); });
 
                 if(!this.ogl.db.fleetLimiter.shipActive && this.ogl.db.keepEnoughCapacityShip != entry.id) text.classList.add('ogl_hidden');
-    
+
                 if(entry.number <= 0)
                 {
                     techDom.classList.add('ogl_notEnough');
                     fleetDispatcher.removeShip(entry.id);
                 }
                 else techDom.classList.remove('ogl_notEnough');
-    
+
                 this.totalCapacity += this.ogl.db.shipsCapacity[entry.id] * entry.number;
 
                 //techDom.querySelector('input').classList.add('ogl_inputCheck');
@@ -4728,7 +4782,7 @@ class FleetManager extends Manager
         fleetDispatcher.refresh();
         this.updateRequiredShips();
     }
-    
+
     updateRequiredShips()
     {
         const requiredShips = document.querySelector('.ogl_requiredShips') || Util.addDom('span', { class:'ogl_requiredShips', parent:document.querySelector("#civilships #civil") || document.querySelector('#warning') });
@@ -4745,11 +4799,11 @@ class FleetManager extends Manager
                 fleetDispatcher.refresh();
                 fleetDispatcher.focusSubmitFleet1();
             }});
-            
+
             if((fleetDispatcher.shipsOnPlanet.find(e => e.id == shipID)?.number || 0) < amount) item.classList.add('ogl_notEnough');
         });
-        
-    
+
+
         this.ogl.shipsList.forEach(shipID =>
         {
             const domElement = document.querySelector(`[data-technology="${shipID}"]`);
@@ -4758,7 +4812,7 @@ class FleetManager extends Manager
             {
                 const shipFlag = domElement.querySelector('.ogl_shipFlag') || Util.addDom('div', { class:'ogl_shipFlag', parent:domElement });
                 shipFlag.innerText = '';
-    
+
                 if(this.ogl.db.options.defaultShip == shipID) Util.addDom('div', { class:'material-icons ogl_fav', child:'star', parent:shipFlag });
                 if(this.ogl.db.keepEnoughCapacityShip == shipID) Util.addDom('div', { class:'material-icons ogl_shipLock', child:'lock', parent:shipFlag });
             }
@@ -4816,6 +4870,7 @@ class FleetManager extends Manager
         });*/
 
         fleetDispatcher.resetShips();
+        fleetDispatcher.resetCargo();
 
         const coords = [fleetDispatcher.currentPlanet.galaxy, fleetDispatcher.currentPlanet.system, fleetDispatcher.currentPlanet.position];
         const factor = { 202:1, 203:3, 219:5.75 };
@@ -4851,7 +4906,7 @@ class FleetManager extends Manager
             type:1,
             name:fleetDispatcher.loca.LOCA_EVENTH_ENEMY_INFINITELY_SPACE
         });
-    
+
         fleetDispatcher.selectMission(15);
         fleetDispatcher.expeditionTime = 1;
         fleetDispatcher.updateExpeditionTime();
@@ -4861,7 +4916,6 @@ class FleetManager extends Manager
         this.ogl.db.lastExpeditionShip = shipID;
 
         this.prepareRedirection();
-
         if (fast) {
             var element = document.querySelector('.continue');
             if (element) {
@@ -4914,11 +4968,11 @@ class FleetManager extends Manager
         const nextCoords = this.ogl.currentPlanet.dom.next.querySelector('.planet-koords').innerText;
         const nextNextCoords = this.ogl.currentPlanet.dom.nextNext?.querySelector('.planet-koords')?.innerText;
         const type = fleetDispatcher.realTarget.type;
-        
+
         let coords = `${fleetDispatcher.realTarget.galaxy}:${fleetDispatcher.realTarget.system}:${fleetDispatcher.realTarget.position}`.split(':');
         let destCoords = `${fleetDispatcher.realTarget.galaxy}:${fleetDispatcher.realTarget.system}:${fleetDispatcher.realTarget.position}`;
         let sourceCoords = `${this.ogl.db.harvestCoords?.source?.galaxy}:${this.ogl.db.harvestCoords?.source?.system}:${this.ogl.db.harvestCoords?.source?.position}`;
-        
+
         if(isInit)
         {
             if(this.redirectionReady)
@@ -4953,7 +5007,7 @@ class FleetManager extends Manager
         {
             prevID = this.ogl.db.harvestCoords?.source?.type == 1 ? this.ogl.currentPlanet.dom.prevWithMoon.getAttribute('id').replace('planet-', '') : this.ogl.currentPlanet.dom.prevWithMoon.querySelector('.moonlink').getAttribute('href').match(/cp=(\d+)/)[1];
             nextID = this.ogl.db.harvestCoords?.source?.type == 1 ? this.ogl.currentPlanet.dom.nextWithMoon.getAttribute('id').replace('planet-', '') : this.ogl.currentPlanet.dom.nextWithMoon.querySelector('.moonlink').getAttribute('href').match(/cp=(\d+)/)[1];
-        
+
             this.ogl.prevRedirection = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&cp=${prevID}&oglmode=2`;
             this.ogl.nextRedirection = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&cp=${nextID}&oglmode=2`;
         }
@@ -4982,7 +5036,7 @@ class FleetManager extends Manager
         this.spyQueue.push({ order:order, galaxy:galaxy, system:system, position:position, type:type, shipCount:shipCount, callback:callback });
 
         document.querySelectorAll(`[data-spy-coords="${galaxy}:${system}:${position}:${type}"]`).forEach(e => e.setAttribute('data-spy', 'prepare'));
-        
+
         if(!this.spyInterval)
         {
             this.spyInterval = setInterval(() => this.spy(), 500);
@@ -5082,6 +5136,7 @@ class FleetManager extends Manager
                     message = message + `[${data.response.coordinates.galaxy}:${data.response.coordinates.system}:${data.response.coordinates.position}]`;
 
                     self.ogl._notification.addToQueue(message, true);
+		    refreshFleetEvents();
                 }
                 else if(data.response.coordinates && !data.response.success)
                 {
@@ -5257,7 +5312,6 @@ class GalaxyManager extends Manager
             if(element.activity.showActivity == 15) return '*'; // acti
             else return element.activity.idleTime || 60;
         }
-
         if(data.system.galaxyContent.length == 15)
         {
             const row = document.querySelector(`#galaxyRow16`);
@@ -5296,7 +5350,7 @@ class GalaxyManager extends Manager
             let moonSize = -1;
 
             row.querySelector('.cellDebris').classList.remove('ogl_important');
-            
+
             line.planets.forEach(element =>
             {
                 if(element.planetType == 1) // planet
@@ -5322,7 +5376,7 @@ class GalaxyManager extends Manager
             });
 
             if(line.player.isAdmin) return;
-            
+
             const oldEntry = this.ogl.db.pdb[coords] || { pid:-1, mid:-1 };
 
             if(this.ogl.ptreKey)
@@ -5434,7 +5488,7 @@ class GalaxyManager extends Manager
                     ptreActivities[coords].position = position;
                     ptreActivities[coords].main = this.ogl.db.pdb[coords].home || false;
                     ptreActivities[coords].cdr_total_size = debris.total;
-    
+
                     if(moonID > -1)
                     {
                         ptreActivities[coords].moon = {};
@@ -5637,7 +5691,7 @@ class JumpgateManager extends Manager
         if(!document.querySelector('#jumpgate') || document.querySelector('#jumpgateNotReady')) return;
 
         const sendAllJson = {};
-        
+
         document.querySelectorAll('#jumpgate .ship_input_row').forEach(line =>
         {
             if(line.previousElementSibling.classList.contains('tdInactive')) return;
@@ -5678,7 +5732,7 @@ class JumpgateManager extends Manager
 
         container.appendChild(clock);
         const refresh =  Util.addDom('span', { parent:container, child:' - <b>0s</b>' });
-        
+
         setInterval(() =>
         {
             const currentTime = parseInt(document.querySelector('.OGameClock').getAttribute('data-time-server'));
@@ -5694,7 +5748,7 @@ class JumpgateManager extends Manager
         {
             return (0.25 * Math.pow(level, 2) - 7.57 * level + 67.34) / this.ogl.server.warFleetSpeed * 60000;
         }
-        
+
         jumpgateDone = a =>
         {
             var a = $.parseJSON(a);
@@ -5793,7 +5847,7 @@ class TooltipManager extends Manager
 
             if(sender.title) sender.setAttribute('data-title', sender.title);
             sender.removeAttribute('title');
-            
+
             const isClick = sender.classList.contains('tooltipClick');
             const isCustom = sender.classList.contains('tooltipCustom');
             const isClose = sender.classList.contains('tooltipClose');
@@ -5866,7 +5920,7 @@ class TooltipManager extends Manager
 
                     if(isClick || isClose) this.closeBtn = Util.addDom('div', { class:'material-icons ogl_close', child:'close-thick', parent:self.tooltip, onclick:() => self.close() });
                     self.triangle = Util.addDom('div', { class:'ogl_tooltipTriangle', parent:self.tooltip });
-                    
+
                     const position = self.recalcPosition(sender, self);
                     if(position == 0) return;
 
@@ -5965,7 +6019,7 @@ class TooltipManager extends Manager
                         class:'ogl_button',
                         parent:container,
                         child:'<span class="material-icons">letter_s</span><span>Simulate</span>',
-                        onclick:() => 
+                        onclick:() =>
                         {
                             if(Array.from(document.querySelectorAll('.planet-koords')).find(e => e.innerText == origin))
                             {
@@ -6117,7 +6171,7 @@ class TooltipManager extends Manager
 
             self.tooltip.setAttribute('data-direction', 'right');
             self.tooltip.style.transform = `translateX(${Math.floor(x)}px) translateY(${Math.floor(y)}px)`;
-            
+
             self.triangle.style.top = senderRect.top + senderRect.height/2 - y - offset - triangleOffset + window.scrollY + 'px';
             self.triangle.style.left = '-5px';
         }
@@ -6165,7 +6219,7 @@ class NotificationManager extends Manager
         this.hideTimer = 5000;
         this.step = 200;
         this.currentValue = this.hideTimer;
-        
+
         this.start = 0;
         this.timeLeft = this.hideTimer;
         this.elapsedInterval;
@@ -6290,7 +6344,7 @@ class NotificationManager extends Manager
         this.blocks.push({ time:serverTime.getTime(), message:message, data:data, success:(success = success === true ? 1 : success === false ? -1 : 0) });
         this.blocks.sort((a, b) => a.time - b.time);
         this.blocks = this.blocks.filter(e => serverTime.getTime() < e.time + this.hideTimer);
-    
+
         this.open();
     }
 
@@ -6511,7 +6565,7 @@ class MessageManager extends Manager
 
                     document.querySelectorAll('.ogl_spyHeader .ogl_active').forEach(e => e.classList.remove('ogl_active'));
                     event.target.classList.add('ogl_active');
-    
+
                     this.ogl.db.spytableSort = this.ogl.db.spytableSort !== filter ? filter : filter.indexOf('DESC') < 0 ? filter+'DESC' : filter.replace('DESC', '');
                     this.buildTable();
                 }
@@ -6522,7 +6576,7 @@ class MessageManager extends Manager
                 if(this.ogl.db.spytableSort.startsWith(e.getAttribute('data-filter'))) e.classList.add('ogl_active');
             });
         }
-        
+
         // clean button
         if(!document.querySelector('#fleetsgenericpage .ogl_trashCounterSpy'))
         {
@@ -6538,7 +6592,7 @@ class MessageManager extends Manager
 
                     if(totalValue + fleetValue < this.ogl.db.options.resourceTreshold) this.addToDeleteQueue(id);
                 });
-            }}); 
+            }});
         }
 
         let ptreActivities = {}; // ptre activities data
@@ -6565,7 +6619,7 @@ class MessageManager extends Manager
                         const coords = [params.get('galaxy') || "0", params.get('system') || "0", params.get('position') || "0"];
                         const type = a.querySelector('figure.moon') ? 3 : 1;
                         const timestamp = message.querySelector('.msg_date.ogl_updated').getAttribute('data-time-server');
-        
+
                         ptreActivities[report.id] = {};
                         ptreActivities[report.id].player_id = uid;
                         ptreActivities[report.id].teamkey = this.ogl.ptreKey;
@@ -6574,7 +6628,7 @@ class MessageManager extends Manager
                         ptreActivities[report.id].position = coords[2];
                         ptreActivities[report.id].spy_message_ts = timestamp;
                         ptreActivities[report.id].moon = {};
-        
+
                         if(type == 1)
                         {
                             ptreActivities[report.id].activity = '*';
@@ -6646,7 +6700,7 @@ class MessageManager extends Manager
                     class:'ogl_messageButton',
                     parent:message.querySelector('.msg_actions message-footer-actions')
                 });
-    
+
                 this.ogl._ui.addTagButton(colorButton, report.coords);
             }
 
@@ -6787,7 +6841,7 @@ class MessageManager extends Manager
             let spyLine = Util.addDom('div', { class:'ogl_spyLine', parent:this.spytable, 'data-id':report.id });
 
             let div = Util.addDom('div',
-                                  {
+            {
                 parent:spyLine,
                 child:
                 `
@@ -6809,7 +6863,7 @@ class MessageManager extends Manager
 
             if(report.total >= this.ogl.db.options.resourceTreshold) div.querySelector('.ogl_reportTotal').classList.add('ogl_important');
 
-            
+
 
             // spy action
             this.addSpyIcons(div.querySelector('.ogl_type'), report.coords, report.type);
@@ -6964,7 +7018,7 @@ class MessageManager extends Manager
                 before:message.querySelector('.msg_actions'),
                 child:'<div class="ogl_loading"></div>'
             });
-            
+
             if(this.ogl.cache.raids[id])
             {
                 this.buildRecap(this.ogl.cache.raids[id], message);
@@ -7011,13 +7065,13 @@ class MessageManager extends Manager
                         {
                             // probes only
                             if(Object.keys(Object.values(atkRounds[0].ships)[0]).length == 1 && Object.keys(Object.values(atkRounds[0].ships)[0])[0] == 210) battle.probesOnly = true;
-                        
+
                             // defender losses
                             for(let [shipID, value] of Object.entries(defRounds[defRounds.length-1].losses?.[fleet] || {}))
                             {
                                 battle.loss[-shipID] = (battle.loss[-shipID] || 0) + parseInt(value);
                             }
-    
+
                             // attacker losses
                             for(let [shipID, value] of Object.entries(atkRounds[atkRounds.length-1].losses?.[fleet] || {}))
                             {
@@ -7068,6 +7122,8 @@ class MessageManager extends Manager
 
     checkExpeditions()
     {
+        const maxValue = this.ogl.calcExpeditionMax().max;
+
         let messages = document.querySelectorAll('#ui-id-2 div[aria-hidden="false"] .msg');
         messages.forEach(message =>
         {
@@ -7111,27 +7167,27 @@ class MessageManager extends Manager
                     const regexBefore = new RegExp(`(\\d+) (?:${typeName}|${typeRaw})`, 'g');
                     const regexAfter = new RegExp(`(?:${typeName}|${typeRaw}) (\\d+)`, 'g');
                     const foundValue = parseInt(regexBefore.exec(content)?.[1]?.replace(/\D/g,'') || regexAfter.exec(content)?.[1]?.replace(/\D/g,''));
-    
-                    if(foundValue)
+
+                    if(foundValue || foundValue == 0)
                     {
                         result.resultType = !isNaN(typeID) ? 'ship' : typeID == 'dm' ? 'darkmatter' : 'resource';
                         result.gain[typeID] = foundValue;
-    
+
                         if(typeID == 'metal')
                         {
-                            result.percentage = 100 - Math.round(((this.ogl.db.expeditionMaxResources - parseInt(foundValue)) / this.ogl.db.expeditionMaxResources) * 100);
+                            result.percentage = 100 - Math.round(((maxValue - parseInt(foundValue)) / maxValue) * 100);
                         }
                         else if(typeID == 'crystal')
                         {
-                            result.percentage = 100 - Math.round(((this.ogl.db.expeditionMaxResources - parseInt(foundValue) * 2) / this.ogl.db.expeditionMaxResources) * 100);
+                            result.percentage = 100 - Math.round(((maxValue - parseInt(foundValue) * 2) / maxValue) * 100);
                         }
                         else if(typeID == 'deut')
                         {
-                            result.percentage = 100 - Math.round(((this.ogl.db.expeditionMaxResources - parseInt(foundValue) * 3) / this.ogl.db.expeditionMaxResources) * 100);
+                            result.percentage = 100 - Math.round(((maxValue - parseInt(foundValue) * 3) / maxValue) * 100);
                         }
                     }
                 });
-    
+
                 // item
                 if(message.querySelector('.msg_content a[href*="page=shop"]'))
                 {
@@ -7142,7 +7198,7 @@ class MessageManager extends Manager
             if(this.ogl.db.options.debugMode)
             {
                 this.ogl.cache.expeFix = this.ogl.cache.expeFix || {};
-    
+
                 if(this.ogl.account.lang == 'fr')
                 {
                     this.ogl.cache.expeFix[result.id] = result.resultType;
@@ -7331,7 +7387,7 @@ class MessageManager extends Manager
                     class:'ogl_messageButton',
                     parent:dialog.querySelector('.msg_actions')
                 });
-    
+
                 this.ogl._ui.addTagButton(colorButton, coords);
             }
 
@@ -7381,7 +7437,7 @@ class MessageManager extends Manager
         }
 
         const recap = {};
-        
+
         if(data.percentage)
         {
             domRecap.setAttribute('data-title', `${data.percentage}% max.`);
@@ -7395,7 +7451,7 @@ class MessageManager extends Manager
             {
                 recap[res] = (recap[res] || 0) + amount;
             }
-    
+
             // fight loss
             for(let [shipID, amount] of Object.entries(data.loss || {}))
             {
@@ -7404,7 +7460,7 @@ class MessageManager extends Manager
                     recap[res] = (recap[res] || 0) - value * amount;
                 }
             }
-    
+
             // recap div
             ['metal', 'crystal', 'deut'].forEach(res =>
             {
@@ -7519,7 +7575,7 @@ class MessageManager extends Manager
     {
         const div = Util.addDom('div', { id:'oglBoardTab', parent:document.querySelector('.js_tabs') });
         const ctn = Util.addDom('div', { class:'tab_ctn', parent:div });
-        const inner = Util.addDom('div', { class:'tab_inner', parent:ctn }); 
+        const inner = Util.addDom('div', { class:'tab_inner', parent:ctn });
         const li = Util.addDom('li', { class:'list_item ui-tabs-tab ui-corner-top ui-state-default ui-tab ogl_boardMessageTab', parent:document.querySelector('ul.tabs_btn'), onclick:() =>
         {
             if(li.querySelector('.new_msg_count')) li.querySelector('.new_msg_count').remove();
@@ -7595,12 +7651,12 @@ class MessageManager extends Manager
                 {
                     const xml = new DOMParser().parseFromString(result.responseText, 'text/xml');
                     this.ogl.db.lastBoardPosts[0] = 0;
-        
+
                     const items = xml.querySelectorAll('item');
                     items.forEach((item, index) =>
                     {
                         const date = new Date(item.querySelector('pubDate').textContent).getTime();
-        
+
                         if(date > this.ogl.db.lastBoardPosts[1])
                         {
                             this.ogl.db.lastBoardPosts[0]++;
@@ -7608,7 +7664,7 @@ class MessageManager extends Manager
 
                         if(index == 0) this.ogl.db.lastBoardPosts[1] = date;
                     });
-        
+
                     if(this.ogl.db.lastBoardPosts[0] > 0)
                     {
                         const count = document.querySelector('.comm_menu.messages .new_msg_count') || Util.addDom('span', { class:'new_msg_count totalMessages news' });
@@ -7616,7 +7672,7 @@ class MessageManager extends Manager
                     }
 
                     this.ogl.db.lastBoardPosts[2] = Date.now();
-        
+
                     if(this.ogl.page == 'messages') this.addBoardTab();
                 }
             });
@@ -7655,7 +7711,7 @@ class MessageManager extends Manager
                 (activity[0] == '*' && isRecent) ? activityDom.classList.add('ogl_danger') : (activity[0] == 60 && isRecent) ? activityDom.classList.add('ogl_ok') : activityDom.classList.add('ogl_warning');
             }
         }
-        
+
         if(uniqueType == 'moon' || (!uniqueType && this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid))
         {
             const moonIcon = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:${coords[2]}`]?.mid > 0 ? Util.addDom('div', { class:'material-icons ogl_spyIcon tooltip', 'data-title':this.ogl._lang.find('spyMoon'), 'data-spy-coords':`${coords[0]}:${coords[1]}:${coords[2]}:3`,child:'bedtime', parent:parent, onclick:e => this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 3)}) : Util.addDom('div', { parent:parent });
@@ -7694,19 +7750,19 @@ class MovementManager extends Manager
             refreshFleetEvents = force =>
             {
                 if(!eventlistLink) return;
-    
+
                 document.querySelector('#eventboxContent').innerHTML = '<img height="16" width="16" src="//gf3.geo.gfsrv.net/cdne3/3f9884806436537bdec305aa26fc60.gif" />';
-    
+
                 fetch(eventlistLink, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(response => response.text())
                 .then(data =>
                 {
                     $('#eventboxContent').html(data);
                     toggleEvents.loaded = true;
-    
+
                     let movements = {};
                     let ignored = [];
-    
+
                     let xml = new DOMParser().parseFromString(data, 'text/html');
                     xml.querySelectorAll('#eventContent tbody tr').forEach(line =>
                     {
@@ -7716,24 +7772,24 @@ class MovementManager extends Manager
                         movement.mission = line.getAttribute('data-mission-type');
                         movement.isBack = line.getAttribute('data-return-flight') === 'true';
                         movement.arrivalTime = parseInt(line.getAttribute('data-arrival-time')) * 1000;
-    
+
                         ignored.push(movement.id + 1);
                         if(ignored.indexOf(movement.id) > -1) return;
-    
+
                         movement.from = {};
                         movement.from.anotherPlayer = !Boolean(Array.from(document.querySelectorAll('#planetList .planet-koords')).find(p => p.innerText === line.querySelector('.coordsOrigin').innerText.trim().slice(1, -1)));
                         movement.from.isMoon = Boolean(line.querySelector('.originFleet figure.moon'));
                         movement.from.coords = line.querySelector('.coordsOrigin').innerText.trim().slice(1, -1);
-    
+
                         movement.to = {};
                         movement.to.anotherPlayer = !Boolean(Array.from(document.querySelectorAll('#planetList .planet-koords')).find(p => p.innerText === line.querySelector('.destCoords').innerText.trim().slice(1, -1)));
                         movement.to.isMoon = Boolean(line.querySelector('.destFleet figure.moon'));
                         movement.to.coords = line.querySelector('.destCoords').innerText.trim().slice(1, -1);
-    
+
                         if((movement.mission == 1 || movement.mission == 6) && movement.from.anotherPlayer)
                         {
                             const dest = Array.from(document.querySelectorAll('#planetList .planet-koords')).find(p => p.innerText === line.querySelector('.destCoords').innerText.trim().slice(1, -1));
-                            
+
                             if(dest)
                             {
                                 const destSmallPlanet = dest.closest('.smallplanet');
@@ -7741,7 +7797,7 @@ class MovementManager extends Manager
                                 destTarget.classList.add('ogl_attacked');
                             }
                         }
-    
+
                         tooltip.querySelectorAll('.fleetinfo tr').forEach(subline =>
                         {
                             if(subline.querySelector('td') && subline.querySelector('.value'))
@@ -7749,42 +7805,42 @@ class MovementManager extends Manager
                                 let name = subline.querySelector('td').innerText.replace(':', '');
                                 let key = Object.entries(this.ogl.db.serverData).find(entry => entry[1] === name)?.[0];
                                 let value = subline.querySelector('.value').innerText.replace(/\.|,| /g, '');
-    
+
                                 if(key) movement[key] = Number(value);
                             }
                         });
-    
+
                         let target;
                         if(movement.isBack) target = movement.from.coords + ':B';
                         else if(movement.to.anotherPlayer) target = movement.from.coords;
                         else if(movement.from.anotherPlayer) target = movement.to.coords + ':B';
                         else target = movement.to.coords;
-    
+
                         if(target)
                         {
                             movements[target] = movements[target] || [];
                             movements[target].push(movement);
                         }
                     });
-    
+
                     this.ogl.cache.movements = movements;
-                    
+
                     document.querySelectorAll('.smallplanet').forEach(planet =>
                     {
                         const coords = planet.querySelector('.planet-koords').innerText;
                         planet.querySelectorAll('.ogl_fleetIcon').forEach(e => e.remove());
-            
+
                         if(this.ogl.cache?.movements?.[coords])
                         {
                             this.addFleetIcon(this.ogl.cache.movements[coords], planet);
                         }
-            
+
                         if(this.ogl.cache?.movements?.[coords+':B'])
                         {
                             this.addFleetIcon(this.ogl.cache.movements[coords+':B'], planet, true);
                         }
                     });
-            
+
                     Util.runAsync(() =>
                     {
                         this.ogl._ui.displayResourcesRecap();
@@ -7822,7 +7878,7 @@ class MovementManager extends Manager
                 Object.keys(line).filter(element => parseInt(element)).forEach(shipID => shipAmount += line[shipID]);
 
                 const domLine = Util.addDom('div', { class:`ogl_mission${line.mission} ogl_sideFleetIcon`, child:`<div class="material-icons">${line.from.isMoon ? 'bedtime' : 'language'}</div><div>[${line.from.coords}]</div><span>${Util.formatToUnits(shipAmount)}</span><img src="${fleetImg}"><div class="material-icons">${line.mission == 8 ? 'debris' : line.to.isMoon ? 'bedtime' : 'language'}</div><div>[${line.to.coords}]</div>`, parent:container });
-            
+
                 ['metal', 'crystal', 'deut'].forEach(res =>
                 {
                     Util.addDom('div', { class:`ogl_icon ogl_${res}`, parent:domLine, child:Util.formatToUnits(line[res] || 0) });
@@ -7905,7 +7961,7 @@ class MovementManager extends Manager
             else Util.addDom('div', { child:'-', parent:timeBlockRight });
             if(parent.querySelector('.nextTimer')) timeBlockRight.appendChild(parent.querySelector('.nextTimer'));
             else Util.addDom('div', { child:'-', parent:timeBlockRight });
-            
+
             Util.addDom('div', { class:`ogl_icon ogl_mission${parent.getAttribute('data-mission-type')}`, prepend:actionsBlock });
             actionsBlock.appendChild(parent.querySelector('.route a'));
             //if(parent.querySelector('.openDetails')) actionsBlock.appendChild(parent.querySelector('.openDetails'));
@@ -7925,10 +7981,11 @@ class ShortcutManager extends Manager
 {
     load()
     {
-        document.querySelector('.ogl_shortcuts')?.remove();
-        
+        document.querySelector('.ogl_shortCutWrapper')?.remove();
+
         this.keyList = {};
-        this.shortcutDiv = Util.addDom('div', { class:'ogl_shortcuts' });
+        this.shortCutWrapper = Util.addDom('div', { class:'ogl_shortCutWrapper', child:'<div></div>' });
+        this.shortcutDiv = Util.addDom('div', { class:'ogl_shortcuts', parent:this.shortCutWrapper });
         this.locked = false;
         //this.discoveryReady = true;
 
@@ -7942,6 +7999,7 @@ class ShortcutManager extends Manager
                 else if(this.keyList[event.key.toLowerCase()] && !this.locked && !event.ctrlKey && !event.shiftKey) // can use !event.repeat instead of this.locked
                 {
                     //if(event.key.toLowerCase() != this.ogl.db.options.keyboardActions.discovery) this.locked = true;
+                    this.locked = true;
                     this.keyList[event.key.toLowerCase()]();
                 }
                 else if(!isNaN(event.key) && this.keyList['2-9'] && !this.locked && !event.ctrlKey && !event.shiftKey) // can use !event.repeat instead of this.locked
@@ -7960,8 +8018,6 @@ class ShortcutManager extends Manager
 
             visualViewport.addEventListener('resize', () => this.updateShortcutsPosition());
             visualViewport.addEventListener('scroll', () => this.updateShortcutsPosition());
-
-
             // Begin of the update the colors of the shortcuts
             var styleTag = document.createElement('style');
             styleTag.id = 'custom-style';
@@ -7978,7 +8034,6 @@ class ShortcutManager extends Manager
         }
 
         this.loaded = true;
-
         this.add('expeditionLCFast', () => {
             if (typeof fleetDispatcher !== 'undefined') {
                 if (fleetDispatcher.currentPage == 'fleet1') {
@@ -8052,7 +8107,6 @@ class ShortcutManager extends Manager
             localStorage.setItem('ogl_menulayout', this.ogl.db.options.showMenuResources);
             document.body.setAttribute('data-menulayout', this.ogl.db.options.showMenuResources);
         });
-
         this.add('popupPlanets', () => {
             if (!document.getElementById('custom-style')) {
                 var styleTag = document.createElement('style');
@@ -8138,7 +8192,7 @@ class ShortcutManager extends Manager
         {
             localStorage.setItem('ogl-redirect', false);
             document.body.classList.remove('ogl_destinationPicker');
-                
+
             if(this.ogl.mode === 1 || this.ogl.mode === 2 || this.ogl.mode === 5)
             {
                 if(this.ogl._fleet.redirectionReady) window.location.href = this.ogl.nextRedirection;
@@ -8162,7 +8216,7 @@ class ShortcutManager extends Manager
                     const arr = Array.from(document.querySelectorAll('.ogl_pinDetail [data-galaxy]'));
                     const index = arr.findLastIndex(e => e.classList.contains('ogl_active'));
                     const target = Util.reorderArray(arr, index)[1];
-    
+
                     if(target) target.click();
                 }
                 else
@@ -8238,13 +8292,13 @@ class ShortcutManager extends Manager
                     if(fleetDispatcher.currentPage == 'fleet1')
                     {
                         fleetDispatcher.resetShips();
-    
+
                         this.ogl._fleet.isQuickRaid = true;
-                        
+
                         const target = this.ogl.db.quickRaidList[0].match(/.{1,3}/g).map(Number);
                         const amount = this.ogl._fleet.shipsForResources(this.ogl.db.options.defaultShip, this.ogl.db.options.resourceTreshold);
                         fleetDispatcher.selectShip(this.ogl.db.options.defaultShip, amount);
-    
+
                         fleetDispatcher.realTarget.galaxy = target[0];
                         fleetDispatcher.realTarget.system = target[1];
                         fleetDispatcher.realTarget.position = target[2];
@@ -8256,7 +8310,7 @@ class ShortcutManager extends Manager
                         fleetDispatcher.cargoDeuterium = 0;
                         fleetDispatcher.mission = 1;
                         fleetDispatcher.speedPercent = 10;
-    
+
                         fleetDispatcher.refresh();
                         fleetDispatcher.focusSubmitFleet1();
                     }
@@ -8283,7 +8337,7 @@ class ShortcutManager extends Manager
                     {
                         fleetDispatcher[this.ogl._fleet.cargo[type]] = Math.min(fleetDispatcher[this.ogl._fleet.resOnPlanet[type]] - fleetDispatcher[this.ogl._fleet.cargo[type]], fleetDispatcher.getFreeCargoSpace());
                     });
-                    
+
                     fleetDispatcher.refresh();
                 }
             }, 'fleet');
@@ -8396,7 +8450,7 @@ class ShortcutManager extends Manager
             }, false, 'violet');
         }
 
-        document.body.appendChild(this.shortcutDiv);
+        document.body.appendChild(this.shortCutWrapper);
         this.updateShortcutsPosition();
     }
 
@@ -8433,13 +8487,19 @@ class ShortcutManager extends Manager
 
     updateShortcutsPosition()
     {
-        const div = this.shortcutDiv;
+        const div = this.shortCutWrapper;
+        div.style.top = visualViewport.offsetTop + 'px';
+        div.style.height = visualViewport.height - 25 + 'px';
+        div.style.left = visualViewport.offsetLeft + 'px';
+        div.style.width = visualViewport.width + 'px';
+        div.querySelectorAll('.ogl_shortcut').forEach(e => e.style.zoom = 1 / visualViewport.scale);
+        /*const div = this.shortcutDiv;
 
         div.style['max-width'] = visualViewport.width + 'px';
         div.style.top = visualViewport.height + visualViewport.offsetTop - this.shortcutDiv.offsetHeight - 30 + 'px';
         div.style.left = visualViewport.width / 2 + visualViewport.offsetLeft - this.shortcutDiv.offsetWidth / 2 + 'px';
 
-        div.querySelectorAll('.ogl_shortcut').forEach(e => e.style.zoom = 1 / visualViewport.scale);
+        div.querySelectorAll('.ogl_shortcut').forEach(e => e.style.zoom = 1 / visualViewport.scale);*/
     }
 }
 
@@ -8462,17 +8522,17 @@ class TechManager extends Manager
                 {
                     this.xhr.abort();
                 }
-    
+
                 const wrapper = document.querySelector('#technologydetails_wrapper');
                 const content = wrapper.querySelector('#technologydetails_content');
-    
+
                 if(!content.querySelector('.ogl_loading'))
                 {
                     content.innerHTML = '<div class="ogl_wrapperloading"><div class="ogl_loading"></div></div>';
                 }
-                
+
                 wrapper.classList.add('ogl_active');
-    
+
                 this.xhr = $.ajax(
                 {
                     url:technologyDetails.technologyDetailsEndpoint,
@@ -8481,7 +8541,7 @@ class TechManager extends Manager
                 .done(data =>
                 {
                     const json = JSON.parse(data);
-    
+
                     if(json.status === 'failure') technologyDetails.displayErrors(json.errors);
                     else
                     {
@@ -8491,7 +8551,7 @@ class TechManager extends Manager
                     }
                 });
             }
-    
+
             technologyDetails.hide = () =>
             {
                 const wrapper = document.querySelector('#technologydetails_wrapper');
@@ -8500,7 +8560,7 @@ class TechManager extends Manager
                 technologyDetails.id = false;
                 technologyDetails.lvl = false;
             }
-    
+
             const urlTech = new URLSearchParams(window.location.search).get('openTech');
             if(urlTech) technologyDetails.show(urlTech);
         }
@@ -8542,13 +8602,13 @@ class TechManager extends Manager
                         this.displayLevel(id, this.initialLevel + this.levelOffset, data, details);
                     }
                 }});
-                
+
                 Util.addDom('div', { parent:actions, class:'material-icons ogl_button', child:'close', onclick:() =>
                 {
                     this.levelOffset = 0;
                     this.displayLevel(id, this.initialLevel, data, details);
                 }});
-        
+
                 Util.addDom('div', { parent:actions, class:'material-icons ogl_button', child:'chevron_right', onclick:() =>
                 {
                     this.levelOffset++;
@@ -8592,7 +8652,7 @@ class TechManager extends Manager
                 {
                     const value = parseInt(amount.value) || 0;
                     amount.value = Math.min(99999, value);
-    
+
                     if(amount.value)
                     {
                         setTimeout(() => this.displayLevel(id, value, data, details));
@@ -8685,7 +8745,7 @@ class TechManager extends Manager
         {
             this.detailCumul[id][lvl][costID] = cost;
         }
-        
+
         for(let [cumulLvl, cumulCost] of Object.entries(this.detailCumul[id] || {}))
         {
             if(cumulLvl >= this.initialLevel && cumulLvl <= this.initialLevel + this.levelOffset)
@@ -8703,7 +8763,6 @@ class TechManager extends Manager
             technologyDetails.id = id;
             technologyDetails.lvl = lvl;
         }
-
         cumul.timeresult = Util.secondsToString(cumul.duration / 1000);
         if (cumul.conso == undefined) cumul.conso = '';
         if (cumul.prodEnergy == undefined) cumul.prodEnergy = '';
@@ -8725,7 +8784,7 @@ class TechManager extends Manager
         const costsWrapper = details.querySelector('.ogl_costsWrapper') || Util.addDom('div', { class:'ogl_costsWrapper', parent:details.querySelector('.costs') });
         costsWrapper.innerText = '';
 
-        
+
         details.querySelector('.build_duration time').innerText = techData.target.timeresult;
         if(details.querySelector('.additional_energy_consumption .value'))
         {
@@ -8804,7 +8863,7 @@ class TechManager extends Manager
         {
             const todolist = this.ogl.currentPlanet.obj.todolist;
             const entryLvl = entry.level || Date.now() + performance.now();
-    
+
             todolist[entry.id] = todolist[entry.id] || {};
             todolist[entry.id][entryLvl] = todolist[entry.id][entryLvl] || {};
             todolist[entry.id][entryLvl].id = entry.id;
@@ -8922,12 +8981,12 @@ class TechManager extends Manager
                     this.checkTodolist();
                     return;
                 }
-    
+
                 header.innerHTML = this.ogl.db.serverData[blockID];
                 header.innerHTML += ` (<b>${checkedCount}</b>/${maxCount})`;
-    
+
                 if(checkedCount != maxCount && footer && footer.querySelector('input:checked')) footer.querySelector('input:checked').checked = false;
-                
+
                 if(Object.entries(toSend).length > 0) sendButton.classList.remove('ogl_disabled');
                 else sendButton.classList.add('ogl_disabled');
             });
@@ -9136,7 +9195,7 @@ class TechManager extends Manager
         {
             const coloID = line.getAttribute('id').replace('planet-', '');
             const colo = this.ogl.db.myPlanets[coloID];
-            
+
             if(!colo) return;
 
             if(planetID != coloID && colo[31] >= labRequired[id]) baseLabs.push(colo[31]); // base labo
@@ -9146,7 +9205,7 @@ class TechManager extends Manager
         {
             const id = line.getAttribute('id').replace('planet-', '');
             const colo = this.ogl.db.myPlanets[id];
-            
+
             if(!colo) return;
             colo.activeLFTechs = colo.activeLFTechs || [];
 
@@ -9210,7 +9269,7 @@ class TechManager extends Manager
         tech.isBaseBuilding = tech.id < 100;
         tech.isBaseResearch = tech.id > 100 && tech.id <= 199;
         tech.isBaseShip = tech.id > 200 && tech.id <= 299;
-        tech.isBaseDef = tech.id > 400 && tech.id <= 499;
+        tech.isBaseDef = tech.id > 400 && tech.id <= 599;
         tech.isLfBuilding = (tech.id > 11100 && tech.id <= 11199) || (tech.id > 12100 && tech.id <= 12199) || (tech.id > 13100 && tech.id <= 13199) || (tech.id > 14100 && tech.id <= 14199);
         tech.isLfResearch = (tech.id > 11200 && tech.id <= 11299) || (tech.id > 12200 && tech.id <= 12299) || (tech.id > 13200 && tech.id <= 13299) || (tech.id > 14200 && tech.id <= 14299);
 
@@ -9240,7 +9299,7 @@ class TechManager extends Manager
         tech.bonus.prodEnergy = 0;
 
         if(this.ogl.account.class == 1) tech.bonus.prodEnergy += .1; // 10% rocktal energy bonus
-        if(this.ogl.db.allianceClass == 2) tech.bonus.prodEnergy += .05; // 5% trader alliance bonus;
+        if(this.ogl.db.allianceClass == 2) tech.bonus.prodEnergy += .05; // 5% trader alliance bonus
 
         //tech.bonus.race = localBonusRaceLevel * (1 + localBonus11111 + localBonus13107 + localBonus13111);
 
@@ -9320,7 +9379,7 @@ class TechManager extends Manager
             tech.bonus.duration += cumul[14207] * Datafinder.getTech(14207).bonus1BaseValue / 100 ;
             tech.bonus.duration += cumul[14213] * Datafinder.getTech(14213).bonus1BaseValue / 100;
         }
- 
+
         if(planet.lifeform == 2 && (tech.id == 1 || tech.id == 2 || tech.id == 3 || tech.id == 4 || tech.id == 12 || tech.id == 12101 || tech.id == 12102))
         {
             tech.bonus.price += planetData[12111] * Datafinder.getTech(12111).bonus1BaseValue / 100;
@@ -9433,9 +9492,15 @@ class TechManager extends Manager
             if(tech.id == 212) tech.target.prodEnergy = Math.floor(((planetData.temperature + 40 + planetData.temperature) / 2 + 160) / 6) * amount;
         }
 
+        if(this.ogl.db.options.debugMode)
+        {
+            const debugString = JSON.stringify(tech);
+            console.log(debugString);
+        }
+
         tech.target.prodEnergy = Math.floor(tech.target.prodEnergy * (1 + tech.bonus.prodEnergy + tech.bonus.engineer)) || 0;
         tech.target.conso = -Math.ceil(tech.target.conso * (1 - tech.bonus.conso)) || 0;
-        tech.target.duration = tech.target.duration / (this.ogl.server.economySpeed * (tech.isBaseResearch ? this.ogl.db.serverData.researchSpeed : 1)) * (1 - tech.bonus.eventDuration) * (1 - tech.bonus.classDuration) * (1 - tech.bonus.technocrat) * (1 - tech.bonus.duration);
+        tech.target.duration = tech.target.duration / (this.ogl.server.economySpeed * (tech.isBaseResearch ? this.ogl.db.serverData.researchSpeed : 1)) * (1 - tech.bonus.eventDuration) * (1 - tech.bonus.classDuration) * (1 - tech.bonus.technocrat) * (1 - Math.min(tech.bonus.duration, .99));
         tech.target.duration = Math.max(tech.target.duration, 1000);
 
         if(tech.isBaseShip || tech.isBaseDef)
@@ -9854,10 +9919,10 @@ class StatsManager extends Manager
             let height = Math.ceil(Math.abs(value) / (Math.max(Math.abs(highest), Math.abs(lowest)) / 100));
             height = height > 0 ? Math.max(height, 5) : 0;
             const color = value > 0 ? '#35cf95' : '#e14848';
-            
+
             const content = Util.addDom('div', { parent:bar });
             content.style.background = `linear-gradient(to top, ${color} ${height}%, #0e1116 ${height}%)`;
-            
+
 
             if(value != 0) bar.classList.add('ogl_active');
         });
@@ -9920,7 +9985,7 @@ class StatsManager extends Manager
             if(resource == 'send') Util.addDom('div', { class:`ogl_textCenter ogl_icon material-icons`, child:'send', parent:header });
             else Util.addDom('div', { class:`ogl_icon ogl_${resource}`, parent:header });
         });
-        
+
         ['expe', 'raid', 'conso', 'u', 'total'].forEach(type =>
         {
             const typeLabel = type == 'u' ? 'average' : type;
@@ -10058,6 +10123,7 @@ class StatsManager extends Manager
             ctx.beginPath();
             ctx.arc(size/2, size/2, size/2.7, 0, 2 * Math.PI, false);
             ctx.fill();
+
             ctx.fillStyle = "#1b212a";
             ctx.beginPath();
             ctx.arc(size/2, size/2, size/3, 0, 2 * Math.PI, false);
@@ -10075,6 +10141,7 @@ class StatsManager extends Manager
 
         const canvas = Util.addDom('canvas', { parent:pie, width:size, height:size, onmouseout:() => { drawPie();canvas.classList.remove('ogl_interactive'); }, /*onmousemove:event =>
         {
+
             const rect = canvas.getBoundingClientRect();
             mouseXY = { x:event.clientX - rect.left, y:event.clientY - rect.top };
 
@@ -10088,10 +10155,10 @@ class StatsManager extends Manager
 
             if(slice && hex != hoveredColor) drawPie(slice);
             else if(!slice && hex != hoveredColor) drawPie();
-            
+
             if(slice || hex == hoveredColor) canvas.classList.add('ogl_interactive');
             else canvas.classList.remove('ogl_interactive');
-            
+
         }*/});
 
         const ctx = canvas.getContext('2d', { willReadFrequently:true });
@@ -10114,11 +10181,11 @@ class StatsManager extends Manager
                 slice.angle = (value / total) * 2 * Math.PI;
                 slice.endAngle = cumulAngle + slice.angle;
                 slice.color = colors[title];
-    
+
                 slices.push(slice);
-    
+
                 cumulAngle = slice.endAngle;
-    
+
                 Util.addDom('div', { class:'ogl_pieLegend', 'data-resultType':slice.title, 'data-entry':slice.title, parent:legend, child:`<div>${this.ogl._lang.find(title)}</div><span>${Util.formatToUnits(value)}</span><i>${slice.percent}%</i>` });
             }
         }
@@ -10211,7 +10278,7 @@ class EmpireManager extends Manager
                     {
                         const data = this.ogl.db.myPlanets[planet.id.replace('planet', '')];
                         if(!data) return;
-    
+
                         Util.addDom('div', { class:'material-icons ogl_empireJumpgate', child:'jump_to_element', parent:planet.querySelectorAll('.row')[1], onclick:e =>
                         {
                             e.preventDefault();
@@ -10381,7 +10448,7 @@ class EmpireManager extends Manager
         if(source || this.ogl.page == 'lfbonuses' || this.ogl.page == 'lfsettings')
         {
             this.ogl.db.lfBonuses = this.ogl.db.lfBonuses || {};
-    
+
             htmlSource.querySelectorAll('lifeform-item, .lifeform-item').forEach(item =>
             {
                 const lifeform = item.querySelector('.lifeform-item-icon').className.replace(/lifeform-item-icon| /g, '');
@@ -10418,7 +10485,7 @@ class EmpireManager extends Manager
 
 class Util
 {
-    static get ogl() { return unsafeWindow.ogl || ogl }
+    static get ogl() { return unsafeWindow.ogl }
     static get simList()
     {
         return {
@@ -10761,6 +10828,8 @@ class Util
 
     static getPlayerScoreFD(score, type)
     {
+        if(!score) return '?';
+
         const defense = Math.max(score.military - (score.global - score.economy - score.research - score.lifeform), 0);
         const fleet = score.military - defense;
 
@@ -10825,7 +10894,7 @@ class Util
         }
 
         jsonData = btoa(JSON.stringify(jsonData));
-        let lang = Util.ogl.server.lang == 'us' ? 'en' : Util.ogl.server.lang == 'ar' ? 'es' : Util.ogl.server.lang;
+        let lang = Util.ogl.account.lang == 'us' ? 'en' : Util.ogl.account.lang == 'ar' ? 'es' : Util.ogl.account.lang;
 
         const link = Util.simList[Util.ogl.db.options.sim || Object.keys(Util.simList)[Math.floor(Math.random() * Object.keys(Util.simList).length)]];
 
@@ -10835,13 +10904,13 @@ class Util
 
     static genOgotchaLink(apiKey)
     {
-        let lang = Util.ogl.server.lang == 'us' ? 'en' : Util.ogl.server.lang == 'ar' ? 'es' : Util.ogl.server.lang;
+        let lang = Util.ogl.account.lang == 'us' ? 'en' : Util.ogl.account.lang == 'ar' ? 'es' : Util.ogl.account.lang;
         return `https://ogotcha.universeview.be/${lang}?CR_KEY=${apiKey}&utm_source=OGLight`;
     }
 
     static genTopRaiderLink(apiKey)
     {
-        let lang = Util.ogl.server.lang == 'us' ? 'en' : Util.ogl.server.lang == 'ar' ? 'es' : Util.ogl.server.lang;
+        let lang = Util.ogl.account.lang == 'us' ? 'en' : Util.ogl.account.lang == 'ar' ? 'es' : Util.ogl.account.lang;
         return `https://topraider.eu/index.php?CR_KEY=${apiKey}&lang=${lang}`;
     }
 
@@ -10879,8 +10948,8 @@ class PTRE
 {
     // const
     static get url() { return `https://ptre.chez.gg/scripts/` }
-    static get ogl() { return unsafeWindow.ogl || ogl }
-    static get playerPositionsDelay() { return 10 * 60 * 1000 }
+    static get ogl() { return unsafeWindow.ogl }
+    static get playerPositionsDelay() { return 1000*60*60 }
     static get manageSyncedListUrl() { return `https://ptre.chez.gg/?page=players_list` }
 
     static request(page, init)
@@ -10954,10 +11023,9 @@ class PTRE
             PTRE.ogl.cache.ptreLogs.forEach(log =>
             {
                 const time = PTRE.ogl._time.convertTimestampToDate(log.id);
-    
+
                 Util.addDom('div', { child:`<div>${time.outerHTML}</div><div>${log.code}</div><div>${log.message}</div>`, prepend:container });
             });
-
             Util.addDom('div', { child:`<div>${this.ogl._lang.find('time')}</div><div>${this.ogl._lang.find('errorCode')}</div><div>${this.ogl._lang.find('message')}</div>`, prepend:container });
         }
         else
@@ -10994,7 +11062,7 @@ class PTRE
                 {
                     const parent = document.querySelector(`.msg[data-msg-id="${id}"] .msg_title`);
                     if(parent && !document.querySelector(`.msg[data-msg-id="${id}"] .ogl_checked`)) Util.addDom('div', { class:'material-icons ogl_checked tooltipLeft ogl_ptre', child:'ptre', title:PTRE.ogl._lang.find('ptreActivityImported'), parent:parent });
-                
+
                     if(PTRE.ogl.page == 'messages') PTRE.ogl.cache.counterSpies.push(id);
                 });
             }
@@ -11191,7 +11259,7 @@ class PTRE
         {
             if(document.querySelector('.ogl_pinDetail') && PTRE.ogl.db.currentSide == playerData.id) // current pin
             {
-                PTRE.ogl._topbar.openPinnedDetail(playerData.id);
+                PTRE.ogl._topbar.openPinnedDetail(playerData.id, true);
             }
         }
 
@@ -11199,7 +11267,7 @@ class PTRE
 
         PTRE.ogl._fetch.fetchPlayerAPI(playerData.id, playerData.name, () =>
         {
-            if(PTRE.ogl.ptreKey || serverTime.getTime() - player.ptre > PTRE.playerPositionsDelay)
+            if(PTRE.ogl.ptreKey && serverTime.getTime() - (player.ptre || 0) > PTRE.playerPositionsDelay)
             {
                 PTRE.request('api_galaxy_get_infos.php',
                 {
@@ -11319,7 +11387,7 @@ class Datafinder
             217: { metal:2000,      crystal:2000,       deut:1000 },
             218: { metal:85000,     crystal:55000,      deut:20000 },
             219: { metal:8000,      crystal:15000,      deut:8000 },
-            
+
             // def
             401: { metal:2000,  crystal:0,      deut:0 },
             402: { metal:1500,  crystal:500,    deut:0 },
@@ -11329,6 +11397,10 @@ class Datafinder
             406: { metal:50000, crystal:50000,  deut:30000 },
             407: { metal:10000, crystal:10000,  deut:0 },
             408: { metal:50000, crystal:50000,  deut:0 },
+
+            // missile
+            502: { metal:8000, crystal:0, deut:2000 },
+            503: { metal:12000, crystal:2500, deut:10000 },
 
             // lifeforms
             "11101":{"type":"building","lifeform":"human","metal":7,"crystal":2,"deut":0,"priceFactor":1.2,"bonus1BaseValue":210,"bonus1IncreaseFactor":1.21,"bonus2BaseValue":16,"bonus2IncreaseFactor":1.2,"bonus3Value":9,"bonus3IncreaseFactor":1.15,"durationfactor":1.21,"durationbase":40},"11102":{"type":"building","lifeform":"human","metal":5,"crystal":2,"deut":0,"energy":8,"priceFactor":1.23,"energyIncreaseFactor":1.02,"bonus1BaseValue":10,"bonus1IncreaseFactor":1.15,"bonus2BaseValue":10,"bonus2IncreaseFactor":1.14,"durationfactor":1.25,"durationbase":40},"11103":{"type":"building","lifeform":"human","metal":20000,"crystal":25000,"deut":10000,"energy":10,"priceFactor":1.3,"energyIncreaseFactor":1.08,"bonus1BaseValue":0.25,"bonus1IncreaseFactor":1,"bonus1Max":0.25,"bonus2BaseValue":2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.25,"durationbase":16000},"11104":{"type":"building","lifeform":"human","metal":5000,"crystal":3200,"deut":1500,"energy":15,"priceFactor":1.7,"energyIncreaseFactor":1.25,"bonus1BaseValue":20000000,"bonus1IncreaseFactor":1.1,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"durationfactor":1.6,"durationbase":16000},"11105":{"type":"building","lifeform":"human","metal":50000,"crystal":40000,"deut":50000,"energy":30,"priceFactor":1.7,"energyIncreaseFactor":1.25,"bonus1BaseValue":100000000,"bonus1IncreaseFactor":1.1,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"durationfactor":1.7,"durationbase":64000},"11106":{"type":"building","lifeform":"human","metal":9000,"crystal":6000,"deut":3000,"energy":40,"priceFactor":1.5,"energyIncreaseFactor":1.1,"bonus1BaseValue":1.5,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":2000},"11107":{"type":"building","lifeform":"human","metal":25000,"crystal":13000,"deut":7000,"priceFactor":1.09,"bonus1BaseValue":1,"bonus1IncreaseFactor":1,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"bonus2Max":0.8,"bonus3Value":0.8,"bonus3IncreaseFactor":1,"durationfactor":1.17,"durationbase":12000},"11108":{"type":"building","lifeform":"human","metal":50000,"crystal":25000,"deut":15000,"energy":80,"priceFactor":1.5,"energyIncreaseFactor":1.1,"bonus1BaseValue":1.5,"bonus1IncreaseFactor":1,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"durationfactor":1.2,"durationbase":28000},"11109":{"type":"building","lifeform":"human","metal":75000,"crystal":20000,"deut":25000,"energy":50,"priceFactor":1.09,"energyIncreaseFactor":1.02,"bonus1BaseValue":1.5,"bonus1IncreaseFactor":1,"bonus2BaseValue":1.5,"bonus2IncreaseFactor":1,"durationfactor":1.2,"durationbase":40000},"11110":{"type":"building","lifeform":"human","metal":150000,"crystal":30000,"deut":15000,"energy":60,"priceFactor":1.12,"energyIncreaseFactor":1.03,"bonus1BaseValue":5,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":52000},"11111":{"type":"building","lifeform":"human","metal":80000,"crystal":35000,"deut":60000,"energy":90,"priceFactor":1.5,"energyIncreaseFactor":1.05,"bonus1BaseValue":0.5,"bonus1IncreaseFactor":1,"bonus1Max":1,"durationfactor":1.3,"durationbase":90000},"11112":{"type":"building","lifeform":"human","metal":250000,"crystal":125000,"deut":125000,"energy":100,"priceFactor":1.15,"energyIncreaseFactor":1.02,"bonus1BaseValue":3,"bonus1IncreaseFactor":1,"bonus1Max":0.9,"durationfactor":1.2,"durationbase":95000},"11201":{"type":"tech 1","lifeform":"human","metal":5000,"crystal":2500,"deut":500,"priceFactor":1.3,"bonus1BaseValue":1,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":1000},"11202":{"type":"tech 2","lifeform":"human","metal":7000,"crystal":10000,"deut":5000,"priceFactor":1.5,"bonus1BaseValue":0.06,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":2000},"11203":{"type":"tech 3","lifeform":"human","metal":15000,"crystal":10000,"deut":5000,"priceFactor":1.3,"bonus1BaseValue":0.5,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":2500},"11204":{"type":"tech 4","lifeform":"human","metal":20000,"crystal":15000,"deut":7500,"priceFactor":1.3,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":3500},"11205":{"type":"tech 5","lifeform":"human","metal":25000,"crystal":20000,"deut":10000,"priceFactor":1.3,"bonus1BaseValue":4,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":4500},"11206":{"type":"tech 6","lifeform":"human","metal":35000,"crystal":25000,"deut":15000,"priceFactor":1.5,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.99,"durationfactor":1.3,"durationbase":5000},"11207":{"type":"tech 7","lifeform":"human","metal":70000,"crystal":40000,"deut":20000,"priceFactor":1.3,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":8000},"11208":{"type":"tech 8","lifeform":"human","metal":80000,"crystal":50000,"deut":20000,"priceFactor":1.5,"bonus1BaseValue":0.06,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":6000},"11209":{"type":"tech 9","lifeform":"human","metal":320000,"crystal":240000,"deut":100000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":6500},"11210":{"type":"tech 10","lifeform":"human","metal":320000,"crystal":240000,"deut":100000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":7000},"11211":{"type":"tech 11","lifeform":"human","metal":120000,"crystal":30000,"deut":25000,"priceFactor":1.5,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.99,"durationfactor":1.3,"durationbase":7500},"11212":{"type":"tech 12","lifeform":"human","metal":100000,"crystal":40000,"deut":30000,"priceFactor":1.3,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":10000},"11213":{"type":"tech 13","lifeform":"human","metal":200000,"crystal":100000,"deut":100000,"priceFactor":1.3,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":8500},"11214":{"type":"tech 14","lifeform":"human","metal":160000,"crystal":120000,"deut":50000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":9000},"11215":{"type":"tech 15","lifeform":"human","metal":160000,"crystal":120000,"deut":50000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":9500},"11216":{"type":"tech 16","lifeform":"human","metal":320000,"crystal":240000,"deut":100000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":10000},"11217":{"type":"tech 17","lifeform":"human","metal":300000,"crystal":180000,"deut":120000,"priceFactor":1.5,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"bonus1Max":0.99,"durationfactor":1.3,"durationbase":11000},"11218":{"type":"tech 18","lifeform":"human","metal":500000,"crystal":300000,"deut":200000,"priceFactor":1.2,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"bonus1Max":0.99,"durationfactor":1.3,"durationbase":13000},"12101":{"type":"building","lifeform":"rocktal","metal":9,"crystal":3,"deut":0,"priceFactor":1.2,"bonus1BaseValue":150,"bonus1IncreaseFactor":1.216,"bonus2BaseValue":12,"bonus2IncreaseFactor":1.2,"bonus3Value":5,"bonus3IncreaseFactor":1.15,"durationfactor":1.21,"durationbase":40},"12102":{"type":"building","lifeform":"rocktal","metal":7,"crystal":2,"deut":0,"energy":10,"priceFactor":1.2,"energyIncreaseFactor":1.03,"bonus1BaseValue":8,"bonus1IncreaseFactor":1.15,"bonus2BaseValue":6,"bonus2IncreaseFactor":1.14,"durationfactor":1.21,"durationbase":40},"12103":{"type":"building","lifeform":"rocktal","metal":40000,"crystal":10000,"deut":15000,"energy":15,"priceFactor":1.3,"energyIncreaseFactor":1.1,"bonus1BaseValue":0.25,"bonus1IncreaseFactor":1,"bonus1Max":0.25,"bonus2BaseValue":2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.25,"durationbase":16000},"12104":{"type":"building","lifeform":"rocktal","metal":5000,"crystal":3800,"deut":1000,"energy":20,"priceFactor":1.7,"energyIncreaseFactor":1.35,"bonus1BaseValue":16000000,"bonus1IncreaseFactor":1.14,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"durationfactor":1.6,"durationbase":16000},"12105":{"type":"building","lifeform":"rocktal","metal":50000,"crystal":40000,"deut":50000,"energy":60,"priceFactor":1.65,"energyIncreaseFactor":1.3,"bonus1BaseValue":90000000,"bonus1IncreaseFactor":1.1,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"durationfactor":1.7,"durationbase":64000},"12106":{"type":"building","lifeform":"rocktal","metal":10000,"crystal":8000,"deut":1000,"energy":40,"priceFactor":1.4,"energyIncreaseFactor":1.1,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":2000},"12107":{"type":"building","lifeform":"rocktal","metal":20000,"crystal":15000,"deut":10000,"priceFactor":1.2,"bonus1BaseValue":1.5,"bonus1IncreaseFactor":1,"bonus2BaseValue":0.5,"bonus2IncreaseFactor":1,"bonus2Max":0.4,"durationfactor":1.25,"durationbase":16000},"12108":{"type":"building","lifeform":"rocktal","metal":50000,"crystal":35000,"deut":15000,"energy":80,"priceFactor":1.5,"energyIncreaseFactor":1.3,"bonus1BaseValue":1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"bonus2Max":0.5,"durationfactor":1.4,"durationbase":40000},"12109":{"type":"building","lifeform":"rocktal","metal":85000,"crystal":44000,"deut":25000,"energy":90,"priceFactor":1.4,"energyIncreaseFactor":1.1,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":40000},"12110":{"type":"building","lifeform":"rocktal","metal":120000,"crystal":50000,"deut":20000,"energy":90,"priceFactor":1.4,"energyIncreaseFactor":1.1,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":52000},"12111":{"type":"building","lifeform":"rocktal","metal":250000,"crystal":150000,"deut":100000,"energy":120,"priceFactor":1.8,"energyIncreaseFactor":1.3,"bonus1BaseValue":0.5,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"durationfactor":1.3,"durationbase":90000},"12112":{"type":"building","lifeform":"rocktal","metal":250000,"crystal":125000,"deut":125000,"energy":100,"priceFactor":1.5,"energyIncreaseFactor":1.1,"bonus1BaseValue":0.6,"bonus1IncreaseFactor":1,"bonus1Max":0.3,"durationfactor":1.3,"durationbase":95000},"12201":{"type":"tech 1","lifeform":"rocktal","metal":10000,"crystal":6000,"deut":1000,"priceFactor":1.5,"bonus1BaseValue":0.25,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":1000},"12202":{"type":"tech 2","lifeform":"rocktal","metal":7500,"crystal":12500,"deut":5000,"priceFactor":1.5,"bonus1BaseValue":0.08,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":2000},"12203":{"type":"tech 3","lifeform":"rocktal","metal":15000,"crystal":10000,"deut":5000,"priceFactor":1.5,"bonus1BaseValue":0.08,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":2500},"12204":{"type":"tech 4","lifeform":"rocktal","metal":20000,"crystal":15000,"deut":7500,"priceFactor":1.3,"bonus1BaseValue":0.4,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":3500},"12205":{"type":"tech 5","lifeform":"rocktal","metal":25000,"crystal":20000,"deut":10000,"priceFactor":1.5,"bonus1BaseValue":0.08,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":4500},"12206":{"type":"tech 6","lifeform":"rocktal","metal":50000,"crystal":50000,"deut":20000,"priceFactor":1.5,"bonus1BaseValue":0.25,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":5000},"12207":{"type":"tech 7","lifeform":"rocktal","metal":70000,"crystal":40000,"deut":20000,"priceFactor":1.5,"bonus1BaseValue":0.08,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":5500},"12208":{"type":"tech 8","lifeform":"rocktal","metal":160000,"crystal":120000,"deut":50000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":6000},"12209":{"type":"tech 9","lifeform":"rocktal","metal":75000,"crystal":55000,"deut":25000,"priceFactor":1.5,"bonus1BaseValue":0.15,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.3,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":6500},"12210":{"type":"tech 10","lifeform":"rocktal","metal":85000,"crystal":40000,"deut":35000,"priceFactor":1.5,"bonus1BaseValue":0.08,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":7000},"12211":{"type":"tech 11","lifeform":"rocktal","metal":120000,"crystal":30000,"deut":25000,"priceFactor":1.5,"bonus1BaseValue":0.08,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":7500},"12212":{"type":"tech 12","lifeform":"rocktal","metal":100000,"crystal":40000,"deut":30000,"priceFactor":1.5,"bonus1BaseValue":0.08,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":8000},"12213":{"type":"tech 13","lifeform":"rocktal","metal":200000,"crystal":100000,"deut":100000,"priceFactor":1.2,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.1,"bonus2IncreaseFactor":1,"durationfactor":1.3,"durationbase":8500},"12214":{"type":"tech 14","lifeform":"rocktal","metal":220000,"crystal":110000,"deut":110000,"priceFactor":1.3,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":9000},"12215":{"type":"tech 15","lifeform":"rocktal","metal":240000,"crystal":120000,"deut":120000,"priceFactor":1.3,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":9500},"12216":{"type":"tech 16","lifeform":"rocktal","metal":250000,"crystal":250000,"deut":250000,"priceFactor":1.4,"bonus1BaseValue":0.5,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":10000},"12217":{"type":"tech 17","lifeform":"rocktal","metal":500000,"crystal":300000,"deut":200000,"priceFactor":1.5,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":13000},"12218":{"type":"tech 18","lifeform":"rocktal","metal":300000,"crystal":180000,"deut":120000,"priceFactor":1.7,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":11000},"13101":{"type":"building","lifeform":"mecha","metal":6,"crystal":2,"deut":0,"priceFactor":1.21,"bonus1BaseValue":500,"bonus1IncreaseFactor":1.205,"bonus2BaseValue":24,"bonus2IncreaseFactor":1.2,"bonus3Value":22,"bonus3IncreaseFactor":1.15,"durationfactor":1.22,"durationbase":40},"13102":{"type":"building","lifeform":"mecha","metal":5,"crystal":2,"deut":0,"energy":8,"priceFactor":1.18,"energyIncreaseFactor":1.02,"bonus1BaseValue":18,"bonus1IncreaseFactor":1.15,"bonus2BaseValue":23,"bonus2IncreaseFactor":1.12,"durationfactor":1.2,"durationbase":48},"13103":{"type":"building","lifeform":"mecha","metal":30000,"crystal":20000,"deut":10000,"energy":13,"priceFactor":1.3,"energyIncreaseFactor":1.08,"bonus1BaseValue":0.25,"bonus1IncreaseFactor":1,"bonus1Max":0.25,"bonus2BaseValue":2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.25,"durationbase":16000},"13104":{"type":"building","lifeform":"mecha","metal":5000,"crystal":3800,"deut":1000,"energy":10,"priceFactor":1.8,"energyIncreaseFactor":1.2,"bonus1BaseValue":40000000,"bonus1IncreaseFactor":1.1,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"durationfactor":1.6,"durationbase":16000},"13105":{"type":"building","lifeform":"mecha","metal":50000,"crystal":40000,"deut":50000,"energy":40,"priceFactor":1.8,"energyIncreaseFactor":1.2,"bonus1BaseValue":130000000,"bonus1IncreaseFactor":1.1,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"durationfactor":1.7,"durationbase":64000},"13106":{"type":"building","lifeform":"mecha","metal":7500,"crystal":7000,"deut":1000,"priceFactor":1.3,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"bonus1Max":0.99,"durationfactor":1.3,"durationbase":2000},"13107":{"type":"building","lifeform":"mecha","metal":35000,"crystal":15000,"deut":10000,"energy":40,"priceFactor":1.5,"energyIncreaseFactor":1.05,"bonus1BaseValue":1,"bonus1IncreaseFactor":1,"bonus1Max":1,"bonus2BaseValue":0.3,"bonus2IncreaseFactor":1,"durationfactor":1.4,"durationbase":16000},"13108":{"type":"building","lifeform":"mecha","metal":50000,"crystal":20000,"deut":30000,"energy":40,"priceFactor":1.07,"energyIncreaseFactor":1.01,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"bonus2BaseValue":2,"bonus2IncreaseFactor":1,"durationfactor":1.17,"durationbase":12000},"13109":{"type":"building","lifeform":"mecha","metal":100000,"crystal":10000,"deut":3000,"energy":80,"priceFactor":1.14,"energyIncreaseFactor":1.04,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"bonus2BaseValue":6,"bonus2IncreaseFactor":1,"durationfactor":1.3,"durationbase":40000},"13110":{"type":"building","lifeform":"mecha","metal":100000,"crystal":40000,"deut":20000,"energy":60,"priceFactor":1.5,"energyIncreaseFactor":1.1,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":52000},"13111":{"type":"building","lifeform":"mecha","metal":55000,"crystal":50000,"deut":30000,"energy":70,"priceFactor":1.5,"energyIncreaseFactor":1.05,"bonus1BaseValue":0.4,"bonus1IncreaseFactor":1,"bonus1Max":1,"durationfactor":1.3,"durationbase":50000},"13112":{"type":"building","lifeform":"mecha","metal":250000,"crystal":125000,"deut":125000,"energy":100,"priceFactor":1.4,"energyIncreaseFactor":1.05,"bonus1BaseValue":1.3,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"durationfactor":1.4,"durationbase":95000},"13201":{"type":"tech 1","lifeform":"mecha","metal":10000,"crystal":6000,"deut":1000,"priceFactor":1.5,"bonus1BaseValue":0.08,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":1000},"13202":{"type":"tech 2","lifeform":"mecha","metal":7500,"crystal":12500,"deut":5000,"priceFactor":1.3,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":2000},"13203":{"type":"tech 3","lifeform":"mecha","metal":15000,"crystal":10000,"deut":5000,"priceFactor":1.5,"bonus1BaseValue":0.03,"bonus1IncreaseFactor":1,"bonus1Max":0.3,"durationfactor":1.4,"durationbase":2500},"13204":{"type":"tech 4","lifeform":"mecha","metal":20000,"crystal":15000,"deut":7500,"priceFactor":1.3,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":3500},"13205":{"type":"tech 5","lifeform":"mecha","metal":160000,"crystal":120000,"deut":50000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":4500},"13206":{"type":"tech 6","lifeform":"mecha","metal":50000,"crystal":50000,"deut":20000,"priceFactor":1.5,"bonus1BaseValue":0.06,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":5000},"13207":{"type":"tech 7","lifeform":"mecha","metal":70000,"crystal":40000,"deut":20000,"priceFactor":1.3,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":5500},"13208":{"type":"tech 8","lifeform":"mecha","metal":160000,"crystal":120000,"deut":50000,"priceFactor":1.5,"bonus1BaseValue":1,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":6000},"13209":{"type":"tech 9","lifeform":"mecha","metal":160000,"crystal":120000,"deut":50000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":6500},"13210":{"type":"tech 10","lifeform":"mecha","metal":85000,"crystal":40000,"deut":35000,"priceFactor":1.2,"bonus1BaseValue":0.15,"bonus1IncreaseFactor":1,"bonus1Max":0.9,"durationfactor":1.3,"durationbase":7000},"13211":{"type":"tech 11","lifeform":"mecha","metal":120000,"crystal":30000,"deut":25000,"priceFactor":1.3,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":7500},"13212":{"type":"tech 12","lifeform":"mecha","metal":160000,"crystal":120000,"deut":50000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":8000},"13213":{"type":"tech 13","lifeform":"mecha","metal":200000,"crystal":100000,"deut":100000,"priceFactor":1.5,"bonus1BaseValue":0.06,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":8500},"13214":{"type":"tech 14","lifeform":"mecha","metal":160000,"crystal":120000,"deut":50000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":9000},"13215":{"type":"tech 15","lifeform":"mecha","metal":320000,"crystal":240000,"deut":100000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":9500},"13216":{"type":"tech 16","lifeform":"mecha","metal":320000,"crystal":240000,"deut":100000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":10000},"13217":{"type":"tech 17","lifeform":"mecha","metal":500000,"crystal":300000,"deut":200000,"priceFactor":1.5,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":13000},"13218":{"type":"tech 18","lifeform":"mecha","metal":300000,"crystal":180000,"deut":120000,"priceFactor":1.7,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":11000},"14101":{"type":"building","lifeform":"kaelesh","metal":4,"crystal":3,"deut":0,"priceFactor":1.21,"bonus1BaseValue":250,"bonus1IncreaseFactor":1.21,"bonus2BaseValue":16,"bonus2IncreaseFactor":1.2,"bonus3Value":11,"bonus3IncreaseFactor":1.15,"durationfactor":1.22,"durationbase":40},"14102":{"type":"building","lifeform":"kaelesh","metal":6,"crystal":3,"deut":0,"energy":9,"priceFactor":1.2,"energyIncreaseFactor":1.02,"bonus1BaseValue":12,"bonus1IncreaseFactor":1.15,"bonus2BaseValue":12,"bonus2IncreaseFactor":1.14,"durationfactor":1.22,"durationbase":40},"14103":{"type":"building","lifeform":"kaelesh","metal":20000,"crystal":15000,"deut":15000,"energy":10,"priceFactor":1.3,"energyIncreaseFactor":1.08,"bonus1BaseValue":0.25,"bonus1IncreaseFactor":1,"bonus1Max":0.25,"bonus2BaseValue":2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.25,"durationbase":16000},"14104":{"type":"building","lifeform":"kaelesh","metal":7500,"crystal":5000,"deut":800,"energy":15,"priceFactor":1.8,"energyIncreaseFactor":1.3,"bonus1BaseValue":30000000,"bonus1IncreaseFactor":1.1,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"durationfactor":1.7,"durationbase":16000},"14105":{"type":"building","lifeform":"kaelesh","metal":60000,"crystal":30000,"deut":50000,"energy":30,"priceFactor":1.8,"energyIncreaseFactor":1.3,"bonus1BaseValue":100000000,"bonus1IncreaseFactor":1.1,"bonus2BaseValue":1,"bonus2IncreaseFactor":1,"durationfactor":1.8,"durationbase":64000},"14106":{"type":"building","lifeform":"kaelesh","metal":8500,"crystal":5000,"deut":3000,"priceFactor":1.25,"bonus1BaseValue":1,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"durationfactor":1.35,"durationbase":2000},"14107":{"type":"building","lifeform":"kaelesh","metal":15000,"crystal":15000,"deut":5000,"priceFactor":1.2,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":12000},"14108":{"type":"building","lifeform":"kaelesh","metal":75000,"crystal":25000,"deut":30000,"energy":30,"priceFactor":1.05,"energyIncreaseFactor":1.03,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"bonus2BaseValue":6,"bonus2IncreaseFactor":1,"durationfactor":1.18,"durationbase":16000},"14109":{"type":"building","lifeform":"kaelesh","metal":87500,"crystal":25000,"deut":30000,"energy":40,"priceFactor":1.2,"energyIncreaseFactor":1.02,"bonus1BaseValue":200,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":40000},"14110":{"type":"building","lifeform":"kaelesh","metal":150000,"crystal":30000,"deut":30000,"energy":140,"priceFactor":1.4,"energyIncreaseFactor":1.05,"bonus1BaseValue":2,"bonus1IncreaseFactor":1,"bonus1Max":0.3,"durationfactor":1.8,"durationbase":52000},"14111":{"type":"building","lifeform":"kaelesh","metal":75000,"crystal":50000,"deut":55000,"energy":90,"priceFactor":1.2,"energyIncreaseFactor":1.04,"bonus1BaseValue":1.5,"bonus1IncreaseFactor":1,"bonus1Max":0.7,"durationfactor":1.3,"durationbase":90000},"14112":{"type":"building","lifeform":"kaelesh","metal":500000,"crystal":250000,"deut":250000,"energy":100,"priceFactor":1.4,"energyIncreaseFactor":1.05,"bonus1BaseValue":0.5,"bonus1IncreaseFactor":1,"bonus1Max":0.3,"durationfactor":1.3,"durationbase":95000},"14201":{"type":"tech 1","lifeform":"kaelesh","metal":10000,"crystal":6000,"deut":1000,"priceFactor":1.5,"bonus1BaseValue":0.03,"bonus1IncreaseFactor":1,"bonus1Max":0.3,"durationfactor":1.4,"durationbase":1000},"14202":{"type":"tech 2","lifeform":"kaelesh","metal":7500,"crystal":12500,"deut":5000,"priceFactor":1.5,"bonus1BaseValue":0.08,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":2000},"14203":{"type":"tech 3","lifeform":"kaelesh","metal":15000,"crystal":10000,"deut":5000,"priceFactor":1.5,"bonus1BaseValue":0.05,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"durationfactor":1.4,"durationbase":2500},"14204":{"type":"tech 4","lifeform":"kaelesh","metal":20000,"crystal":15000,"deut":7500,"priceFactor":1.5,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":3500},"14205":{"type":"tech 5","lifeform":"kaelesh","metal":25000,"crystal":20000,"deut":10000,"priceFactor":1.5,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":4500},"14206":{"type":"tech 6","lifeform":"kaelesh","metal":50000,"crystal":50000,"deut":20000,"priceFactor":1.3,"bonus1BaseValue":0.4,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":5000},"14207":{"type":"tech 7","lifeform":"kaelesh","metal":70000,"crystal":40000,"deut":20000,"priceFactor":1.5,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.99,"durationfactor":1.3,"durationbase":5500},"14208":{"type":"tech 8","lifeform":"kaelesh","metal":80000,"crystal":50000,"deut":20000,"priceFactor":1.2,"bonus1BaseValue":0.6,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":6000},"14209":{"type":"tech 9","lifeform":"kaelesh","metal":320000,"crystal":240000,"deut":100000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":6500},"14210":{"type":"tech 10","lifeform":"kaelesh","metal":85000,"crystal":40000,"deut":35000,"priceFactor":1.2,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"durationfactor":1.2,"durationbase":7000},"14211":{"type":"tech 11","lifeform":"kaelesh","metal":120000,"crystal":30000,"deut":25000,"priceFactor":1.5,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":7500},"14212":{"type":"tech 12","lifeform":"kaelesh","metal":100000,"crystal":40000,"deut":30000,"priceFactor":1.5,"bonus1BaseValue":0.06,"bonus1IncreaseFactor":1,"durationfactor":1.3,"durationbase":8000},"14213":{"type":"tech 13","lifeform":"kaelesh","metal":200000,"crystal":100000,"deut":100000,"priceFactor":1.5,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"bonus1Max":0.99,"durationfactor":1.3,"durationbase":8500},"14214":{"type":"tech 14","lifeform":"kaelesh","metal":160000,"crystal":120000,"deut":50000,"priceFactor":1.5,"bonus1BaseValue":1,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":9000},"14215":{"type":"tech 15","lifeform":"kaelesh","metal":240000,"crystal":120000,"deut":120000,"priceFactor":1.5,"bonus1BaseValue":0.1,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":9500},"14216":{"type":"tech 16","lifeform":"kaelesh","metal":320000,"crystal":240000,"deut":100000,"priceFactor":1.5,"bonus1BaseValue":0.3,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":10000},"14217":{"type":"tech 17","lifeform":"kaelesh","metal":500000,"crystal":300000,"deut":200000,"priceFactor":1.5,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"bonus1Max":0.5,"bonus2BaseValue":0.2,"bonus2IncreaseFactor":1,"bonus2Max":0.99,"durationfactor":1.3,"durationbase":13000},"14218":{"type":"tech 18","lifeform":"kaelesh","metal":300000,"crystal":180000,"deut":120000,"priceFactor":1.7,"bonus1BaseValue":0.2,"bonus1IncreaseFactor":1,"durationfactor":1.4,"durationbase":11000}
@@ -11344,7 +11416,7 @@ class Datafinder
 }
 
 
-const css = 
+const css =
 `
 /*css*/
 
@@ -11384,7 +11456,7 @@ const css =
     --early:#79a2ff;
     --late:#df5252;
     --trader:#ff7d30;
-    
+
     --red:#f9392b;
     --pink:#ff7ba8;
     --purple:#ba68c8;
@@ -12725,9 +12797,20 @@ time span
     transform:translate(-50%, -50%);
 }
 
-#pageContent, #mainContent
+/*#pageContent, #mainContent
 {
     width:1045px !important;
+    width:990px !important;
+}*/
+
+#commandercomponent
+{
+    transform:translateX(55px);
+}
+
+#bar ul li.OGameClock
+{
+    transform:translateX(57px);
 }
 
 #box, #standalonepage #mainContent
@@ -15210,22 +15293,37 @@ label.ogl_off:hover
     vertical-align:bottom;
 }
 
-.ogl_shortcuts
+.ogl_shortCutWrapper
 {
     box-sizing:border-box;
     display:flex;
-    flex-wrap:wrap;
-    grid-gap:7px;
+    flex-direction:column;
     justify-content:center;
-    left:50%;
     pointer-events:none;
     position:fixed;
     text-transform:uppercase;
-    top:90%;
     z-index:10;
+
+    top:0;
+    height:calc(100vh - 25px);
+    left:0;
+    width:100vw;
 }
 
-.ogl_shortcuts:before
+.ogl_shortCutWrapper > div:nth-child(1)
+{
+    flex:1;
+}
+
+.ogl_shortcuts
+{
+    display:flex;
+    grid-gap:7px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+/*.ogl_shortcuts:before
 {
     background:rgba(0,0,0,.6);
     bottom:-5px;
@@ -15235,7 +15333,7 @@ label.ogl_off:hover
     position:absolute;
     right:-5px;
     top:-5px;
-}
+}*/
 
 .ogl_shortcuts *
 {
@@ -15245,6 +15343,7 @@ label.ogl_off:hover
 .ogl_shortcuts [data-key]
 {
     align-items:center;
+    box-shadow:0 0 5px rgba(0,0,0,.6);
     display:inline-flex;
     font-size:11px;
     grid-gap:5px;
@@ -16805,7 +16904,6 @@ label.ogl_off:hover
     box-shadow:none !important;
     box-sizing:border-box !important;
     display:flex !important;
-    grid-gap:50px !important;
     padding:4px 16px !important;
     width:642px !important;
 }
@@ -18218,9 +18316,20 @@ body[data-menulayout="1"], body[data-menulayout="2"]
         margin-left:260px !important;
     }
 
-    #pageContent, #mainContent
+    /*#pageContent, #mainContent
     {
         width:1016px !important;
+        width:990px !important;
+    }*/
+
+    #commandercomponent
+    {
+        transform:translateX(27px);
+    }
+
+    #bar ul li.OGameClock
+    {
+        transform:translateX(29px);
     }
 
     .ogl_topbar

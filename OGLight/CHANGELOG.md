@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.1.1] - 2024/04/01 15:10:00
+- Update with OGLight 5.0.2
+
 ### [5.1.0] - 2024/04/01 14:20:00
 - Add new shortcut 'M' to enable/disable the tooltips on our planets/moons list
 - Add new shortcuts 'Z' and 'X' to change quickly the default transportation ship
