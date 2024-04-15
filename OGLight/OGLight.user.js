@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.1.1
+// @version      5.1.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -1428,18 +1428,19 @@ class TimeManager extends Manager
 
         // bottom boxes
         Object.entries(this.productionBoxes).forEach(box =>
-        {
+                                                    {
             const techType = box[0] == 'restTimebuilding' ? 'baseBuilding' : box[0] == 'restTimeresearch' ? 'baseResearch' : box[0] == 'restTimeship2' ? 'ship' : box[0] == 'restTimelfbuilding' ? 'lfBuilding' : 'lfResearch';
+            const div = document.querySelector(`#${[box[1]]} .content`);
 
-            if(unsafeWindow[box[0]])
-            {
-                const div = document.querySelector(`#${[box[1]]} .content`);
-                const endTime = (this.ogl.db.options.useClientTime ? this.clientTime : this.serverTime) + unsafeWindow[box[0]] * 1000;
-                div.classList.add(`ogl_${techType}`);
-
-                let content = `<span>${new Date(endTime).toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'})}</span>
+            if (div) {
+                const countdownElement = div.querySelector('.countdown');
+                if (countdownElement) {
+                    const endTime = parseInt(countdownElement.getAttribute('data-end')) * 1000;
+                    div.classList.add(`ogl_${techType}`);
+                    let content = `<span>${new Date(endTime).toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'})}</span>
                 ${new Date(endTime).toLocaleTimeString('de-DE')}`;
-                Util.addDom('time', { parent:div, child:content });
+                    Util.addDom('time', { parent:div, child:content });
+                }
             }
         });
 
@@ -9535,12 +9536,13 @@ class TechManager extends Manager
         const time = serverTime.getTime();
 
         Object.entries(this.ogl._time.productionBoxes).forEach(box =>
-        {
-            if(unsafeWindow[box[0]])
-            {
-                const techType = box[0] == 'restTimebuilding' ? 'baseBuilding' : box[0] == 'restTimeresearch' ? 'baseResearch' : box[0] == 'restTimeship2' ? 'ship' : box[0] == 'restTimelfbuilding' ? 'lfBuilding' : box[0] == 'restTimelfresearch' ? 'lfResearch' : 'unknown';
-                const coords = document.querySelector(`#${[box[1]]} .first .queuePic`).parentNode.getAttribute('onclick')?.match(/[([0-9:]+]/)?.[0]?.slice(1, -1);
+                                                               {
 
+            const techType = box[0] == 'restTimebuilding' ? 'baseBuilding' : box[0] == 'restTimeresearch' ? 'baseResearch' : box[0] == 'restTimeship2' ? 'ship' : box[0] == 'restTimelfbuilding' ? 'lfBuilding' : box[0] == 'restTimelfresearch' ? 'lfResearch' : 'unknown';
+            const image = document.querySelector(`#${[box[1]]} .first .queuePic`);
+
+            if (image) {
+                const coords = image.parentNode.getAttribute('onclick')?.match(/[([0-9:]+]/)?.[0]?.slice(1, -1);
                 if(!coords || (coords == this.ogl.currentPlanet.obj.coords && this.ogl.currentPlanet.obj.type != 'moon'))
                 {
                     this.ogl.currentPlanet.obj.upgrades[techType] = [];
@@ -9548,32 +9550,31 @@ class TechManager extends Manager
                     let itemEndTime = 0;
 
                     document.querySelectorAll(`#${[box[1]]} .queuePic`).forEach((item, index) =>
-                    {
+                                                                                {
                         const urlParams = new URLSearchParams(item.parentNode.href);
                         const id = urlParams.get('openTech') || item.parentNode?.getAttribute('onclick')?.match(/([0-9]+)/)[0];
-
                         if(!id) return; //can't detect def
 
                         const lvl = item.closest('.first')?.parentNode?.querySelector('.level')?.innerText.match(/\d+/)[0] || item.closest('.first')?.querySelector('.shipSumCount')?.innerText || item.parentNode.innerText;
                         const data = this.getTechData(id, lvl, this.ogl.currentPlanet.obj.id);
-                        const endTime = index == 0 ? unsafeWindow[box[0]] * 1000 : data.target.duration;
+                        const div = document.querySelector(`#${[box[1]]} .content`);
+                        const countdownElement = div.querySelector('.countdown');
 
-                        itemEndTime += endTime;
+                        if (countdownElement) {
+                            const endTime = index == 0 ? parseInt(countdownElement.getAttribute('data-end')) * 1000 : data.target.duration;
 
-                        const upgrade = {};
-                        upgrade.id = id;
-                        upgrade.lvl = lvl;
-                        upgrade.end = time + itemEndTime;
-                        upgrade.type = techType;
+                            itemEndTime += endTime;
 
-                        this.ogl.currentPlanet.obj.upgrades[techType].push(upgrade);
+                            const upgrade = {};
+                            upgrade.id = id;
+                            upgrade.lvl = lvl;
+                            upgrade.end = time + itemEndTime;
+                            upgrade.type = techType;
+
+                            this.ogl.currentPlanet.obj.upgrades[techType].push(upgrade);
+                        }
                     });
                 }
-            }
-            else if(document.querySelector(`#${[box[1]]}`))
-            {
-                const techType = box[1] == 'productionboxbuildingcomponent' ? 'baseBuilding' : box[1] == 'productionboxresearchcomponent' ? 'baseResearch' : box[1] == 'productionboxshipyardcomponent' ? 'ship' : box[1] == 'productionboxlfbuildingcomponent' ? 'lfBuilding' : 'lfResearch';
-                this.ogl.currentPlanet.obj.upgrades[techType] = [];
             }
         });
     }

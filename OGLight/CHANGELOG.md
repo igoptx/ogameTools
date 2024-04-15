@@ -1,5 +1,10 @@
 # OGLight - Changelog
 
+### [5.1.2] - 2024/04/15 10:46:00
+- Fix showing end time in general view boxes
+- Fix the dots in planet list for ongoing buildings, researchs, etc
+- Fix the popup menu on planets to show the ongoing buildings, researchs, etc
+
 ### [5.1.1] - 2024/04/01 15:10:00
 - Update with OGLight 5.0.2
 
