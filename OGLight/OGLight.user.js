@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.1.2
+// @version      5.1.3
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -139,6 +139,7 @@ class OGLight
         this.db.keepEnoughCapacityShipJumpgate = this.db.keepEnoughCapacityShipJumpgate || 200;
         this.db.spyProbesCount = this.db.spyProbesCount || 6;
         this.db.configState = this.db.configState || { fleet:true, general:true, expeditions:true, stats:true, messages:true, data:true };
+        this.db.lastProductionQeueuUpdate = this.db.lastProductionQeueuUpdate || 0;
 
         this.db.options = this.db.options || {};
         this.db.options.defaultShip = this.db.options.defaultShip || 202;
@@ -167,6 +168,7 @@ class OGLight
         this.db.options.msu = this.db.options.msu || '1:2:3';
         this.db.options.disablePlanetTooltips = this.db.options.disablePlanetTooltips || false;
         this.db.options.displaySpyTable = this.db.options.displaySpyTable === false ? false : true;
+        this.db.options.shortcutsOnRight = this.db.options.shortcutsOnRight || !1;
 
         this.db.options.keyboardActions = this.db.options.keyboardActions || {};
         this.db.options.keyboardActions.menu = this.db.options.keyboardActions.menu || '²';
@@ -474,6 +476,10 @@ class OGLight
             setTimeout(() => this._fetch.fetchEmpire(), !this.currentPlanet.obj ? 0 : 20000);
         }
 
+        if (!this.db.lastProductionQueueUpdate || Date.now() > this.db.lastProductionQueueUpdate + 60000 && this.page !== "fleetdispatch") {
+            setTimeout(() => this._fetch.fetchProductionQueue(), this.currentPlanet.obj ? 5000 : 0);
+        }
+
         this.db.myPlanets[currentID] = this.db.myPlanets[currentID] || {};
         this.currentPlanet.obj = this.db.myPlanets[currentID];
         this.currentPlanet.obj.type = document.querySelector('head meta[name="ogame-planet-type"]').getAttribute('content');
@@ -517,47 +523,50 @@ class OGLight
             Util.addDom('div', { class:'ogl_resourceBoxStorage', child:text, parent:box });
         });
 
-        document.querySelectorAll('.planetlink, .moonlink').forEach(planet =>
-        {
-            const urlParams = new URLSearchParams(planet.getAttribute('href'));
-            const id = urlParams.get('cp').split('#')[0];
+        document.querySelectorAll('.planetlink, .moonlink').forEach(element => {
+            const planetId = new URLSearchParams(element.getAttribute('href')).get('cp').split('#')[0];
 
-            this.db.myPlanets[id] = this.db.myPlanets[id] || {};
+            this.db.myPlanets[planetId] = this.db.myPlanets[planetId] || {};
 
-            ['metal', 'crystal', 'deut'].forEach(resourceName =>
-            {
-                let resource = this.db.myPlanets[id]?.[resourceName] || 0;
-                let storage = this.db.myPlanets[id]?.[resourceName+'Storage'] || 0;
-                let div = planet.querySelector('.ogl_available') || Util.addDom('span', { class:'ogl_available', parent:planet });
+            ['metal', 'crystal', 'deut'].forEach((resource) => {
+                let currentAmount = this.db.myPlanets[planetId]?.[resource] || 0;
+                let storageAmount = this.db.myPlanets[planetId]?.[resource + 'Storage'] || 0;
 
-                Util.addDom('span', { class:'ogl_'+resourceName, parent:div, child:Util.formatToUnits(resource, 0) });
+                let availableElement = element.querySelector('.ogl_available') || Util.addDom('span', { class: 'ogl_available', parent: element });
 
-                const selector = planet.querySelector('.ogl_available .ogl_'+resourceName);
-                selector.innerHTML = Util.formatToUnits(resource, 1);
+                Util.addDom('span', { class: 'ogl_' + resource, parent: availableElement, child: Util.formatToUnits(currentAmount, 0) });
 
-                if(resource >= storage && planet.classList.contains('planetlink')) selector.classList.add('ogl_danger');
-                else selector.classList.remove('ogl_danger');
+                const resourceElement = element.querySelector('.ogl_available .ogl_' + resource);
+
+                resourceElement.innerHTML = Util.formatToUnits(currentAmount, 1);
+
+                if (currentAmount >= storageAmount && element.classList.contains('planetlink')) {
+                    resourceElement.classList.add('ogl_danger');
+                } else if (currentAmount >= 0.9 * storageAmount && element.classList.contains('planetlink')) {
+                    resourceElement.classList.add('ogl_warning');
+                } else {
+                    resourceElement.classList.remove('ogl_warning');
+                    resourceElement.classList.remove('ogl_danger');
+                }
             });
 
-            this.addRefreshTimer(id, planet);
+            this.addRefreshTimer(planetId, element);
 
-            if(!this.db.options.displayPlanetTimers)
-            {
+            if (!this.db.options.displayPlanetTimers) {
                 document.querySelector('#planetList').classList.add('ogl_alt');
             }
 
-            if(this.cache.toSend && this.mode !== 3) delete this.cache.toSend;
-
-            if(planet.classList.contains('planetlink'))
-            {
-                planet.classList.add('tooltipLeft');
-                planet.classList.remove('tooltipRight');
-                planet.querySelector('.planet-koords').innerHTML = `<span class="ogl_hidden">[</span>${planet.querySelector('.planet-koords').textContent.slice(1, -1)}<span class="ogl_hidden">]</span>`;
+            if (this.cache.toSend && this.mode !== 3) {
+                delete this.cache.toSend;
             }
-            else
-            {
-                planet.classList.add('tooltipRight');
-                planet.classList.remove('tooltipLeft');
+
+            if (element.classList.contains('planetlink')) {
+                element.classList.add('tooltipLeft');
+                element.classList.remove('tooltipRight');
+                element.querySelector('.planet-koords').innerHTML = `<span class="ogl_hidden">[</span>${element.querySelector(".planet-koords").textContent.slice(1,-1)}<span class="ogl_hidden">]</span>`;
+            } else {
+                element.classList.add('tooltipRight');
+                element.classList.remove('tooltipLeft');
             }
         });
     }
@@ -632,8 +641,10 @@ class OGLight
             {
                 if(this.url.indexOf('action=checkTarget') >= 0 && !self._fleet.isReady) // clear default fleet loading
                 {
-                    fleetDispatcher.fetchTargetPlayerDataTimeout = null;
-                    xhr.abort();
+                    if (window.fleetDispatcher) {
+                        fleetDispatcher.fetchTargetPlayerDataTimeout = null;
+                        xhr.abort();
+                    }
                 }
                 else if(this.url.indexOf('action=fetchGalaxyContent') >= 0) // abort galaxy spam
                 {
@@ -794,6 +805,11 @@ class OGLight
             });
 
             this.db.dataFormat = 16;
+        }
+
+        if (this.db.dataFormat < 17) {
+            this.db.options.msu = "3:2:1";
+            this.db.dataFormat = 17;
         }
     }
 
@@ -966,6 +982,7 @@ class LangManager extends Manager
             boardTab:"Display board news",
             msu:"Metal standard unit",
             notifyNoProbe:"Feature disabled :(",
+            shortcutsOnRight: "Display shortcuts under the planet menu",
 
             ptreTeamKey:"Team key",
             ptreLogs:"Display PTRE errors",
@@ -1125,6 +1142,7 @@ class LangManager extends Manager
             boardTab:"Afficher les annonces du board",
             msu:"Metal standard unit",
             notifyNoProbe:"Fonctionnalité desactivée :(",
+            shortcutsOnRight: "Raccourcis sous le menu des planètes",
 
             ptreTeamKey:"Team key",
             ptreLogs:"Afficher les erreurs PTRE",
@@ -1284,6 +1302,7 @@ class LangManager extends Manager
             boardTab:"Mostrar notícias",
             msu:"Unidade de Metal",
             notifyNoProbe:"Funcionalidade desactivada :(",
+            shortcutsOnRight: "Mostrar atalhos debaixo do menu dos planetas",
 
             ptreTeamKey:"Chave de Equipa",
             ptreLogs:"Mostrar erros do PTRE",
@@ -1379,7 +1398,8 @@ class TimeManager extends Manager
             restTimeresearch:'productionboxresearchcomponent', // base research
             restTimeship2:'productionboxshipyardcomponent', // base ships
             restTimelfbuilding:'productionboxlfbuildingcomponent', // lifeform building
-            restTimelfresearch:'productionboxlfresearchcomponent' // lifeform research
+            restTimelfresearch:'productionboxlfresearchcomponent', // lifeform research
+            mecha: 'productionboxextendedshipyardcomponent'
         };
 
         if(this.ogl.page == 'fleetdispatch')
@@ -1682,6 +1702,32 @@ class FetchManager extends Manager
             this.ogl._empire.getLFBonuses(xml);
             this.ogl.db.lastLFBonusUpdate = Date.now();
         });
+    }
+
+    fetchProductionQueue() {
+        this.ogl._topbar.syncBtn.classList.add("ogl_active"), fetch(`https://${window.location.host}/game/index.php?page=ajax&component=productionqueue&ajax=1`, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        }).then((e => e.text())).then((e => {
+            let t = (new DOMParser).parseFromString(e, "text/html");
+            document.querySelectorAll(".planetlink, .moonlink").forEach((e => {
+                const n = new URLSearchParams(e.getAttribute("href")).get("cp").split("#")[0],
+                    o = {
+                        baseBuilding: t.querySelector(`time.building${n}`),
+                        ship: t.querySelector(`time.ship${n}`),
+                        lfBuilding: t.querySelector(`time.lfbuilding${n}`),
+                        lfResearch: t.querySelector(`time.lfresearch${n}`),
+                        mechaShip: t.querySelector(`time.ship_2nd${n}`)
+                    };
+                this.ogl.db.myPlanets[n].upgrades = this.ogl.db.myPlanets[n].upgrades || {};
+                for (let [e] of Object.entries(o))
+                    if (o[e]) {
+                        const t = {};
+                        t.name = o[e].closest(".productionDetails").querySelector(".productionName").childNodes[0].textContent, t.lvl = parseInt(o[e].closest(".productionDetails").querySelector(".productionLevel").innerText.replace(/\D/g, "")), t.end = 1e3 * parseInt(o[e].getAttribute("data-end")), t.type = e, this.ogl.db.myPlanets[n].upgrades[e] = [t]
+                    } else this.ogl.db.myPlanets[n].upgrades[e] = []
+            })), this.ogl._topbar.checkUpgrade(), this.ogl.db.lastProductionQueueUpdate = Date.now()
+        }))
     }
 
     fetchPlayerAPI(id, name, afterAjax)
@@ -2405,7 +2451,7 @@ class UIManager extends Manager
 
             if(this.ogl.db.pdb[planet]?.home) div.classList.add('ogl_home');
 
-            if(window.unsafeWindow['galaxy'] == coords[0] && window.unsafeWindow['system'] == coords[1]) div.querySelector('[data-galaxy]').classList.add('ogl_active');
+            if(unsafeWindow['galaxy'] == coords[0] && unsafeWindow['system'] == coords[1]) div.querySelector('[data-galaxy]').classList.add('ogl_active');
 
             this.addSpyIcons(div, coords);
         });
@@ -2842,68 +2888,63 @@ class UIManager extends Manager
             });
         });
 
-        const msuValue = this.ogl.db.options.msu.split(':');
-        this.resources.total.msu = this.resources.total.metal * msuValue[0] + this.resources.total.crystal * msuValue[1] + this.resources.total.deut * msuValue[2];
+        const msu = this.ogl.db.options.msu;
 
-        this.resources.prod.metal = Math.floor(this.resources.prod.metal * 3600 * 24);
-        this.resources.prod.crystal = Math.floor(this.resources.prod.crystal * 3600 * 24);
-        this.resources.prod.deut = Math.floor(this.resources.prod.deut * 3600 * 24);
-        this.resources.prod.msu = this.resources.prod.metal * msuValue[0] + this.resources.prod.crystal * msuValue[1] + this.resources.prod.deut * msuValue[2];
+        this.resources.total.msu = Util.getMSU(this.resources.total.metal, this.resources.total.crystal, this.resources.total.deut, msu);
+        this.resources.prod.metal = Math.floor(3600 * this.resources.prod.metal * 24);
+        this.resources.prod.crystal = Math.floor(3600 * this.resources.prod.crystal * 24);
+        this.resources.prod.deut = Math.floor(3600 * this.resources.prod.deut * 24);
+        this.resources.prod.msu = Util.getMSU(this.resources.prod.metal, this.resources.prod.crystal, this.resources.prod.deut, msu);
 
-        this.resourceDiv.querySelector('.ogl_metal').innerHTML = `<span>${Util.formatToUnits(this.resources.total.metal)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.metal, 1))}</span>`;
-        this.resourceDiv.querySelector('.ogl_crystal').innerHTML = `<span>${Util.formatToUnits(this.resources.total.crystal)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.crystal, 1))}</span>`;
-        this.resourceDiv.querySelector('.ogl_deut').innerHTML = `<span>${Util.formatToUnits(this.resources.total.deut)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.deut, 1))}</span>`;
-        this.resourceDiv.querySelector('.ogl_msu').innerHTML = `<span>${Util.formatToUnits(this.resources.total.msu)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.msu, 1))}</span>`;
+        this.resourceDiv.querySelector('.ogl_metal').innerHTML = `<span>${Util.formatToUnits(this.resources.total.metal)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.metal,1))}</span>`;
+        this.resourceDiv.querySelector('.ogl_crystal').innerHTML = `<span>${Util.formatToUnits(this.resources.total.crystal)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.crystal,1))}</span>`;
+        this.resourceDiv.querySelector('.ogl_deut').innerHTML = `<span>${Util.formatToUnits(this.resources.total.deut)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.deut,1))}</span>`;
+        this.resourceDiv.querySelector('.ogl_msu').innerHTML = `<span>${Util.formatToUnits(this.resources.total.msu)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.msu,1))}</span>`;
         this.resourceDiv.querySelector('.ogl_defaultship').innerHTML = `<span id="defaultship_name">${this.ogl._lang.find(this.ogl.db.options.defaultShip)}</span>`;
 
-        if(!this.recapReady)
-        {
+        if (!this.recapReady) {
             this.recapReady = true;
             this.resourceDiv.classList.add('tooltipLeft');
             this.resourceDiv.classList.add('tooltipClick');
             this.resourceDiv.classList.add('tooltipClose');
             this.resourceDiv.classList.add('tooltipUpdate');
 
-            this.resourceDiv.addEventListener('tooltip', () =>
-            {
-                const container = Util.addDom('div', { class:'ogl_resourcesDetail' });
-
-                container.innerHTML =
-                `
-                    <div>
-                        <h3 class="material-icons">precision_manufacturing</h3>
-                        <div class="ogl_metal">+${Util.formatToUnits(this.resources.prod.metal)}</div>
-                        <div class="ogl_crystal">+${Util.formatToUnits(this.resources.prod.crystal)}</div>
-                        <div class="ogl_deut">+${Util.formatToUnits(this.resources.prod.deut)}</div>
-                    </div>
-                    <div>
-                        <h3 class="material-icons">format_list_bulleted</h3>
-                        <div class="ogl_metal ogl_todoDays">${Util.formatToUnits(this.resources.todo.metal)} <span>(${Math.ceil(Math.max(0, this.resources.todo.metal - this.resources.total.metal) / this.resources.prod.metal)}${LocalizationStrings.timeunits.short.day})</span></div>
-                        <div class="ogl_crystal ogl_todoDays">${Util.formatToUnits(this.resources.todo.crystal)} <span>(${Math.ceil(Math.max(0, this.resources.todo.crystal - this.resources.total.crystal) / this.resources.prod.crystal)}${LocalizationStrings.timeunits.short.day})</span></div>
-                        <div class="ogl_deut ogl_todoDays">${Util.formatToUnits(this.resources.todo.deut)} <span>(${Math.ceil(Math.max(0, this.resources.todo.deut - this.resources.total.deut) / this.resources.prod.deut)}${LocalizationStrings.timeunits.short.day})</span></div>
-                    </div>
-                    <hr>
-                    <div>
-                        <h3 class="material-icons">globe_uk</h3>
-                        <div class="ogl_metal">${Util.formatToUnits(this.resources.ground.metal)}</div>
-                        <div class="ogl_crystal">${Util.formatToUnits(this.resources.ground.crystal)}</div>
-                        <div class="ogl_deut">${Util.formatToUnits(this.resources.ground.deut)}</div>
-                    </div>
-                    <div>
-                        <h3 class="material-icons">send</h3>
-                        <div class="ogl_metal">${Util.formatToUnits(this.resources.fly.metal)}</div>
-                        <div class="ogl_crystal">${Util.formatToUnits(this.resources.fly.crystal)}</div>
-                        <div class="ogl_deut">${Util.formatToUnits(this.resources.fly.deut)}</div>
-                    </div>
-                    <div>
-                        <h3 class="material-icons">sigma</h3>
-                        <div class="ogl_metal">${Util.formatToUnits(this.resources.total.metal)}</div>
-                        <div class="ogl_crystal">${Util.formatToUnits(this.resources.total.crystal)}</div>
-                        <div class="ogl_deut">${Util.formatToUnits(this.resources.total.deut)}</div>
-                    </div>
-                `;
-
-                this.ogl._tooltip.update(container);
+            this.resourceDiv.addEventListener("tooltip", () => {
+                const detailDiv = Util.addDom("div", { class: "ogl_resourcesDetail" });
+                detailDiv.innerHTML = `
+                <div>
+                    <h3 class="material-icons">precision_manufacturing</h3>
+                    <div class="ogl_metal">+${Util.formatToUnits(this.resources.prod.metal)}</div>
+                    <div class="ogl_crystal">+${Util.formatToUnits(this.resources.prod.crystal)}</div>
+                    <div class="ogl_deut">+${Util.formatToUnits(this.resources.prod.deut)}</div>
+                </div>
+                <div>
+                    <h3 class="material-icons">format_list_bulleted</h3>
+                    <div class="ogl_metal ogl_todoDays">${Util.formatToUnits(this.resources.todo.metal)} <span>(${Math.ceil(Math.max(0,this.resources.todo.metal-this.resources.total.metal)/this.resources.prod.metal)}${LocalizationStrings.timeunits.short.day})</span></div>
+                    <div class="ogl_crystal ogl_todoDays">${Util.formatToUnits(this.resources.todo.crystal)} <span>(${Math.ceil(Math.max(0,this.resources.todo.crystal-this.resources.total.crystal)/this.resources.prod.crystal)}${LocalizationStrings.timeunits.short.day})</span></div>
+                    <div class="ogl_deut ogl_todoDays">${Util.formatToUnits(this.resources.todo.deut)} <span>(${Math.ceil(Math.max(0,this.resources.todo.deut-this.resources.total.deut)/this.resources.prod.deut)}${LocalizationStrings.timeunits.short.day})</span></div>
+                </div>
+                <hr>
+                <div>
+                    <h3 class="material-icons">globe_uk</h3>
+                    <div class="ogl_metal">${Util.formatToUnits(this.resources.ground.metal)}</div>
+                    <div class="ogl_crystal">${Util.formatToUnits(this.resources.ground.crystal)}</div>
+                    <div class="ogl_deut">${Util.formatToUnits(this.resources.ground.deut)}</div>
+                </div>
+                <div>
+                    <h3 class="material-icons">send</h3>
+                    <div class="ogl_metal">${Util.formatToUnits(this.resources.fly.metal)}</div>
+                    <div class="ogl_crystal">${Util.formatToUnits(this.resources.fly.crystal)}</div>
+                    <div class="ogl_deut">${Util.formatToUnits(this.resources.fly.deut)}</div>
+                </div>
+                <div>
+                    <h3 class="material-icons">sigma</h3>
+                    <div class="ogl_metal">${Util.formatToUnits(this.resources.total.metal)}</div>
+                    <div class="ogl_crystal">${Util.formatToUnits(this.resources.total.crystal)}</div>
+                    <div class="ogl_deut">${Util.formatToUnits(this.resources.total.deut)}</div>
+                </div>
+            `;
+                this.ogl._tooltip.update(detailDiv);
             });
         }
     }
@@ -2935,6 +2976,7 @@ class TopbarManager extends Manager
         {
             this.ogl._fetch.fetchLFBonuses();
             this.ogl._fetch.fetchEmpire();
+            this.ogl._fetch.fetchProductionQueue();
             this.syncBtn.classList.add('ogl_disabled');
         }});
 
@@ -2960,207 +3002,111 @@ class TopbarManager extends Manager
         }});
     }
 
-    openAccount()
-    {
-        const container = Util.addDom('div', {class:'ogl_empire'});
-        const count = document.querySelectorAll('.smallplanet').length;
-        const stack = {};
-        stack.fieldUsed = 0;
-        stack.fieldMax = 0;
-        stack.fieldLeft = 0;
-        stack.temperature = 0;
-        stack.metal = 0;
-        stack.crystal = 0;
-        stack.deut = 0;
-        stack.prodmetal = 0;
-        stack.prodcrystal = 0;
-        stack.proddeut = 0;
+    openAccount() {
+        const empireDiv = Util.addDom("div", { class: "ogl_empire" });
+        const planetCount = document.querySelectorAll(".smallplanet").length;
+        const summary = {
+            fieldUsed: 0,
+            fieldMax: 0,
+            fieldLeft: 0,
+            temperature: 0,
+            metal: 0,
+            crystal: 0,
+            deut: 0,
+            prodmetal: 0,
+            prodcrystal: 0,
+            proddeut: 0
+        };
 
-        // top
-        Util.addDom('div', {class:'ogl_invisible', parent:container});
-        Util.addDom('div', {class:'ogl_invisible', parent:container});
-        Util.addDom('div', {class:'ogl_invisible', parent:container});
-        Util.addDom('div', {class:'ogl_invisible', parent:container});
-        Util.addDom('div', {class:'ogl_invisible', parent:container});
-        Util.addDom('div', {class:'ogl_invisible', parent:container});
-        Util.addDom('div', {class:'ogl_invisible', parent:container});
-        Util.addDom('div', {class:'ogl_icon ogl_metal', parent:container});
-        Util.addDom('div', {class:'ogl_icon ogl_crystal', parent:container});
-        Util.addDom('div', {class:'ogl_icon ogl_deut', parent:container});
+        for (let i = 0; i < 7; i++) {
+            Util.addDom("div", { class: 'ogl_invisible', parent: empireDiv });
+        }
 
-        Util.addDom('div', {child:this.ogl._lang.find('coords'), parent:container});
-        Util.addDom('div', {child:this.ogl._lang.find('P'), parent:container});
-        Util.addDom('div', {child:this.ogl._lang.find('M'), parent:container});
-        Util.addDom('div', {child:this.ogl._lang.find('name'), parent:container});
-        Util.addDom('div', {child:this.ogl._lang.find('fields'), parent:container});
-        Util.addDom('div', {child:this.ogl._lang.find('T'), parent:container});
-        Util.addDom('div', {child:this.ogl._lang.find('lf'), parent:container});
+        Util.addDom('div', { class: 'ogl_icon ogl_metal', parent: empireDiv });
+        Util.addDom('div', { class: 'ogl_icon ogl_crystal', parent: empireDiv });
+        Util.addDom('div', { class: 'ogl_icon ogl_deut', parent: empireDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('coords'), parent: empireDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('P'), parent: empireDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('M'), parent: empireDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('name'), parent: empireDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('fields'), parent: empireDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('T'), parent: empireDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('lf'), parent: empireDiv });
 
-        /*Util.addDom('div',
-        {
-            parent:container,
-            child:`${Math.round(stack.fieldUsed / count)}/${Math.round(stack.fieldMax / count)} (<span>${Math.round(stack.fieldLeft / count)}</span>)`
-        });
+        let metalDiv = Util.addDom("div", { class: "ogl_metal", parent: empireDiv });
+        let crystalDiv = Util.addDom("div", { class: "ogl_crystal", parent: empireDiv });
+        let deutDiv = Util.addDom("div", { class: "ogl_deut", parent: empireDiv });
 
-        let stackedTemperature = Util.addDom('div',
-        {
-            parent:container,
-            child:Math.round(stack.temperature / count) + '°C'
-        });
+        document.querySelectorAll(".smallplanet").forEach((planet) => {
+            const planetId = planet.getAttribute("id").replace("planet-", "");
+            const planetData = this.ogl.db.myPlanets[planetId];
+            const planetName = planet.querySelector(".planet-name").innerText;
 
-        if(stack.temperature / count >= 110) stackedTemperature.style.color = "#af644d"; // too hot
-        else if(stack.temperature / count>= 10) stackedTemperature.style.color = "#af9e4d"; // hot
-        else if(stack.temperature / count >= -40) stackedTemperature.style.color = "#4daf67"; // normal
-        else if(stack.temperature / count >= -140) stackedTemperature.style.color = "#4dafa6"; // cold
-        else stackedTemperature.style.color = "#4d79af"; // too cold*/
-
-        let metalStack = Util.addDom('div',
-        {
-            class:'ogl_metal',
-            parent:container
-        });
-
-        let crystalStack = Util.addDom('div',
-        {
-            class:'ogl_crystal',
-            parent:container
-        });
-
-        let deutStack = Util.addDom('div',
-        {
-            class:'ogl_deut',
-            parent:container
-        });
-
-        document.querySelectorAll('.smallplanet').forEach(line =>
-        {
-            const id = line.getAttribute('id').replace('planet-', '');
-            const planet = this.ogl.db.myPlanets[id];
-            const name = line.querySelector('.planet-name').innerText;
-
-            // coords
-            let coordDiv = Util.addDom('div',
-            {
-                parent:container,
-                'data-galaxy':planet.coords,
-                child:planet.coords
-            });
-
-            if(line.getAttribute('data-group')) coordDiv.setAttribute('data-group', line.getAttribute('data-group'));
-
-            // planet picture
-            Util.addDom('a',
-            {
-                parent:container,
-                href:line.querySelector('.planetlink').getAttribute('href'),
-                child:Util.addDom('img',
-                {
-                    src:line.querySelector('.planetPic').getAttribute('src')
-                })
-            });
-
-            // moon picture
-            if(line.querySelector('.moonlink'))
-            {
-                Util.addDom('a',
-                {
-                    parent:container,
-                    href:line.querySelector('.moonlink').getAttribute('href'),
-                    child:Util.addDom('img',
-                    {
-                        src:line.querySelector('.moonlink img').getAttribute('src')
-                    })
-                });
-            }
-            else
-            {
-                Util.addDom('div', { class:'ogl_invisible', parent:container });
+            let coordDiv = Util.addDom("div", { parent: empireDiv, "data-galaxy": planetData.coords, child: planetData.coords });
+            if (planet.getAttribute("data-group")) {
+                coordDiv.setAttribute("data-group", planet.getAttribute("data-group"));
             }
 
-            // planet name
-            Util.addDom('div',
-            {
-                parent:container,
-                child:name
-            });
+            Util.addDom("a", { parent: empireDiv, href: planet.querySelector(".planetlink").getAttribute("href"), child: Util.addDom("img", { src: planet.querySelector(".planetPic").getAttribute("src") }) });
 
-            // planet fields
-            Util.addDom('div',
-            {
-                parent:container,
-                child:`${planet.fieldUsed}/${planet.fieldMax} (<span>${planet.fieldMax-planet.fieldUsed}</span>)`
-            });
+            if (planet.querySelector(".moonlink")) {
+                Util.addDom("a", { parent: empireDiv, href: planet.querySelector(".moonlink").getAttribute("href"), child: Util.addDom("img", { src: planet.querySelector(".moonlink img").getAttribute("src") }) });
+            } else {
+                Util.addDom("div", { class: "ogl_invisible", parent: empireDiv });
+            }
 
-            stack.fieldUsed += planet.fieldUsed;
-            stack.fieldMax += planet.fieldMax;
-            stack.fieldLeft += (planet.fieldMax-planet.fieldUsed);
+            Util.addDom("div", { parent: empireDiv, child: planetName });
+            Util.addDom("div", { parent: empireDiv, child: `${planetData.fieldUsed}/${planetData.fieldMax} (<span>${planetData.fieldMax - planetData.fieldUsed}</span>)` });
 
-            // °C
-            let temperature = Util.addDom('div',
-            {
-                parent:container,
-                child:planet.temperature + 40 + '°C'
-            });
+            summary.fieldUsed += planetData.fieldUsed;
+            summary.fieldMax += planetData.fieldMax;
+            summary.fieldLeft += planetData.fieldMax - planetData.fieldUsed;
 
-            stack.temperature += (planet.temperature + 40);
+            let tempDiv = Util.addDom("div", { parent: empireDiv, child: `${planetData.temperature + 40}°C` });
+            summary.temperature += planetData.temperature + 40;
 
-            if(planet.temperature >= 110) temperature.style.color = "#af644d"; // too hot
-            else if(planet.temperature>= 10) temperature.style.color = "#af9e4d"; // hot
-            else if(planet.temperature >= -40) temperature.style.color = "#4daf67"; // normal
-            else if(planet.temperature >= -140) temperature.style.color = "#4dafa6"; // cold
-            else temperature.style.color = "#4d79af"; // too cold
+            if (planetData.temperature >= 110) {
+                tempDiv.style.color = "#af644d";
+            } else if (planetData.temperature >= 10) {
+                tempDiv.style.color = "#af9e4d";
+            } else if (planetData.temperature >= -40) {
+                tempDiv.style.color = "#4daf67";
+            } else if (planetData.temperature >= -140) {
+                tempDiv.style.color = "#4dafa6";
+            } else {
+                tempDiv.style.color = "#4d79af";
+            }
 
-            // lieform
-            Util.addDom('div',
-            {
-                class:`ogl_icon ogl_lifeform${planet.lifeform || 0}`,
-                parent:container
-            });
+            Util.addDom("div", { class: `ogl_icon ogl_lifeform${planetData.lifeform || 0}`, parent: empireDiv });
 
-            // metal mine
-            let metal = Util.addDom('div',
-            {
-                class:'ogl_metal',
-                parent:container,
-                child:`<strong>${planet[1]}</strong><small>+${Util.formatToUnits(Math.round((planet.prodmetal || 0) * 3600 * 24))}</small>`
-            });
+            let metalProdDiv = Util.addDom("div", { class: "ogl_metal", parent: empireDiv, child: `<strong>${planetData[1]}</strong><small>+${Util.formatToUnits(Math.round(3600 * (planetData.prodmetal || 0) * 24))}</small>` });
+            if (planetData.upgrades?.baseBuilding?.[0]?.id === 1 && serverTime.getTime() < planetData.upgrades.baseBuilding[0].end) {
+                metalProdDiv.querySelector("strong").innerHTML += `<span>${planetData[1] + 1}</span>`;
+            }
 
-            if(planet.upgrades?.['baseBuilding']?.[0]?.id == 1 && serverTime.getTime() < planet.upgrades['baseBuilding'].end) metal.querySelector('strong').innerHTML += `<span>${planet[1]+1}</span>`;
+            let crystalProdDiv = Util.addDom("div", { class: "ogl_crystal", parent: empireDiv, child: `<strong>${planetData[2]}</strong><small>+${Util.formatToUnits(Math.round(3600 * (planetData.prodcrystal || 0) * 24))}</small>` });
+            if (planetData.upgrades?.baseBuilding?.[0]?.id === 2 && serverTime.getTime() < planetData.upgrades.baseBuilding[0].end) {
+                crystalProdDiv.querySelector("strong").innerHTML += `<span>${planetData[2] + 1}</span>`;
+            }
 
-            // crystal mine
-            let crystal = Util.addDom('div',
-            {
-                class:'ogl_crystal',
-                parent:container,
-                child:`<strong>${planet[2]}</strong><small>+${Util.formatToUnits(Math.round((planet.prodcrystal || 0) * 3600 * 24))}</small>`
-            });
+            let deutProdDiv = Util.addDom("div", { class: "ogl_deut", parent: empireDiv, child: `<strong>${planetData[3]}</strong><small>+${Util.formatToUnits(Math.round(3600 * (planetData.proddeut || 0) * 24))}</small>` });
+            if (planetData.upgrades?.baseBuilding?.[0]?.id === 3 && serverTime.getTime() < planetData.upgrades.baseBuilding[0].end) {
+                deutProdDiv.querySelector("strong").innerHTML += `<span>${planetData[3] + 1}</span>`;
+            }
 
-            if(planet.upgrades?.['baseBuilding']?.[0]?.id == 2 && serverTime.getTime() < planet.upgrades['baseBuilding'].end) crystal.querySelector('strong').innerHTML += `<span>${planet[2]+1}</span>`;
-
-            // deut mine
-            let deut = Util.addDom('div',
-            {
-                class:'ogl_deut',
-                parent:container,
-                child:`<strong>${planet[3]}</strong><small>+${Util.formatToUnits(Math.round((planet.proddeut || 0) * 3600 * 24))}</small>`
-            });
-
-            stack.metal += planet[1];
-            stack.crystal += planet[2];
-            stack.deut += planet[3];
-
-            stack.prodmetal += planet.prodmetal || 0;
-            stack.prodcrystal += planet.prodcrystal || 0;
-            stack.proddeut += planet.proddeut || 0;
-
-            if(planet.upgrades?.['baseBuilding']?.[0]?.id == 3 && serverTime.getTime() < planet.upgrades['baseBuilding'].end) deut.querySelector('strong').innerHTML += `<span>${planet[3]+1}</span>`;
+            summary.metal += planetData[1];
+            summary.crystal += planetData[2];
+            summary.deut += planetData[3];
+            summary.prodmetal += planetData.prodmetal || 0;
+            summary.prodcrystal += planetData.prodcrystal || 0;
+            summary.proddeut += planetData.proddeut || 0;
         });
 
-        metalStack.innerHTML = `<strong>${(stack.metal / count).toFixed(1)}</strong><small>+${Util.formatToUnits(Math.round((stack.prodmetal || 0) * 3600 * 24))}</small>`;
-        crystalStack.innerHTML = `<strong>${(stack.crystal / count).toFixed(1)}</strong><small>+${Util.formatToUnits(Math.round((stack.prodcrystal || 0) * 3600 * 24))}</small>`;
-        deutStack.innerHTML = `<strong>${(stack.deut / count).toFixed(1)}</strong><small>+${Util.formatToUnits(Math.round((stack.proddeut || 0) * 3600 * 24))}</small>`;
+        metalDiv.innerHTML = `<strong>${(summary.metal / planetCount).toFixed(1)}</strong><small>+${Util.formatToUnits(Math.round(3600 * (summary.prodmetal || 0) * 24))}</small>`;
+        crystalDiv.innerHTML = `<strong>${(summary.crystal / planetCount).toFixed(1)}</strong><small>+${Util.formatToUnits(Math.round(3600 * (summary.prodcrystal || 0) * 24))}</small>`;
+        deutDiv.innerHTML = `<strong>${(summary.deut / planetCount).toFixed(1)}</strong><small>+${Util.formatToUnits(Math.round(3600 * (summary.proddeut || 0) * 24))}</small>`;
 
-        this.ogl._popup.open(container, true);
+        this.ogl._popup.open(empireDiv, true);
     }
 
     openStats()
@@ -3177,7 +3123,7 @@ class TopbarManager extends Manager
         [
             'defaultShip', 'defaultMission', 'profileButton',
             'resourceTreshold', 'msu', 'sim', 'useClientTime', 'keyboardActions',
-            'showMenuResources', 'tooltipDelay', 'disablePlanetTooltips', 'reduceLargeImages', 'displayPlanetTimers',
+            'showMenuResources', 'tooltipDelay','shortcutsOnRight', 'disablePlanetTooltips', 'reduceLargeImages', 'displayPlanetTimers',
             'expeditionValue', 'expeditionRandomSystem', 'expeditionRedirect', 'expeditionBigShips',
             'expeditionShipRatio', 'ignoreExpeShipsLoss', 'ignoreConsumption',
             'displaySpyTable', 'autoCleanReports', 'boardTab',
@@ -3930,11 +3876,11 @@ class TopbarManager extends Manager
                         {
                             ready = true;
 
-                            const name = this.ogl.db.serverData[upgrade.id] || upgrade.id;
+                            const name = this.ogl.db.serverData[upgrade.id] || upgrade.name;
                             Util.addDom('li', { parent:this.PlanetBuildingtooltip[id], child:`<i class="material-icons">fiber_manual_record</i><span class="ogl_slidingText" data-text="${name}"></span><i class="material-icons">east</i><b>${upgrade.lvl}</b>` });
 
                             if(upgrade.type == 'baseBuilding' || upgrade.type == 'baseResearch') hasBaseBuilding = true;
-                            else if(upgrade.type == 'ship' || upgrade.type == 'def') hasBaseShip = true;
+                            else if(upgrade.type == 'ship' || upgrade.type == 'def' || upgrade.type == 'mechaShip') hasBaseShip = true;
                             else if(upgrade.type == 'lfBuilding' || upgrade.type == 'lfResearch') hasLFBuilding = true;
                         }
                     }
@@ -4337,7 +4283,8 @@ class FleetManager extends Manager
 
             if(!fleetDispatcher.mission)
             {
-                fleetDispatcher.mission = this.ogl.db.options.defaultMission;
+                let queryParams = new URLSearchParams(window.location.search);
+                fleetDispatcher.mission = queryParams.get("mission") || this.ogl.db.options.defaultMission;
                 fleetDispatcher.refresh();
             }
         });
@@ -5137,7 +5084,7 @@ class FleetManager extends Manager
                     message = message + `[${data.response.coordinates.galaxy}:${data.response.coordinates.system}:${data.response.coordinates.position}]`;
 
                     self.ogl._notification.addToQueue(message, true);
-		    refreshFleetEvents();
+            refreshFleetEvents();
                 }
                 else if(data.response.coordinates && !data.response.success)
                 {
@@ -7982,11 +7929,12 @@ class ShortcutManager extends Manager
 {
     load()
     {
+        document.querySelector(".ogl_shortcuts")?.remove();
         document.querySelector('.ogl_shortCutWrapper')?.remove();
 
         this.keyList = {};
         this.shortCutWrapper = Util.addDom('div', { class:'ogl_shortCutWrapper', child:'<div></div>' });
-        this.shortcutDiv = Util.addDom('div', { class:'ogl_shortcuts', parent:this.shortCutWrapper });
+        this.shortcutDiv = Util.addDom('div', { class:'ogl_shortcuts', parent:this.ogl.db.options.shortcutsOnRight ? document.querySelector("#rechts") : this.shortCutWrapper });
         this.locked = false;
         //this.discoveryReady = true;
 
@@ -8451,7 +8399,10 @@ class ShortcutManager extends Manager
             }, false, 'violet');
         }
 
-        document.body.appendChild(this.shortCutWrapper);
+        if (!this.ogl.db.options.shortcutsOnRight) {
+            document.body.appendChild(this.shortCutWrapper);
+        }
+
         this.updateShortcutsPosition();
     }
 
@@ -8488,6 +8439,7 @@ class ShortcutManager extends Manager
 
     updateShortcutsPosition()
     {
+        if (this.ogl.db.options.shortcutsOnRight) return;
         const div = this.shortCutWrapper;
         div.style.top = visualViewport.offsetTop + 'px';
         div.style.height = visualViewport.height - 25 + 'px';
@@ -8514,6 +8466,7 @@ class TechManager extends Manager
         this.initialLevel = 0;
         this.levelOffset = 0;
         this.detailCumul = {};
+        this.checkProductionBoxes();
 
         if(unsafeWindow['technologyDetails'])
         {
@@ -8566,8 +8519,6 @@ class TechManager extends Manager
             if(urlTech) technologyDetails.show(urlTech);
         }
 
-        this.checkProductionBoxes();
-
         document.querySelectorAll('#technologies .technology[data-technology]').forEach(tech =>
         {
             const id = tech.getAttribute('data-technology');
@@ -8579,6 +8530,7 @@ class TechManager extends Manager
 
     check(id, details)
     {
+        details.querySelector(".shipyardSelection") && details.querySelector(".sprite_large").appendChild(details.querySelector(".shipyardSelection"));
         const actions = Util.addDom('div', { parent:details.querySelector('.sprite') || details.querySelector('.sprite_large'), class:'ogl_actions' });
         const data = Datafinder.getTech(id);
 
@@ -8847,12 +8799,12 @@ class TechManager extends Manager
             }
         });
 
-        const msuValue = this.ogl.db.options.msu.split(':');
         const msuline = Util.addDom('div', { class:`ogl_icon ogl_msu`, parent:costsWrapper });
-        const msu = techData.target.metal * msuValue[0] + techData.target.crystal * msuValue[1] + techData.target.deut * msuValue[2];
+        const msuValue = this.ogl.db.options.msu;
+        const msu = Util.getMSU(techData.target.metal, techData.target.crystal, techData.target.deut, msuValue);
         Util.addDom('div', { class:'tooltip', 'data-title':Util.formatNumber(msu), parent:msuline, child:Util.formatToUnits(msu, 2) });
 
-        const cumulMsu = cumul.metal * msuValue[0] + cumul.crystal * msuValue[1] + cumul.deut * msuValue[2];
+        const cumulMsu = Util.getMSU(cumul.metal, cumul.crystal, cumul.deut, msuValue);
         if(!details.querySelector('.build_amount')) Util.addDom('div', { parent:msuline, class:'ogl_text tooltip', 'data-title':Util.formatNumber(cumulMsu), child:Util.formatToUnits(cumulMsu, 2) });
     }
 
@@ -9537,7 +9489,6 @@ class TechManager extends Manager
 
         Object.entries(this.ogl._time.productionBoxes).forEach(box =>
                                                                {
-
             const techType = box[0] == 'restTimebuilding' ? 'baseBuilding' : box[0] == 'restTimeresearch' ? 'baseResearch' : box[0] == 'restTimeship2' ? 'ship' : box[0] == 'restTimelfbuilding' ? 'lfBuilding' : box[0] == 'restTimelfresearch' ? 'lfResearch' : 'unknown';
             const image = document.querySelector(`#${[box[1]]} .first .queuePic`);
 
@@ -9696,10 +9647,10 @@ class StatsManager extends Manager
         result.conso = (result.conso || 0) + (data?.conso || 0);
         if(!this.ogl.db.options.ignoreConsumption) result.total.deut -= result.conso;
 
-        const msu = this.ogl.db.options.msu.split(':');
-        result.total.msu = (result.total.metal || 0) * msu[0] + (result.total.crystal || 0) * msu[1] + (result.total.deut || 0) * msu[2];
-        result.expe.msu = (result.expe.metal || 0) * msu[0] + (result.expe.crystal || 0) * msu[1] + (result.expe.deut || 0) * msu[2];
-        result.raid.msu = (result.raid.metal || 0) * msu[0] + (result.raid.crystal || 0) * msu[1] + (result.raid.deut || 0) * msu[2];
+        const msu = this.ogl.db.options.msu;
+        result.total.msu = Util.getMSU((result.total.metal || 0), (result.total.crystal || 0), (result.total.deut || 0), msu);
+        result.expe.msu = Util.getMSU((result.expe.metal || 0), (result.expe.crystal || 0), (result.expe.deut || 0), msu);
+        result.raid.msu = Util.getMSU((result.raid.metal || 0), (result.raid.crystal || 0), (result.raid.deut || 0) , msu);
 
         return result;
     }
@@ -10045,7 +9996,7 @@ class StatsManager extends Manager
                 }
                 else if(type == 'conso' && resource == 'msu')
                 {
-                    Util.addDom('div', { class:`ogl_${resource}`, parent:line, child:Util.formatToUnits(-data.conso * this.ogl.db.options.msu.split(':')[2] || 0, false, true) });
+                    Util.addDom('div', { class:`ogl_${resource}`, parent:line, child:Util.formatToUnits(Util.getMSU(0, 0, -data.conso, this.ogl.db.options.msu), !1, !0) });
                 }
                 else
                 {
@@ -10825,6 +10776,10 @@ class Util
     static hash(str)
     {
         return [...str].reduce((string, char) => Math.imul(31, string) + char.charCodeAt(0) | 0, 0);
+    }
+
+    static getMSU(e, t, n, o) {
+        return (e || 0) + (t || 0) * (o = o.split(":"))[0] / o[1] + (n || 0) * o[0]
     }
 
     static getPlayerScoreFD(score, type)
@@ -12327,7 +12282,7 @@ time span
 #fleet1 progress
 {
     appearance:none;
-	border:0;
+    border:0;
     bottom:-5px;
     display:block;
     height:5px;
