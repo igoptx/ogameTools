@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.1.3
+// @version      5.1.4
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -169,6 +169,7 @@ class OGLight
         this.db.options.disablePlanetTooltips = this.db.options.disablePlanetTooltips || false;
         this.db.options.displaySpyTable = this.db.options.displaySpyTable === false ? false : true;
         this.db.options.shortcutsOnRight = this.db.options.shortcutsOnRight || !1;
+        this.db.options.customSplit = this.db.options.customSplit || 1;
 
         this.db.options.keyboardActions = this.db.options.keyboardActions || {};
         this.db.options.keyboardActions.menu = this.db.options.keyboardActions.menu || '²';
@@ -189,6 +190,7 @@ class OGLight
 
         this.db.options.keyboardActions.quickRaid = this.db.options.keyboardActions.quickRaid || 't';
         this.db.options.keyboardActions.fleetResourcesSplit = this.db.options.keyboardActions.fleetResourcesSplit || '2-9';
+        this.db.options.keyboardActions.customSplit = this.db.options.keyboardActions.customSplit || 'd';
         this.db.options.keyboardActions.galaxyUp = this.db.options.keyboardActions.galaxyUp || (window.location.host.split(/[-.]/)[1] == 'fr' ? 'z' : 'w');
         this.db.options.keyboardActions.galaxyLeft = this.db.options.keyboardActions.galaxyLeft || (window.location.host.split(/[-.]/)[1] == 'fr' ? 'q' : 'a');
         this.db.options.keyboardActions.galaxyDown = this.db.options.keyboardActions.galaxyDown || 's';
@@ -1038,7 +1040,10 @@ class LangManager extends Manager
             planet: 'Planet',
             popupPlanets: 'Enable/Disable planets menu tooltips',
             nextDefaultShip: 'Next default cargo ship',
-            previousDefaultShip: 'Previous default cargo ship'
+            previousDefaultShip: 'Previous default cargo ship',
+            customSplit: 'Custom Split',
+            timesSingular: 'time',
+            timesPlural: 'times'
         };
 
         this.fr =
@@ -1198,7 +1203,10 @@ class LangManager extends Manager
             planet: 'Planet',
             popupPlanets: 'Enable/Disable planets menu tooltips',
             nextDefaultShip: 'Next default cargo ship',
-            previousDefaultShip: 'Previous default cargo ship'
+            previousDefaultShip: 'Previous default cargo ship',
+            customSplit: 'Custom Split',
+            timesSingular: 'time',
+            timesPlural: 'times'
         };
 
         this.pt =
@@ -1358,7 +1366,10 @@ class LangManager extends Manager
             planet: 'Planeta',
             popupPlanets: 'Mostrar/Esconder menu popup dos planetas',
             nextDefaultShip: 'Próxima nave de transporte default',
-            previousDefaultShip: 'Nave de transporte default anterior'
+            previousDefaultShip: 'Nave de transporte default anterior',
+            customSplit: 'Divisão Especial',
+            timesSingular: 'vez',
+            timesPlural: 'vezes'
         };
     }
 
@@ -1837,6 +1848,7 @@ class UIManager extends Manager
             Util.addDom('div', {class:'ogl_icon ogl_deut', parent:this.resourceDiv, child:'0'});
             Util.addDom('div', {class:'ogl_icon ogl_msu', parent:this.resourceDiv, child:'0'});
             Util.addDom('div', {class:'ogl_icon ogl_defaultship', parent:this.resourceDiv, child:'0'});
+            Util.addDom('div', {class:'ogl_icon ogl_customsplit', parent:this.resourceDiv, child:'0'});
         }
 
         if(!reloaded)
@@ -2902,6 +2914,13 @@ class UIManager extends Manager
         this.resourceDiv.querySelector('.ogl_msu').innerHTML = `<span>${Util.formatToUnits(this.resources.total.msu)}</span><span>+${Util.formatToUnits(Math.floor(this.resources.prod.msu,1))}</span>`;
         this.resourceDiv.querySelector('.ogl_defaultship').innerHTML = `<span id="defaultship_name">${this.ogl._lang.find(this.ogl.db.options.defaultShip)}</span>`;
 
+        let times = 'timesPlural';
+        if (this.ogl.db.options.customSplit == 1) {
+            times = 'timesSingular';
+        }
+
+        this.resourceDiv.querySelector('.ogl_customsplit').innerHTML = `<span id="custom_split">${this.ogl._lang.find('customSplit')} ${this.ogl.db.options.customSplit} ${this.ogl._lang.find(times)}</span>`;
+
         if (!this.recapReady) {
             this.recapReady = true;
             this.resourceDiv.classList.add('tooltipLeft');
@@ -3122,8 +3141,8 @@ class TopbarManager extends Manager
         let options =
         [
             'defaultShip', 'defaultMission', 'profileButton',
-            'resourceTreshold', 'msu', 'sim', 'useClientTime', 'keyboardActions',
-            'showMenuResources', 'tooltipDelay','shortcutsOnRight', 'disablePlanetTooltips', 'reduceLargeImages', 'displayPlanetTimers',
+            'resourceTreshold', 'customSplit', 'msu', 'sim', 'useClientTime', 'keyboardActions',
+            'showMenuResources', 'tooltipDelay', 'shortcutsOnRight', 'disablePlanetTooltips', 'reduceLargeImages', 'displayPlanetTimers',
             'expeditionValue', 'expeditionRandomSystem', 'expeditionRedirect', 'expeditionBigShips',
             'expeditionShipRatio', 'ignoreExpeShipsLoss', 'ignoreConsumption',
             'displaySpyTable', 'autoCleanReports', 'boardTab',
@@ -3224,6 +3243,21 @@ class TopbarManager extends Manager
                 {
                     Util.runAsync(() => this.ogl._ui.openFleetProfile()).then(e => this.ogl._popup.open(e));
                 });
+            }
+            else if(opt == 'customSplit')
+            {
+                const input = Util.addDom('input', { type:'text', placeholder:'placeholder', value:this.ogl.db.options[opt], parent:label,
+                oninput:() =>
+                {
+                    this.ogl.db.options[opt] = input.value;
+                    let times = 'timesPlural';
+                    if (this.ogl.db.options.customSplit == 1) {
+                        times = 'timesSingular';
+                    }
+
+                    document.querySelector('.ogl_customsplit').innerHTML = `<span id="custom_split">${this.ogl._lang.find('customSplit')} ${this.ogl.db.options.customSplit} ${this.ogl._lang.find(times)}</span>`;
+
+                }});
             }
             else if(opt == 'msu')
             {
@@ -7997,7 +8031,7 @@ class ShortcutManager extends Manager
                 window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
                 return;
             }
-        });
+        }, '', '', true);
 
         this.add('expeditionRecFast', () => {
             if (typeof fleetDispatcher !== 'undefined') {
@@ -8035,7 +8069,7 @@ class ShortcutManager extends Manager
                 window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch`;
                 return;
             }
-        });
+        }, '', '', true);
 
         Util.addDom('div', {class:'ogl_separator', parent:this.shortcutDiv});
 
@@ -8330,11 +8364,39 @@ class ShortcutManager extends Manager
                 fleetDispatcher.refresh();
             });
 
+            this.add('customSplit', () => {
+
+                if(fleetDispatcher.currentPage == 'fleet1')
+                {
+                    fleetDispatcher.shipsOnPlanet.forEach(ship => fleetDispatcher.selectShip(ship.id, Math.ceil(ship.number / this.ogl.db.options.customSplit)));
+                }
+                else if(fleetDispatcher.currentPage == 'fleet2')
+                {
+                    let fleetDispatcherResources = ['metalOnPlanet', 'crystalOnPlanet', 'deuteriumOnPlanet'];
+
+                    document.querySelectorAll('#fleet2 #resources .res_wrap').forEach((resource, index) =>
+                                                                                      {
+                        let cargoType = ['cargoMetal', 'cargoCrystal', 'cargoDeuterium'];
+
+                        let currentMax = fleetDispatcher[fleetDispatcherResources[index]];
+                        if(index == 2) currentMax -= fleetDispatcher.getConsumption();
+
+                        fleetDispatcher[cargoType[index]] = Math.max(Math.ceil(currentMax / this.ogl.db.options.customSplit), 0);
+                        resource.querySelector('input').value = fleetDispatcher[cargoType[index]];
+
+                        //fleetDispatcher.focusSendFleet();
+                    });
+                }
+
+                fleetDispatcher.refresh();
+            });
+
             Util.addDom('div', { class:'ogl_shortcut ogl_button', 'data-key':'enter', child:'<span class="material-icons">subdirectory_arrow_left</span>', parent:this.shortcutDiv, onclick:() =>
             {
                 document.querySelector('#fleetdispatchcomponent').dispatchEvent(new KeyboardEvent('keypress', { keyCode:13 }));
             }});
         }
+
         else if(this.ogl.page == 'messages')
         {
             Util.addDom('div', {class:'ogl_separator', parent:this.shortcutDiv});
@@ -8398,6 +8460,7 @@ class ShortcutManager extends Manager
                 document.querySelector('#movementcomponent .reversal a[data-key-color="violet"]') && document.querySelector('#movementcomponent .reversal a[data-key-color="violet"]').click();
             }, false, 'violet');
         }
+        Util.addDom('div', {class:'ogl_separator', parent:this.shortcutDiv});
 
         if (!this.ogl.db.options.shortcutsOnRight) {
             document.body.appendChild(this.shortCutWrapper);
@@ -8406,7 +8469,7 @@ class ShortcutManager extends Manager
         this.updateShortcutsPosition();
     }
 
-    add(id, callback, type, color)
+    add(id, callback, type, color, hide)
     {
         let key = this.ogl.db.options.keyboardActions[id];
 
@@ -8416,11 +8479,17 @@ class ShortcutManager extends Manager
             id = 'attackNext';
         }
 
+        let cssDisplay = 'block';
+        if (hide) {
+            cssDisplay = 'none';
+        }
+
         const btn = Util.addDom('div',
         {
             'data-key':key,
             'data-key-color':color,
             'data-key-id':id,
+            style: 'display: '+cssDisplay+' !important',
             class:'ogl_shortcut ogl_button tooltip',
             parent:this.shortcutDiv,
             title:this.ogl._lang.find(id),
@@ -11725,6 +11794,17 @@ line.ogl_line
     color:#fff;
     font-family: 'Material Icons';
     content:'\\ea64';
+    display:flex;
+    font-size:11px;
+    justify-content:center;
+}
+.ogl_icon.ogl_customsplit:before
+{
+    align-items:center;
+    background:none;
+    color:#fff;
+    font-family: 'Material Icons';
+    content:'\\e905';
     display:flex;
     font-size:11px;
     justify-content:center;

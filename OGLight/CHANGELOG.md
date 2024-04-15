@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.1.4] - 2024/04/15 16:00:00
+- Add new feature to have a Custom Split of ships/resources in the options. User 'D' on fleet pages
+
 ### [5.1.3] - 2024/04/15 12:40:00
 - Update with OGLight 5.0.4
 
