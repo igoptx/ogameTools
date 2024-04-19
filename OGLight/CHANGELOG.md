@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.1.6] - 2024/04/19 13:10:00
+- Fix css to show the icon to build level in the images of buildings, researches, etc
+
 ### [5.1.5] - 2024/04/19 09:50:00
 - Add new shortcut ( . ) to switch shortcuts possitions
 - Add new shortcut ( Q ) to send all resources from planet to the moon

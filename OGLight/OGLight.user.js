@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.1.5
+// @version      5.1.6
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -18529,6 +18529,11 @@ body[data-menulayout="2"]
     .smallplanet .icon-moon { left:4px !important; }
     &.ogl_destinationPicker .smallplanet .planetlink.ogl_currentDestination:after { top:9px !important;left:9px !important; }
     &.ogl_destinationPicker .smallplanet .moonlink.ogl_currentDestination:after { top:9px !important;left:4px !important; }
+}
+
+.targetlevel
+{
+    z-index: 1 !important;
 }
 
 /*!css*/
