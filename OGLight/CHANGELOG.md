@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.1.5] - 2024/04/19 09:50:00
+- Add new shortcut ( . ) to switch shortcuts possitions
+- Add new shortcut ( Q ) to send all resources from planet to the moon
+
 ### [5.1.4] - 2024/04/15 16:00:00
 - Add new feature to have a Custom Split of ships/resources in the options. User 'D' on fleet pages
 
