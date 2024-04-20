@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.1.6
+// @version      5.1.7
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -1048,6 +1048,14 @@ class LangManager extends Manager
             timesPlural: 'times',
             shortcutsPosition: 'Change position of shortcuts',
             toMoonFast:"<div>Select all ships (fleet1) (Fast)<hr>Select all resources (fleet2) (Fast)</div>",
+            format: 'Format',
+            save: 'Save',
+            layoutAll: 'All',
+            layoutCoords: 'Coords',
+            layoutResources: 'Resources',
+            importData: 'Import data',
+            exportData: 'Export data',
+            add: 'Add'
         };
 
         this.fr =
@@ -1213,6 +1221,14 @@ class LangManager extends Manager
             timesPlural: 'times',
             shortcutsPosition: 'Change position of shortcuts',
             toMoonFast:"<div>Selectionner tous les vaisseaux (fleet1) (Fast)<hr>Selectionner toutes les ressources (fleet2) (Fast)</div>",
+            format: 'Format',
+            save: 'Save',
+            layoutAll: 'All',
+            layoutCoords: 'Coords',
+            layoutResources: 'Resources',
+            importData: 'Import data',
+            exportData: 'Export data',
+            add: 'Add'
         };
 
         this.pt =
@@ -1320,7 +1336,7 @@ class LangManager extends Manager
 
             ptreTeamKey:"Chave de Equipa",
             ptreLogs:"Mostrar erros do PTRE",
-            ptreActivityImported:"Actividade importada  para o PTRE",
+            ptreActivityImported:"Actividade importada para o PTRE",
             ptreActivityAlreadyImported:"Activdade presente no PTRE",
             ptreSyncTarget:"Sincronizar com o PTRE",
             ptreManageTarget:"Gerir PTRE",
@@ -1378,6 +1394,14 @@ class LangManager extends Manager
             timesPlural: 'vezes',
             shortcutsPosition: 'Alterar a posição dos atalhos',
             toMoonFast:"<div>Selecionar todas as naves (fleet1) (Fast)<hr>Selecionar todos os recursos (fleet2) (Fast)</div>",
+            format: 'Formato',
+            save: 'Guardar',
+            layoutAll: 'Tudo',
+            layoutCoords: 'Coordenadas',
+            layoutResources: 'Recursos',
+            importData: 'Importar dados',
+            exportData: 'Exportar dados',
+            add: 'Adicionar'
         };
     }
 
@@ -2160,6 +2184,10 @@ class UIManager extends Manager
 
         Object.entries(this.ogl.db.options.keyboardActions).forEach(key =>
         {
+            if (['expeditionLCFast', 'expeditionRecFast'].includes(key[0])) {
+                return;
+            }
+
             const label = Util.addDom('label', { parent:container, child:`${this.ogl._lang.find(key[0])}` });
             const input = Util.addDom('input', { maxlength:'1', type:'text', value:key[1], parent:label,
             onclick:() =>
@@ -2184,7 +2212,7 @@ class UIManager extends Manager
             }
         });
 
-        Util.addDom('button', { parent:container, class:'ogl_button', child:'save', onclick:() =>
+        Util.addDom('button', { parent:container, class:'ogl_button', child:this.ogl._lang.find('save'), onclick:() =>
         {
             Object.entries(changes).forEach(key =>
             {
@@ -2232,7 +2260,7 @@ class UIManager extends Manager
         const grid = Util.addDom('div', { class:'ogl_grid', parent:container });
 
         // import
-        Util.addDom('label', { class:'ogl_button', for:'ogl_import', child:'Import data', parent:grid });
+        Util.addDom('label', { class:'ogl_button', for:'ogl_import', child:this.ogl._lang.find('importData'), parent:grid });
         const importButton = Util.addDom('input', { id:'ogl_import', class:'ogl_hidden', accept:"application/JSON", type:'file', parent:grid, onchange:() =>
         {
             const file = importButton.files[0];
@@ -2261,7 +2289,7 @@ class UIManager extends Manager
         }});
 
         // export
-        Util.addDom('a', { class:'ogl_button', download:`oglight_${this.ogl.server.name}_${this.ogl.server.lang}_${serverTime.getTime()}`, child:'Export data', parent:grid, href:URL.createObjectURL(new Blob([JSON.stringify(this.ogl.db)], {type: 'application/json'})) });
+        Util.addDom('a', { class:'ogl_button', download:`oglight_${this.ogl.server.name}_${this.ogl.server.lang}_${serverTime.getTime()}`, child:this.ogl._lang.find('exportData'), parent:grid, href:URL.createObjectURL(new Blob([JSON.stringify(this.ogl.db)], {type: 'application/json'})) });
 
         Util.addDom('hr', { parent:grid });
 
@@ -3286,7 +3314,7 @@ class TopbarManager extends Manager
             else if(opt == 'msu')
             {
                 label.classList.add('tooltipLeft');
-                label.setAttribute('title', 'Format:<br>metal:crystal:deut');
+                label.setAttribute('title', `${this.ogl._lang.find('format')}:<br>${this.ogl._lang.find('metal')}:${this.ogl._lang.find('crystal')}:${this.ogl._lang.find('deut')}`);
 
                 const input = Util.addDom('input', { type:'text', placeholder:'m:c:d', value:this.ogl.db.options[opt], parent:label,
                 oninput:() =>
@@ -3312,7 +3340,7 @@ class TopbarManager extends Manager
                     document.body.setAttribute('data-menulayout', select.value);
                 }});
 
-                ['All', 'Coords', 'Resources'].forEach((entry, index) =>
+                [this.ogl._lang.find('layoutAll'), this.ogl._lang.find('layoutCoords'), this.ogl._lang.find('layoutResources')].forEach((entry, index) =>
                 {
                     const selectOption = Util.addDom('option', { parent:select, child:entry, value:index });
                     if(this.ogl.db.options[opt] == index) selectOption.selected = true;
@@ -10324,7 +10352,7 @@ class StatsManager extends Manager
                 Util.addDom('input', { class:'ogl_inputCheck', 'data-ship':shipID, parent:item });
             });
 
-            Util.addDom('div', { class:'ogl_button', child:'Add', parent:container, onclick:() =>
+            Util.addDom('div', { class:'ogl_button', child:this.ogl._lang.find('add'), parent:container, onclick:() =>
             {
                 if(confirm(this.ogl._lang.find('reportBlackholeLong')))
                 {

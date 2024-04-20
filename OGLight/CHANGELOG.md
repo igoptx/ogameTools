@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.1.7] - 2024/04/20 16:40:00
+- Add translations
+
 ### [5.1.6] - 2024/04/19 13:10:00
 - Fix css to show the icon to build level in the images of buildings, researches, etc
 
