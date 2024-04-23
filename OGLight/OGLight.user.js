@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.1.7
+// @version      5.1.8
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -156,6 +156,7 @@ class OGLight
         this.db.options.expeditionRedirect = this.db.options.expeditionRedirect || false;
         this.db.options.expeditionShipRatio = Math.min(this.db.options.expeditionShipRatio, 100);
         this.db.options.displayPlanetTimers = this.db.options.displayPlanetTimers === false ? false : true;
+        this.db.options.showMissionsSplitted = this.db.options.showMissionsSplitted === false ? false : true;
         this.db.options.reduceLargeImages = this.db.options.reduceLargeImages || false;
         this.db.options.showMenuResources = this.db.options.showMenuResources || 0;
         this.db.options.autoCleanReports = this.db.options.autoCleanReports || false;
@@ -1055,7 +1056,8 @@ class LangManager extends Manager
             layoutResources: 'Resources',
             importData: 'Import data',
             exportData: 'Export data',
-            add: 'Add'
+            add: 'Add',
+            showMissionsSplitted: 'Show Missions Splitted'
         };
 
         this.fr =
@@ -1228,7 +1230,8 @@ class LangManager extends Manager
             layoutResources: 'Resources',
             importData: 'Import data',
             exportData: 'Export data',
-            add: 'Add'
+            add: 'Add',
+            showMissionsSplitted: 'Show Missions Splitted'
         };
 
         this.pt =
@@ -1401,7 +1404,8 @@ class LangManager extends Manager
             layoutResources: 'Recursos',
             importData: 'Importar dados',
             exportData: 'Exportar dados',
-            add: 'Adicionar'
+            add: 'Adicionar',
+            showMissionsSplitted: 'Mostrar Missões Separadas'
         };
     }
 
@@ -3194,7 +3198,7 @@ class TopbarManager extends Manager
         [
             'defaultShip', 'defaultMission', 'profileButton',
             'resourceTreshold', 'customSplit', 'msu', 'sim', 'useClientTime', 'keyboardActions',
-            'showMenuResources', 'tooltipDelay', 'shortcutsOnRight', 'disablePlanetTooltips', 'reduceLargeImages', 'displayPlanetTimers',
+            'showMenuResources', 'tooltipDelay', 'shortcutsOnRight', 'disablePlanetTooltips', 'reduceLargeImages', 'displayPlanetTimers', 'showMissionsSplitted',
             'expeditionValue', 'expeditionRandomSystem', 'expeditionRedirect', 'expeditionBigShips',
             'expeditionShipRatio', 'ignoreExpeShipsLoss', 'ignoreConsumption',
             'displaySpyTable', 'autoCleanReports', 'boardTab',
@@ -7807,7 +7811,10 @@ class MovementManager extends Manager
                         movement.isBack = line.getAttribute('data-return-flight') === 'true';
                         movement.arrivalTime = parseInt(line.getAttribute('data-arrival-time')) * 1000;
 
-                        ignored.push(movement.id + 1);
+                        if(!movement.isBack) {
+                            ignored.push(movement.id + 1);
+                        }
+
                         if(ignored.indexOf(movement.id) > -1) return;
 
                         movement.from = {};
@@ -7896,6 +7903,60 @@ class MovementManager extends Manager
 
     addFleetIcon(data, parent, reversed)
     {
+        if (this.ogl.db.options.showMissionsSplitted) {
+            this.addFleetIconSplitted(data, parent, reversed);
+        } else {
+            this.addFleetIconTogether(data, parent, reversed);
+        }
+    }
+
+    addFleetIconSplitted(data, parent, reversed) {
+        const targetClass = reversed ? 'ogl_sideIconBottom' : 'ogl_sideIconTop';
+        const targetDom = parent.querySelector(`.${targetClass}`) || Util.addDom('div', { class:targetClass, parent:parent });
+        const missionsByType = {};
+
+        data.forEach(obj => {
+            if (obj.hasOwnProperty('mission')) {
+                const missionType = obj.mission;
+                if (!missionsByType.hasOwnProperty(missionType)) {
+                    missionsByType[missionType] = [];
+                }
+                missionsByType[missionType].push(obj);
+            }
+        });
+
+        for (const missionType in missionsByType) {
+            if (missionsByType.hasOwnProperty(missionType)) {
+
+                const icon = Util.addDom('div', { class:`material-icons ogl_fleetIcon ogl_mission${missionType}`, parent:targetDom, 'data-list':missionsByType[missionType].length, onclick:() =>
+                     {
+                          const container = Util.addDom('div', { class:'ogl_sideFleetTooltip' });
+                          let cumul = { metal:0, crystal:0, deut:0 };
+
+                          missionsByType[missionType].forEach(line =>                                                              {
+                               const fleetImg = reversed ? 'https://gf2.geo.gfsrv.net/cdn47/014a5d88b102d4b47ab5146d4807c6.gif' : 'https://gf2.geo.gfsrv.net/cdnd9/f9cb590cdf265f499b0e2e5d91fc75.gif';
+                               let shipAmount = 0;
+                               Object.keys(line).filter(element => parseInt(element)).forEach(shipID => shipAmount += line[shipID]);
+
+                               const domLine = Util.addDom('div', { class:`ogl_mission${line.mission} ogl_sideFleetIcon`, child:`<div class="material-icons">${line.from.isMoon ? 'bedtime' : 'language'}</div><div>[${line.from.coords}]</div><span>${Util.formatToUnits(shipAmount)}</span><img src="${fleetImg}"><div class="material-icons">${line.mission == 8 ? 'debris' : line.to.isMoon ? 'bedtime' : 'language'}</div><div>[${line.to.coords}]</div>`, parent:container });
+
+                               ['metal', 'crystal', 'deut'].forEach(res =>                                                                   {
+                                    Util.addDom('div', { class:`ogl_icon ogl_${res}`, parent:domLine, child:Util.formatToUnits(line[res] || 0) });
+                                    cumul[res] += line[res]
+                               });
+
+                               domLine.prepend(this.ogl._time.convertTimestampToDate(this.ogl._time.serverToClient(line.arrivalTime)));
+                          });
+
+                          const total = Util.addDom('div', { class:`ogl_sideFleetIcon`, child:`<span></span><span></span><span></span><span></span><span></span><span></span><span></span>`, parent:container });
+                          ['metal', 'crystal', 'deut'].forEach(res => Util.addDom('div', { class:`ogl_icon ogl_${res}`, parent:total, child:Util.formatToUnits(cumul[res] || 0) }));
+                               this.ogl._popup.open(container);
+                          }});
+            }
+        }
+    }
+
+    addFleetIconTogether(data, parent, reversed) {
         const targetClass = reversed ? 'ogl_sideIconBottom' : 'ogl_sideIconTop';
         const targetDom = parent.querySelector(`.${targetClass}`) || Util.addDom('div', { class:targetClass, parent:parent });
 

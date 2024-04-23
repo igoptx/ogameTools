@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.1.8] - 2024/04/23 12:50:00
+- Fix bug on showing fleets correcly on FleetIcon (right of planet list)
+- Add toggle to show fleets splited by mission type
+
 ### [5.1.7] - 2024/04/20 16:40:00
 - Add translations
 
