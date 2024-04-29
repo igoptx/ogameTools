@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.1.8
+// @version      5.2.0
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -1057,7 +1057,12 @@ class LangManager extends Manager
             importData: 'Import data',
             exportData: 'Export data',
             add: 'Add',
-            showMissionsSplitted: 'Show Missions Splitted'
+            showMissionsSplitted: 'Show Missions Splitted',
+            upgradeList: 'Upgrades in Progress',
+            upgrade: 'Upgrade',
+            level: 'Level',
+            endAt: 'End At',
+            points: 'Points'
         };
 
         this.fr =
@@ -1231,7 +1236,12 @@ class LangManager extends Manager
             importData: 'Import data',
             exportData: 'Export data',
             add: 'Add',
-            showMissionsSplitted: 'Show Missions Splitted'
+            showMissionsSplitted: 'Show Missions Splitted',
+            upgradeList: 'Upgrades in Progress',
+            upgrade: 'Upgrade',
+            level: 'Level',
+            endAt: 'End At',
+            points: 'Points'
         };
 
         this.pt =
@@ -1373,7 +1383,7 @@ class LangManager extends Manager
             noResult: 'Sem resultados',
             taggedPlanets: 'Planetas Marcados',
             pinnedPlayers: 'Jogadores Marcados',
-            newUpdateAvailable: 'Actualização Disponível',
+            newUpdateAvailable: 'Atualização Disponível',
             ptreLastRequestStatus: 'Estado do último pedido do PTRE',
             ptreErrors: 'Log do PTRE',
             errorCode: 'Código do Erro',
@@ -1405,7 +1415,12 @@ class LangManager extends Manager
             importData: 'Importar dados',
             exportData: 'Exportar dados',
             add: 'Adicionar',
-            showMissionsSplitted: 'Mostrar Missões Separadas'
+            showMissionsSplitted: 'Mostrar Missões Separadas',
+            upgradeList: 'Upgrades em Progresso',
+            upgrade: 'A Atualizar',
+            level: 'Nível',
+            endAt: 'Termina em',
+            points: 'Pontos'
         };
     }
 
@@ -1735,12 +1750,12 @@ class FetchManager extends Manager
                 this.ogl.save();
             });
         }
+        this.ogl._topbar.syncBtn.classList.remove('ogl_active');
     }
 
     fetchLFBonuses()
     {
         this.ogl._topbar.syncBtn.classList.add('ogl_active');
-
         fetch(`https://${window.location.host}/game/index.php?page=ajax&component=lfbonuses`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.text())
         .then(result =>
@@ -1749,10 +1764,12 @@ class FetchManager extends Manager
             this.ogl._empire.getLFBonuses(xml);
             this.ogl.db.lastLFBonusUpdate = Date.now();
         });
+        this.ogl._topbar.syncBtn.classList.remove('ogl_active');
     }
 
     fetchProductionQueue() {
-        this.ogl._topbar.syncBtn.classList.add("ogl_active"), fetch(`https://${window.location.host}/game/index.php?page=ajax&component=productionqueue&ajax=1`, {
+        this.ogl._topbar.syncBtn.classList.add("ogl_active");
+        fetch(`https://${window.location.host}/game/index.php?page=ajax&component=productionqueue&ajax=1`, {
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
             }
@@ -1771,12 +1788,28 @@ class FetchManager extends Manager
                 for (let [e] of Object.entries(o))
                     if (o[e]) {
                         const t = {};
+
                         const productionDetailsElement = o[e].closest(".productionDetails");
 
-                        const productionName = productionDetailsElement.querySelector(".productionName").childNodes[0].textContent;
+                        let productionName = '';
+                        let produtionNameElement = productionDetailsElement.querySelector(".productionName");
+                        if (produtionNameElement) {
+                            const productionNameChild = produtionNameElement.childNodes[0];
+                            if (productionNameChild) {
+                                productionName = productionNameChild.textContent;
+                            }
+                        }
                         t.name = productionName;
 
-                        const productionLevelText = productionDetailsElement.querySelector(".productionLevel").innerText;
+                        var productionId = Object.entries(this.ogl.db.serverData).find(([id, label]) => label.trim() === (t.name).trim());
+                        t.id = productionId ? productionId[0] : 0;
+
+                        let productionLevelText = '';
+                        const productionLevelElement = productionDetailsElement.querySelector(".productionLevel");
+
+                        if(productionLevelElement) {
+                            productionLevelText = productionLevelElement.innerText;
+                        }
 
                         const productionLevel = parseInt(productionLevelText.replace(/\D/g, ""));
                         t.lvl = productionLevel;
@@ -1786,11 +1819,19 @@ class FetchManager extends Manager
                         t.end = endValue;
 
                         t.type = e;
+                        t.points = 0;
+
+                        if (t.id > 0) {
+                            const data = Util.getTechData(t.id, t.lvl, n);
+                            t.points = (data.target.metal + data.target.crystal + data.target.deut)/1000;
+                        }
 
                         this.ogl.db.myPlanets[n].upgrades[e] = [t];
                     } else this.ogl.db.myPlanets[n].upgrades[e] = []
             })), this.ogl._topbar.checkUpgrade(), this.ogl.db.lastProductionQueueUpdate = Date.now()
-        }))
+        }));
+
+        this.ogl._topbar.syncBtn.classList.remove('ogl_active');
     }
 
     fetchPlayerAPI(id, name, afterAjax)
@@ -2759,16 +2800,20 @@ class UIManager extends Manager
     updateFooter()
     {
         const footer = document.querySelector('#siteFooter .fright');
-        const lang = ['fr', 'de', 'en', 'es', 'pl', 'it', 'ru', 'ar', 'mx', 'tr', 'fi', 'tw', 'gr', 'br', 'nl',
-        'hr', 'sk', 'cz', 'ro', 'us', 'pt', 'dk', 'no', 'se', 'si', 'hu', 'jp', 'ba'].indexOf(this.ogl.server.lang);
 
-        footer.innerHTML +=
-        `
+        if (footer) {
+
+            const lang = ['fr', 'de', 'en', 'es', 'pl', 'it', 'ru', 'ar', 'mx', 'tr', 'fi', 'tw', 'gr', 'br', 'nl',
+                          'hr', 'sk', 'cz', 'ro', 'us', 'pt', 'dk', 'no', 'se', 'si', 'hu', 'jp', 'ba'].indexOf(this.ogl.server.lang);
+
+            footer.innerHTML +=
+                `
             | <a target="_blank" href="https://www.mmorpg-stat.eu/0_fiche_joueur.php?pays=${lang}&ftr=${this.ogl.account.id}.dat&univers=_${this.ogl.server.id}">Mmorpg-stat</a>
             | <a target="_blank" href="https://trashsim.oplanet.eu/${this.ogl.server.lang}">Trashsim</a>
             | <a target="_blank" href="https://ogotcha.oplanet.eu/${this.ogl.server.lang}">Ogotcha</a>
             | <a>OGL ${this.ogl.version}</a>
         `;
+        }
     }
 
     updateHighscore()
@@ -3040,6 +3085,7 @@ class TopbarManager extends Manager
         }});
 
         Util.addDom('i', { class:'material-icons tooltipTop', child:'account_balance', parent:this.topbar, title:this.ogl._lang.find('accountSummary'), onclick:() => this.openAccount() });
+        Util.addDom('i', { class:'material-icons tooltipTop', child:'precision_manufacturing', parent:this.topbar, title:this.ogl._lang.find('upgradeList'), onclick:() => this.upgradeList() });
         Util.addDom('i', { class:'material-icons tooltipTop', child:'clock_loader_60', parent:this.topbar, title:this.ogl._lang.find('stats'), onclick:() => this.openStats() });
         Util.addDom('i', { class:'material-icons tooltipTop', child:'stroke_full', parent:this.topbar, title:this.ogl._lang.find('taggedPlanets'), onclick:() => this.openTagged(true) });
         Util.addDom('i', { class:'material-icons tooltipTop', child:'push_pin', parent:this.topbar, title:this.ogl._lang.find('pinnedPlayers'), onclick:() => this.openPinned(true) });
@@ -3182,6 +3228,99 @@ class TopbarManager extends Manager
         deutDiv.innerHTML = `<strong>${(summary.deut / planetCount).toFixed(1)}</strong><small>+${Util.formatToUnits(Math.round(3600 * (summary.proddeut || 0) * 24))}</small>`;
 
         this.ogl._popup.open(empireDiv, true);
+    }
+
+    upgradeList() {
+        const upgradeListDiv = Util.addDom("div", { class: "ogl_upgradeList" });
+        const planetCount = document.querySelectorAll(".smallplanet").length;
+
+        Util.addDom('div', { child: this.ogl._lang.find('planet')+'/'+this.ogl._lang.find('moon'), parent: upgradeListDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('upgrade'), parent: upgradeListDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('level'), parent: upgradeListDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('endAt'), parent: upgradeListDiv });
+        Util.addDom('div', { child: this.ogl._lang.find('points'), parent: upgradeListDiv });
+
+        const planets = this.ogl.db.myPlanets;
+
+        var dataAtual = new Date();
+        var totalPoints = 0;
+
+        var upgradesToShow = [];
+
+        Object.values(planets || {}).forEach(planet => {
+            let line = 1;
+            Object.values(planet.upgrades || {}).forEach(upgradeType => {
+                upgradeType.forEach(upgrade => {
+                    let hasBaseBuilding = false;
+                    let hasBaseResearch = false;
+                    let hasBaseShip = false;
+                    let hasLFBuilding = false;
+                    let hasLFResearch = false;
+                    let labelClass = '';
+                    if(serverTime.getTime() < upgrade.end)
+                    {
+                        const name = this.ogl.db.serverData[upgrade.id] || upgrade.name;
+
+                        if (upgrade.type == 'baseBuilding') labelClass = 'ogl_buildIcon ogl_baseBuilding';
+                        if (upgrade.type == 'baseResearch') labelClass = 'ogl_buildIcon ogl_baseResearch';
+                        if (upgrade.type == 'ship' || upgrade.type == 'def' || upgrade.type == 'mechaShip') labelClass = 'ogl_buildIcon ogl_baseShip';
+                        if (upgrade.type == 'lfBuilding') labelClass = 'ogl_buildIcon ogl_lfBuilding';
+                        if (upgrade.type == 'lfResearch') labelClass = 'ogl_buildIcon ogl_lfResearch';
+
+                        upgradesToShow.push(
+                            {
+                                'line': line,
+                                'planetId': planet.id,
+                                'planetName': planet.name,
+                                'coords': planet.coords,
+                                'name': name,
+                                'level': upgrade.lvl,
+                                'countdown': Util.getCountdownString(new Date(upgrade.end)),
+                                'points': Util.formatNumber(Math.round(upgrade.points)),
+                                'labelClass': labelClass
+                            }
+                        );
+
+                        line++;
+                        totalPoints = totalPoints + upgrade.points;
+                    }
+                });
+            });
+        });
+
+        function sortByCountdown(a, b) {
+            function intoSeconds(tempo) {
+                var parts = tempo.split(' ');
+                var d = parts[0] ? parseInt(parts[0]) : 0;
+                var h = parts[1] ? parseInt(parts[1]) : 0;
+                var m = parts[2] ? parseInt(parts[2]) : 0;
+                var s = parts[3] ? parseInt(parts[3]) : 0;
+                return d * 24 * 60 * 60 + h * 60 * 60 + m * 60 + s;
+            }
+
+            var timeA = intoSeconds(a.countdown);
+            var timeB = intoSeconds(b.countdown);
+
+            return timeA - timeB;
+        }
+
+        upgradesToShow.sort(sortByCountdown);
+
+        upgradesToShow.forEach(upgrade => {
+            Util.addDom('div', { child: '['+upgrade.coords+'] '+upgrade.planetName, parent: upgradeListDiv });
+            Util.addDom('div', { class: upgrade.labelClass, child: upgrade.name, parent: upgradeListDiv });
+            Util.addDom('div', { child: upgrade.level, parent: upgradeListDiv });
+            let a_label = Util.addDom('span', { id: upgrade.planetId+'-'+upgrade.line, child: upgrade.countdown, parent: upgradeListDiv });
+            Util.addDom('div', { child: a_label, parent: upgradeListDiv });
+            Util.addDom('div', { child: upgrade.points, parent: upgradeListDiv });
+        });
+
+        Util.addDom("div", { class: "ogl_invisible", parent: upgradeListDiv });
+        Util.addDom("div", { class: "ogl_invisible", parent: upgradeListDiv });
+        Util.addDom("div", { class: "ogl_invisible", parent: upgradeListDiv });
+        Util.addDom("div", { class: "ogl_invisible", parent: upgradeListDiv });
+        Util.addDom('div', { child: Util.formatNumber(Math.round(totalPoints)), parent: upgradeListDiv });
+        this.ogl._popup.open(upgradeListDiv, true);
     }
 
     openStats()
@@ -3947,8 +4086,10 @@ class TopbarManager extends Manager
             this.PlanetBuildingtooltip[id] = Util.addDom('ul', { class:'ogl_buildList' });
 
             let hasBaseBuilding = false;
+            let hasBaseResearch = false;
             let hasBaseShip = false;
             let hasLFBuilding = false;
+            let hasLFResearch = false;
 
             this.ogl.db.myPlanets[id] = this.ogl.db.myPlanets[id] || {};
 
@@ -3969,9 +4110,11 @@ class TopbarManager extends Manager
                             const name = this.ogl.db.serverData[upgrade.id] || upgrade.name;
                             Util.addDom('li', { parent:this.PlanetBuildingtooltip[id], child:`<i class="material-icons">fiber_manual_record</i><span class="ogl_slidingText" data-text="${name}"></span><i class="material-icons">east</i><b>${upgrade.lvl}</b>` });
 
-                            if(upgrade.type == 'baseBuilding' || upgrade.type == 'baseResearch') hasBaseBuilding = true;
-                            else if(upgrade.type == 'ship' || upgrade.type == 'def' || upgrade.type == 'mechaShip') hasBaseShip = true;
-                            else if(upgrade.type == 'lfBuilding' || upgrade.type == 'lfResearch') hasLFBuilding = true;
+                            if (upgrade.type == 'baseBuilding') hasBaseBuilding = true;
+                            if (upgrade.type == 'baseResearch') hasBaseResearch = true;
+                            if (upgrade.type == 'ship' || upgrade.type == 'def' || upgrade.type == 'mechaShip') hasBaseShip = true;
+                            if (upgrade.type == 'lfBuilding') hasLFBuilding = true;
+                            if (upgrade.type == 'lfResearch') hasLFResearch = true;
                         }
                     }
                 });
@@ -3981,7 +4124,12 @@ class TopbarManager extends Manager
 
             if(hasBaseBuilding)
             {
-                Util.addDom('div', { class:'ogl_buildIcon material-icons', child:'stat_0', parent:parent });
+                Util.addDom('div', { class:'ogl_buildIcon ogl_baseBuilding material-icons', child:'stat_0', parent:parent });
+            }
+
+            if(hasBaseResearch)
+            {
+                Util.addDom('div', { class:'ogl_buildIcon ogl_baseResearch material-icons', child:'stat_0', parent:parent });
             }
 
             if(hasBaseShip)
@@ -3992,6 +4140,11 @@ class TopbarManager extends Manager
             if(hasLFBuilding)
             {
                 Util.addDom('div', { class:'ogl_buildIcon ogl_lfBuilding material-icons', child:'stat_0', parent:parent });
+            }
+
+            if(hasLFResearch)
+            {
+                Util.addDom('div', { class:'ogl_buildIcon ogl_lfResearch material-icons', child:'stat_0', parent:parent });
             }
         });
     }
@@ -8820,7 +8973,7 @@ class TechManager extends Manager
 
                     for(let i=this.initialLevel; i<=this.initialLevel+this.levelOffset;  i++)
                     {
-                        const data = this.getTechData(id, i, this.ogl.currentPlanet.obj.id);
+                        const data = Util.getTechData(id, i, this.ogl.currentPlanet.obj.id);
 
                         this.todoData[i] = {};
                         this.todoData[i].level = i;
@@ -8862,7 +9015,7 @@ class TechManager extends Manager
                 this.todoData = {};
 
                 const number = amount.value && amount.value > 0 ? amount.value : 1;
-                const data = this.getTechData(id, number, this.ogl.currentPlanet.obj.id);
+                const data = Util.getTechData(id, number, this.ogl.currentPlanet.obj.id);
 
                 this.todoData[id] = {};
                 this.todoData[id].amount = parseInt(number) || 0;
@@ -8929,7 +9082,7 @@ class TechManager extends Manager
 
     displayLevel(id, lvl, data, details)
     {
-        const techData = this.getTechData(id, lvl, this.ogl.currentPlanet.obj.id);
+        const techData = Util.getTechData(id, lvl, this.ogl.currentPlanet.obj.id);
         const cumul = {};
 
         this.detailCumul[id] = this.detailCumul[id] || {};
@@ -9369,360 +9522,6 @@ class TechManager extends Manager
         this.ogl._popup.open(container);
     }
 
-    getTechData(id, level, planetID)
-    {
-        if(!id) return;
-
-        const data = Datafinder.getTech(id);
-        const planetData = this.ogl.db.myPlanets[planetID] || {};
-
-        let baseLabs = [];
-        let bestLabs = 0;
-        let labRequired =
-        {
-            // you can't use a lab with a too low level for the tech
-            113:1, 120:1, 121:4, 114:7, 122:4, 115:1, 117:2, 118:7,
-            106:3, 108:1, 124:3, 123:10, 199:12, 109:4, 110:6, 111:2,
-        }
-
-        document.querySelectorAll('.smallplanet').forEach(line =>
-        {
-            const coloID = line.getAttribute('id').replace('planet-', '');
-            const colo = this.ogl.db.myPlanets[coloID];
-
-            if(!colo) return;
-
-            if(planetID != coloID && colo[31] >= labRequired[id]) baseLabs.push(colo[31]); // base labo
-        });
-
-        /*document.querySelectorAll('.smallplanet').forEach(line =>
-        {
-            const id = line.getAttribute('id').replace('planet-', '');
-            const colo = this.ogl.db.myPlanets[id];
-
-            if(!colo) return;
-            colo.activeLFTechs = colo.activeLFTechs || [];
-
-            if(planetID != id) baseLabs.push(colo[31]); // base labo
-
-            // raceLevel boost building
-            const techBonus11111 = (colo.lifeform == 1 ? (colo[11111] || 0) : 0) * Datafinder.getTech(11111).bonus1BaseValue / 100; // human metropolis
-            const techBonus13107 = (colo.lifeform == 3 ? (colo[13107] || 0) : 0) * Datafinder.getTech(13107).bonus2BaseValue / 100; // meca tower
-            const techBonus13111 = (colo.lifeform == 3 ? (colo[13111] || 0) : 0) * Datafinder.getTech(13111).bonus1BaseValue / 100; // meca cpu
-
-            let bonusRaceLevel = (1 + this.ogl.db.lfBonuses?.[`lifeform${colo.lifeform}`]?.bonus / 100) || 1;
-            bonusRaceLevel = bonusRaceLevel * (1 + techBonus11111 + techBonus13107 + techBonus13111);
-
-            // human
-            cumul[11204] = (cumul[11204] || 0) + (colo.activeLFTechs.indexOf('11204') > -1 ? (colo[11204] || 0) : 0) * bonusRaceLevel; // human espio boost I
-            cumul[11206] = (cumul[11206] || 0) + (colo.activeLFTechs.indexOf('11206') > -1 ? (colo[11206] || 0) : 0) * bonusRaceLevel; // human research boost I
-            cumul[11207] = (cumul[11207] || 0) + (colo.activeLFTechs.indexOf('11207') > -1 ? (colo[11207] || 0) : 0) * bonusRaceLevel; // human terra boost I
-            cumul[11211] = (cumul[11211] || 0) + (colo.activeLFTechs.indexOf('11211') > -1 ? (colo[11211] || 0) : 0) * bonusRaceLevel; // human research boost II
-            cumul[11212] = (cumul[11212] || 0) + (colo.activeLFTechs.indexOf('11212') > -1 ? (colo[11212] || 0) : 0) * bonusRaceLevel; // human terra boost II
-            cumul[11213] = (cumul[11213] || 0) + (colo.activeLFTechs.indexOf('11213') > -1 ? (colo[11213] || 0) : 0) * bonusRaceLevel; // human espio boost II
-            cumul[11217] = (cumul[11217] || 0) + (colo.activeLFTechs.indexOf('11217') > -1 ? (colo[11217] || 0) : 0) * bonusRaceLevel; // human research boost III
-            cumul[11218] = (cumul[11218] || 0) + (colo.activeLFTechs.indexOf('11218') > -1 ? (colo[11218] || 0) : 0) * bonusRaceLevel; // human astro boost I
-
-            // rocktal
-            cumul[12209] = (cumul[12209] || 0) + (colo.activeLFTechs.indexOf('12209') > -1 ? (colo[12209] || 0) : 0) * bonusRaceLevel; // rocktal plasma boost I
-            cumul[12214] = (cumul[12214] || 0) + (colo.activeLFTechs.indexOf('12214') > -1 ? (colo[12214] || 0) : 0) * bonusRaceLevel; // rocktal silo boost I
-            cumul[12215] = (cumul[12215] || 0) + (colo.activeLFTechs.indexOf('12215') > -1 ? (colo[12215] || 0) : 0) * bonusRaceLevel; // rocktal energy boost I
-            cumul[12217] = (cumul[12217] || 0) + (colo.activeLFTechs.indexOf('12217') > -1 ? (colo[12217] || 0) : 0) * bonusRaceLevel; // rocktal protection boost I
-
-            // Meca
-            cumul[13204] = (cumul[13204] || 0) + (colo.activeLFTechs.indexOf('13204') > -1 ? (colo[13204] || 0) : 0) * bonusRaceLevel; // meca depot boost I
-            cumul[13207] = (cumul[13207] || 0) + (colo.activeLFTechs.indexOf('13207') > -1 ? (colo[13207] || 0) : 0) * bonusRaceLevel; // meca espio boost I
-            cumul[13211] = (cumul[13211] || 0) + (colo.activeLFTechs.indexOf('13211') > -1 ? (colo[13211] || 0) : 0) * bonusRaceLevel; // meca energy boost I
-            cumul[13217] = (cumul[13217] || 0) + (colo.activeLFTechs.indexOf('13217') > -1 ? (colo[13217] || 0) : 0) * bonusRaceLevel; // meca weapon boost I
-
-            // kaelesh
-            cumul[14207] = (cumul[14207] || 0) + (colo.activeLFTechs.indexOf('14207') > -1 ? (colo[14207] || 0) : 0); // kaelesh research boost I
-            cumul[14213] = (cumul[14213] || 0) + (colo.activeLFTechs.indexOf('14213') > -1 ? (colo[14213] || 0) : 0); // kaelesh research boost II
-            cumul[14217] = (cumul[14217] || 0) + (colo.activeLFTechs.indexOf('14217') > -1 ? (colo[14217] || 0) : 0); // kaelesh shield boost I
-            cumul[14218] = (cumul[14218] || 0) + (colo.activeLFTechs.indexOf('14218') > -1 ? (colo[14218] || 0) : 0); // kaelesh class boost I
-        });*/
-
-        // raceLevel boost building
-        /*const localBonus11111 = (planetData.lifeform == 1 ? (planetData[11111] || 0) : 0) * Datafinder.getTech(11111).bonus1BaseValue / 100; // human metropolis
-        const localBonus13107 = (planetData.lifeform == 3 ? (planetData[13107] || 0) : 0) * Datafinder.getTech(13107).bonus2BaseValue / 100; // meca tower
-        const localBonus13111 = (planetData.lifeform == 3 ? (planetData[13111] || 0) : 0) * Datafinder.getTech(13111).bonus1BaseValue / 100; // meca cpu
-
-        let localBonusRaceLevel = (1 + this.ogl.db.lfBonuses?.[`lifeform${planetData.lifeform}`]?.bonus / 100) || 1;*/
-
-        baseLabs.sort((a, b) => b - a);
-        baseLabs = baseLabs.slice(0, Math.min(baseLabs.length, planetData[123]));
-        if(baseLabs.length) bestLabs = baseLabs.reduce((a, b) => a + b);
-
-        const planet = {};
-        planet.lifeform = planetData.lifeform || 0;
-        //planet.activeLF = planetData.activeLFTechs || [];
-
-        const tech = {};
-
-        tech.id = id;
-        tech.isBaseBuilding = tech.id < 100;
-        tech.isBaseResearch = tech.id > 100 && tech.id <= 199;
-        tech.isBaseShip = tech.id > 200 && tech.id <= 299;
-        tech.isBaseDef = tech.id > 400 && tech.id <= 599;
-        tech.isLfBuilding = (tech.id > 11100 && tech.id <= 11199) || (tech.id > 12100 && tech.id <= 12199) || (tech.id > 13100 && tech.id <= 13199) || (tech.id > 14100 && tech.id <= 14199);
-        tech.isLfResearch = (tech.id > 11200 && tech.id <= 11299) || (tech.id > 12200 && tech.id <= 12299) || (tech.id > 13200 && tech.id <= 13299) || (tech.id > 14200 && tech.id <= 14299);
-
-        tech.base = {};
-        tech.base.metal = data.metal || 0;
-        tech.base.crystal = data.crystal || 0;
-        tech.base.deut = data.deut || 0;
-        tech.base.energy = data.energy || 0;
-        tech.base.duration = data.durationbase || 0;
-        tech.base.conso = data.conso || 0;
-        tech.base.population = data.bonus1BaseValue || 0;
-
-        tech.factor = {};
-        tech.factor.price = data.priceFactor || 2;
-        tech.factor.duration = data.durationfactor || 2;
-        tech.factor.energy = data.energyFactor || data.energyIncreaseFactor || 2;
-        tech.factor.population = data.bonus1IncreaseFactor || 2;
-
-        tech.bonus = {};
-        tech.bonus.price = 0;
-        tech.bonus.duration = 0;
-        tech.bonus.classDuration = 0;
-        tech.bonus.eventDuration = 0;
-        tech.bonus.technocrat = 0;
-        tech.bonus.engineer = 0;
-        tech.bonus.conso = 0;
-        tech.bonus.prodEnergy = 0;
-
-        if(this.ogl.account.class == 1) tech.bonus.prodEnergy += .1; // 10% rocktal energy bonus
-        if(this.ogl.db.allianceClass == 2) tech.bonus.prodEnergy += .05; // 5% trader alliance bonus
-
-        //tech.bonus.race = localBonusRaceLevel * (1 + localBonus11111 + localBonus13107 + localBonus13111);
-
-        if(planet.lifeform == 2)
-        {
-            // rocktal chamber
-            tech.bonus.prodEnergy += planetData[12107] * Datafinder.getTech(12107).bonus1BaseValue / 100;
-            tech.bonus.conso += planetData[12107] * Datafinder.getTech(12107).bonus2BaseValue / 100;
-
-            if(tech.isLfBuilding)
-            {
-                // rocktal monument
-                tech.bonus.price += planetData[12108] * Datafinder.getTech(12108).bonus1BaseValue / 100;
-                tech.bonus.duration += planetData[12108] * Datafinder.getTech(12108).bonus2BaseValue / 100;
-            }
-        }
-        else if(planet.lifeform == 3)
-        {
-            tech.bonus.prodEnergy += planetData[13107] * Datafinder.getTech(13107).bonus1BaseValue / 100;
-
-            if(tech.isBaseShip || tech.isBaseDef)
-            {
-                tech.bonus.duration += planetData[13106] * Datafinder.getTech(13106).bonus1BaseValue / 100; // meca center
-            }
-        }
-
-        if(tech.isBaseResearch && document.querySelector('.technology .acceleration')) tech.bonus.eventDuration += parseInt(document.querySelector('.technology .acceleration').getAttribute('data-value')) / 100; // research speed event bonus
-        //if(tech.isBaseResearch && this.ogl.account.class == 3) tech.bonus.classDuration += 0.25 * (1 + cumul[14218] * Datafinder.getTech(14218).bonus1BaseValue / 100 * tech.bonus.race); // explo class research speed bonus
-        if(tech.isBaseResearch && this.ogl.account.class == 3) tech.bonus.classDuration += .25 * (1 + (this.ogl.db.lfBonuses?.Characterclasses3?.bonus || 0) / 100); // explo class research speed bonus
-        if(tech.isBaseResearch && document.querySelector('#officers .technocrat.on')) tech.bonus.technocrat += 0.25; // technocrat research speed bonus
-        if(document.querySelector('#officers .engineer.on')) tech.bonus.engineer += 0.10; // engineer energy prod bonus
-
-        if(tech.isLfResearch)
-        {
-            if(planet.lifeform == 1) // human
-            {
-                tech.bonus.price += planetData[11103] * Datafinder.getTech(11103).bonus1BaseValue / 100;
-                tech.bonus.duration += planetData[11103] * Datafinder.getTech(11103).bonus2BaseValue / 100;
-            }
-            else if(planet.lifeform == 2) // rocktal
-            {
-                tech.bonus.price += planetData[12103] * Datafinder.getTech(12103).bonus1BaseValue / 100;
-                tech.bonus.duration += planetData[12103] * Datafinder.getTech(12103).bonus2BaseValue / 100;
-            }
-            else if(planet.lifeform == 3) // meca
-            {
-                tech.bonus.price += planetData[13103] * Datafinder.getTech(13103).bonus1BaseValue / 100;
-                tech.bonus.duration += planetData[13103] * Datafinder.getTech(13103).bonus2BaseValue / 100;
-            }
-            else if(planet.lifeform == 4) // kaelesh
-            {
-                tech.bonus.price += planetData[14103] * Datafinder.getTech(14103).bonus1BaseValue / 100;
-                tech.bonus.duration += planetData[14103] * Datafinder.getTech(14103).bonus2BaseValue / 100;
-            }
-
-            tech.bonus.price += (this.ogl.db.lfBonuses?.LfResearch?.cost || 0) / 100;
-            tech.bonus.duration += (this.ogl.db.lfBonuses?.LfResearch?.duration || 0) / 100;
-        }
-
-        if(planet.lifeform == 2 && (tech.id == 1 || tech.id == 2 || tech.id == 3 || tech.id == 4 || tech.id == 12 || tech.id == 12101 || tech.id == 12102))
-        {
-            tech.bonus.price += planetData[12111] * Datafinder.getTech(12111).bonus1BaseValue / 100;
-        }
-
-        if(tech.isBaseResearch || tech.isBaseDef || tech.isBaseShip)
-        {
-            tech.bonus.price += (this.ogl.db.lfBonuses?.[tech.id]?.cost || 0) / 100;
-            tech.bonus.duration += (this.ogl.db.lfBonuses?.[tech.id]?.duration || 0) / 100;
-        }
-
-        /*if(tech.isBaseResearch || tech.isLfResearch)
-        {
-            tech.bonus.duration += cumul[11206] * Datafinder.getTech(11206).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[11211] * Datafinder.getTech(11211).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[11217] * Datafinder.getTech(11217).bonus1BaseValue / 100;
-
-            tech.bonus.duration += cumul[14207] * Datafinder.getTech(14207).bonus1BaseValue / 100 ;
-            tech.bonus.duration += cumul[14213] * Datafinder.getTech(14213).bonus1BaseValue / 100;
-        }
-
-        if(planet.lifeform == 2 && (tech.id == 1 || tech.id == 2 || tech.id == 3 || tech.id == 4 || tech.id == 12 || tech.id == 12101 || tech.id == 12102))
-        {
-            tech.bonus.price += planetData[12111] * Datafinder.getTech(12111).bonus1BaseValue / 100;
-        }
-        else if(tech.id == 33) // terraformer
-        {
-            tech.bonus.price += cumul[11207] * Datafinder.getTech(11207).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[11207] * Datafinder.getTech(11207).bonus2BaseValue / 100;
-
-            tech.bonus.price += cumul[11212] * Datafinder.getTech(11212).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[11212] * Datafinder.getTech(11212).bonus2BaseValue / 100;
-        }
-        else if(tech.id == 34) // depot
-        {
-            tech.bonus.price += cumul[13204] * Datafinder.getTech(13204).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[13204] * Datafinder.getTech(13204).bonus2BaseValue / 100;
-        }
-        else if(tech.id == 44) // silo
-        {
-            tech.bonus.price += cumul[12214] * Datafinder.getTech(11207).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[12214] * Datafinder.getTech(11207).bonus2BaseValue / 100;
-        }
-        else if(tech.id == 106) // espionage
-        {
-            tech.bonus.price += cumul[11204] * Datafinder.getTech(11204).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[11204] * Datafinder.getTech(11204).bonus2BaseValue / 100;
-
-            tech.bonus.price += cumul[11213] * Datafinder.getTech(11213).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[11213] * Datafinder.getTech(11213).bonus2BaseValue / 100;
-
-            tech.bonus.price += cumul[13207] * Datafinder.getTech(13207).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[13207] * Datafinder.getTech(13207).bonus2BaseValue / 100;
-        }
-        else if(tech.id == 109) // weapon
-        {
-            tech.bonus.price += cumul[13217] * Datafinder.getTech(13217).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[13217] * Datafinder.getTech(13217).bonus2BaseValue / 100;
-        }
-        else if(tech.id == 110) // shield
-        {
-            tech.bonus.price += cumul[14217] * Datafinder.getTech(14217).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[14217] * Datafinder.getTech(14217).bonus2BaseValue / 100;
-        }
-        else if(tech.id == 111) // protection
-        {
-            tech.bonus.price += cumul[12217] * Datafinder.getTech(12217).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[12217] * Datafinder.getTech(12217).bonus2BaseValue / 100;
-        }
-        else if(tech.id == 113) // energy
-        {
-            tech.bonus.price += cumul[12215] * Datafinder.getTech(12215).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[12215] * Datafinder.getTech(12215).bonus2BaseValue / 100;
-
-            tech.bonus.price += cumul[13211] * Datafinder.getTech(13211).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[13211] * Datafinder.getTech(13211).bonus2BaseValue / 100;
-        }
-        else if(tech.id == 122) // plasma
-        {
-            tech.bonus.price += cumul[12209] * Datafinder.getTech(12209).bonus1BaseValue / 100;
-            tech.bonus.duration += cumul[12209] * Datafinder.getTech(12209).bonus2BaseValue / 100;
-        }
-        else if(tech.id == 124) // astro
-        {
-            tech.bonus.duration += cumul[11218] * Datafinder.getTech(11218).bonus1BaseValue / 100;
-        }*/
-
-        tech.target = {};
-
-        if(tech.isBaseBuilding || tech.isBaseResearch)
-        {
-            const rawMetal = Math.floor(tech.base.metal * Math.pow(tech.factor.price, level - 1));
-            const rawCrystal =  Math.floor(tech.base.crystal * Math.pow(tech.factor.price, level - 1));
-            const rawDeut =  Math.floor(tech.base.deut * Math.pow(tech.factor.price, level - 1));
-
-            tech.target.metal = Math.floor(rawMetal * (1 - tech.bonus.price));
-            tech.target.crystal =  Math.floor(rawCrystal * (1 - tech.bonus.price));
-            tech.target.deut =  Math.floor(rawDeut * (1 - tech.bonus.price));
-            tech.target.energy =  Math.floor(tech.base.energy * Math.pow(tech.factor.energy, level - 1));
-
-            if(tech.id == 1 || tech.id == 2) tech.target.conso = Math.ceil(10 * level * Math.pow(1.1, level)) - Math.ceil(10 * (level-1) * Math.pow(1.1, level-1));
-            if(tech.id == 3) tech.target.conso = Math.ceil(20 * level * Math.pow(1.1, level)) - Math.ceil(20 * (level-1) * Math.pow(1.1, level-1));
-            if(tech.id == 4) tech.target.prodEnergy = Math.floor(20 * level * Math.pow(1.1, level)) - Math.floor(20 * (level-1) * Math.pow(1.1, level-1));
-            if(tech.id == 12) tech.target.prodEnergy = Math.floor(30 * level * Math.pow((1.05 + (planetData[113] || 0) * 0.01), level)) - Math.floor(30 * (level-1) * Math.pow((1.05 + (planetData[113] || 0) * 0.01), level-1));
-
-            if(tech.isBaseBuilding) tech.target.duration = (rawMetal + rawCrystal) / (2500 * Math.max((id == 41 || id == 42 || id == 43) ? 1 : 4 - level / 2, 1)  * (1 + (planetData[14] || 0)) * (Math.pow(2, planetData[15] || 0))) * 3600 * 1000;
-            else tech.target.duration = (rawMetal + rawCrystal) / (1000 * (1 + (planetData[31] || 0) + bestLabs)) * 3600 * 1000;
-        }
-        else if(tech.isLfBuilding || tech.isLfResearch)
-        {
-            tech.target.metal = Math.floor(Math.floor(tech.base.metal * Math.pow(tech.factor.price, level - 1) * level) * (1 - tech.bonus.price));
-            tech.target.crystal = Math.floor(Math.floor(tech.base.crystal * Math.pow(tech.factor.price, level - 1) * level) * (1 - tech.bonus.price));
-            tech.target.deut =  Math.floor(Math.floor(tech.base.deut * Math.pow(tech.factor.price, level - 1) * level) * (1 - tech.bonus.price));
-            tech.target.energy = Math.floor(Math.floor(level * tech.base.energy * Math.pow(tech.factor.energy, level) * (1 - tech.bonus.price)));
-            tech.target.population = Math.floor(Math.floor(tech.base.population * Math.pow(tech.factor.population, level-1) * (1 - tech.bonus.price)));
-
-            if(level < 2) tech.target.conso = Math.floor(level * tech.base.energy);
-            else tech.target.conso = Math.floor(Math.floor(level * tech.base.energy * Math.pow(tech.factor.energy, level) - (level-1) * tech.base.energy * Math.pow(tech.factor.energy, level-1)));
-
-            if(tech.isLfBuilding) tech.target.duration = Math.floor(level * tech.base.duration * 1000 * (1 / ((1 + (planetData[14] || 0)) * (Math.pow(2, planetData[15] || 0)))) * Math.pow(tech.factor.duration, level));
-            else tech.target.duration = Math.floor(level * tech.base.duration * 1000 * Math.pow(tech.factor.duration, level));
-        }
-        else if(tech.isBaseShip || tech.isBaseDef)
-        {
-            const amount = level || 1;
-
-            tech.target.metal = tech.base.metal * amount;
-            tech.target.crystal =  tech.base.crystal * amount;
-            tech.target.deut =  tech.base.deut * amount;
-            tech.target.duration = ((tech.base.metal + tech.base.crystal) / 5000) * (2 / (1 + planetData[21] || 0)) * Math.pow(0.5, (planetData[15] || 0)) * 3600 * 1000;
-            if(tech.id == 212) tech.target.prodEnergy = Math.floor(((planetData.temperature + 40 + planetData.temperature) / 2 + 160) / 6) * amount;
-        }
-
-        if(this.ogl.db.options.debugMode)
-        {
-            const debugString = JSON.stringify(tech);
-            console.log(debugString);
-        }
-
-        tech.target.prodEnergy = Math.floor(tech.target.prodEnergy * (1 + tech.bonus.prodEnergy + tech.bonus.engineer)) || 0;
-        tech.target.conso = -Math.ceil(tech.target.conso * (1 - tech.bonus.conso)) || 0;
-        tech.target.duration = tech.target.duration / (this.ogl.server.economySpeed * (tech.isBaseResearch ? this.ogl.db.serverData.researchSpeed : 1)) * (1 - tech.bonus.eventDuration) * (1 - tech.bonus.classDuration) * (1 - tech.bonus.technocrat) * (1 - Math.min(tech.bonus.duration, .99));
-        tech.target.duration = Math.max(tech.target.duration, 1000);
-
-        if(tech.isBaseShip || tech.isBaseDef)
-        {
-            tech.target.duration = Math.floor(tech.target.duration / 1000) * 1000;
-            tech.target.duration = Math.max(tech.target.duration, 1000) * (level || 1);
-        }
-
-        let seconds = tech.target.duration / 1000;
-        let w = Math.floor(seconds / (3600*24*7));
-        let d = Math.floor(seconds % (3600*24*7) / (3600*24));
-        let h = Math.floor(seconds % (3600*24) / 3600);
-        let m = Math.floor(seconds % 3600 / 60);
-        let s = Math.floor(seconds % 60);
-
-        let displayed = 0;
-
-        tech.target.timeresult = '';
-
-        if(w > 0 && displayed < 3) { tech.target.timeresult += `${w}${LocalizationStrings.timeunits.short.week} `; displayed++; }
-        if(d > 0 && displayed < 3) { tech.target.timeresult += `${d}${LocalizationStrings.timeunits.short.day} `; displayed++; }
-        if(h > 0 && displayed < 3) { tech.target.timeresult += `${h}${LocalizationStrings.timeunits.short.hour} `; displayed++; }
-        if(m > 0 && displayed < 3) { tech.target.timeresult += `${m}${LocalizationStrings.timeunits.short.minute} `; displayed++; }
-        if(s > 0 && displayed < 3) { tech.target.timeresult += `${s}${LocalizationStrings.timeunits.short.second}`; displayed++; }
-
-        return tech;
-    }
-
     checkProductionBoxes()
     {
         this.ogl.currentPlanet.obj.upgrades = this.ogl.currentPlanet.obj.upgrades || {};
@@ -9739,8 +9538,6 @@ class TechManager extends Manager
                 {
                     this.ogl.currentPlanet.obj.upgrades[techType] = [];
 
-                    let itemEndTime = 0;
-
                     document.querySelectorAll(`#${[box[1]]} .queuePic`).forEach((item, index) =>
                                                                                 {
                         const urlParams = new URLSearchParams(item.parentNode.href);
@@ -9748,20 +9545,19 @@ class TechManager extends Manager
                         if(!id) return; //can't detect def
 
                         const lvl = item.closest('.first')?.parentNode?.querySelector('.level')?.innerText.match(/\d+/)[0] || item.closest('.first')?.querySelector('.shipSumCount')?.innerText || item.parentNode.innerText;
-                        const data = this.getTechData(id, lvl, this.ogl.currentPlanet.obj.id);
+                        const data = Util.getTechData(id, lvl, this.ogl.currentPlanet.obj.id);
                         const div = document.querySelector(`#${[box[1]]} .content`);
                         const countdownElement = div.querySelector('.countdown');
 
                         if (countdownElement) {
                             const endTime = index == 0 ? parseInt(countdownElement.getAttribute('data-end')) * 1000 : data.target.duration;
 
-                            itemEndTime += endTime;
-
                             const upgrade = {};
                             upgrade.id = id;
                             upgrade.lvl = lvl;
-                            upgrade.end = time + itemEndTime;
+                            upgrade.end = endTime;
                             upgrade.type = techType;
+                            upgrade.points = (data.target.metal + data.target.crystal + data.target.deut)/1000;
 
                             this.ogl.currentPlanet.obj.upgrades[techType].push(upgrade);
                         }
@@ -9771,7 +9567,6 @@ class TechManager extends Manager
         });
     }
 }
-
 
 class StatsManager extends Manager
 {
@@ -10540,6 +10335,8 @@ class EmpireManager extends Manager
                     this.ogl.db.myPlanets[planet.id].prodMetal = entry[1].hourly[0] / 3600;
                     this.ogl.db.myPlanets[planet.id].prodCrystal = entry[1].hourly[1] / 3600;
                     this.ogl.db.myPlanets[planet.id].prodDeut = entry[1].hourly[2] / 3600;
+                } else if(entry[0] === 'name'){
+                    this.ogl.db.myPlanets[planet.id].name = entry[1];
                 }
             });
         });
@@ -11138,6 +10935,378 @@ class Util
 
         return timeresult;
     }
+
+    static getTechData(id, level, planetID)
+    {
+        if(!id) return;
+
+        const data = Datafinder.getTech(id);
+        const planetData = this.ogl.db.myPlanets[planetID] || {};
+
+        let baseLabs = [];
+        let bestLabs = 0;
+        let labRequired =
+        {
+            // you can't use a lab with a too low level for the tech
+            113:1, 120:1, 121:4, 114:7, 122:4, 115:1, 117:2, 118:7,
+            106:3, 108:1, 124:3, 123:10, 199:12, 109:4, 110:6, 111:2,
+        }
+
+        document.querySelectorAll('.smallplanet').forEach(line =>
+        {
+            const coloID = line.getAttribute('id').replace('planet-', '');
+            const colo = this.ogl.db.myPlanets[coloID];
+
+            if(!colo) return;
+
+            if(planetID != coloID && colo[31] >= labRequired[id]) baseLabs.push(colo[31]); // base labo
+        });
+
+        /*document.querySelectorAll('.smallplanet').forEach(line =>
+        {
+            const id = line.getAttribute('id').replace('planet-', '');
+            const colo = this.ogl.db.myPlanets[id];
+
+            if(!colo) return;
+            colo.activeLFTechs = colo.activeLFTechs || [];
+
+            if(planetID != id) baseLabs.push(colo[31]); // base labo
+
+            // raceLevel boost building
+            const techBonus11111 = (colo.lifeform == 1 ? (colo[11111] || 0) : 0) * Datafinder.getTech(11111).bonus1BaseValue / 100; // human metropolis
+            const techBonus13107 = (colo.lifeform == 3 ? (colo[13107] || 0) : 0) * Datafinder.getTech(13107).bonus2BaseValue / 100; // meca tower
+            const techBonus13111 = (colo.lifeform == 3 ? (colo[13111] || 0) : 0) * Datafinder.getTech(13111).bonus1BaseValue / 100; // meca cpu
+
+            let bonusRaceLevel = (1 + this.ogl.db.lfBonuses?.[`lifeform${colo.lifeform}`]?.bonus / 100) || 1;
+            bonusRaceLevel = bonusRaceLevel * (1 + techBonus11111 + techBonus13107 + techBonus13111);
+
+            // human
+            cumul[11204] = (cumul[11204] || 0) + (colo.activeLFTechs.indexOf('11204') > -1 ? (colo[11204] || 0) : 0) * bonusRaceLevel; // human espio boost I
+            cumul[11206] = (cumul[11206] || 0) + (colo.activeLFTechs.indexOf('11206') > -1 ? (colo[11206] || 0) : 0) * bonusRaceLevel; // human research boost I
+            cumul[11207] = (cumul[11207] || 0) + (colo.activeLFTechs.indexOf('11207') > -1 ? (colo[11207] || 0) : 0) * bonusRaceLevel; // human terra boost I
+            cumul[11211] = (cumul[11211] || 0) + (colo.activeLFTechs.indexOf('11211') > -1 ? (colo[11211] || 0) : 0) * bonusRaceLevel; // human research boost II
+            cumul[11212] = (cumul[11212] || 0) + (colo.activeLFTechs.indexOf('11212') > -1 ? (colo[11212] || 0) : 0) * bonusRaceLevel; // human terra boost II
+            cumul[11213] = (cumul[11213] || 0) + (colo.activeLFTechs.indexOf('11213') > -1 ? (colo[11213] || 0) : 0) * bonusRaceLevel; // human espio boost II
+            cumul[11217] = (cumul[11217] || 0) + (colo.activeLFTechs.indexOf('11217') > -1 ? (colo[11217] || 0) : 0) * bonusRaceLevel; // human research boost III
+            cumul[11218] = (cumul[11218] || 0) + (colo.activeLFTechs.indexOf('11218') > -1 ? (colo[11218] || 0) : 0) * bonusRaceLevel; // human astro boost I
+
+            // rocktal
+            cumul[12209] = (cumul[12209] || 0) + (colo.activeLFTechs.indexOf('12209') > -1 ? (colo[12209] || 0) : 0) * bonusRaceLevel; // rocktal plasma boost I
+            cumul[12214] = (cumul[12214] || 0) + (colo.activeLFTechs.indexOf('12214') > -1 ? (colo[12214] || 0) : 0) * bonusRaceLevel; // rocktal silo boost I
+            cumul[12215] = (cumul[12215] || 0) + (colo.activeLFTechs.indexOf('12215') > -1 ? (colo[12215] || 0) : 0) * bonusRaceLevel; // rocktal energy boost I
+            cumul[12217] = (cumul[12217] || 0) + (colo.activeLFTechs.indexOf('12217') > -1 ? (colo[12217] || 0) : 0) * bonusRaceLevel; // rocktal protection boost I
+
+            // Meca
+            cumul[13204] = (cumul[13204] || 0) + (colo.activeLFTechs.indexOf('13204') > -1 ? (colo[13204] || 0) : 0) * bonusRaceLevel; // meca depot boost I
+            cumul[13207] = (cumul[13207] || 0) + (colo.activeLFTechs.indexOf('13207') > -1 ? (colo[13207] || 0) : 0) * bonusRaceLevel; // meca espio boost I
+            cumul[13211] = (cumul[13211] || 0) + (colo.activeLFTechs.indexOf('13211') > -1 ? (colo[13211] || 0) : 0) * bonusRaceLevel; // meca energy boost I
+            cumul[13217] = (cumul[13217] || 0) + (colo.activeLFTechs.indexOf('13217') > -1 ? (colo[13217] || 0) : 0) * bonusRaceLevel; // meca weapon boost I
+
+            // kaelesh
+            cumul[14207] = (cumul[14207] || 0) + (colo.activeLFTechs.indexOf('14207') > -1 ? (colo[14207] || 0) : 0); // kaelesh research boost I
+            cumul[14213] = (cumul[14213] || 0) + (colo.activeLFTechs.indexOf('14213') > -1 ? (colo[14213] || 0) : 0); // kaelesh research boost II
+            cumul[14217] = (cumul[14217] || 0) + (colo.activeLFTechs.indexOf('14217') > -1 ? (colo[14217] || 0) : 0); // kaelesh shield boost I
+            cumul[14218] = (cumul[14218] || 0) + (colo.activeLFTechs.indexOf('14218') > -1 ? (colo[14218] || 0) : 0); // kaelesh class boost I
+        });*/
+
+        // raceLevel boost building
+        /*const localBonus11111 = (planetData.lifeform == 1 ? (planetData[11111] || 0) : 0) * Datafinder.getTech(11111).bonus1BaseValue / 100; // human metropolis
+        const localBonus13107 = (planetData.lifeform == 3 ? (planetData[13107] || 0) : 0) * Datafinder.getTech(13107).bonus2BaseValue / 100; // meca tower
+        const localBonus13111 = (planetData.lifeform == 3 ? (planetData[13111] || 0) : 0) * Datafinder.getTech(13111).bonus1BaseValue / 100; // meca cpu
+
+        let localBonusRaceLevel = (1 + this.ogl.db.lfBonuses?.[`lifeform${planetData.lifeform}`]?.bonus / 100) || 1;*/
+
+        baseLabs.sort((a, b) => b - a);
+        baseLabs = baseLabs.slice(0, Math.min(baseLabs.length, planetData[123]));
+        if(baseLabs.length) bestLabs = baseLabs.reduce((a, b) => a + b);
+
+        const planet = {};
+        planet.lifeform = planetData.lifeform || 0;
+        //planet.activeLF = planetData.activeLFTechs || [];
+
+        const tech = {};
+
+        tech.id = id;
+        tech.isBaseBuilding = tech.id < 100;
+        tech.isBaseResearch = tech.id > 100 && tech.id <= 199;
+        tech.isBaseShip = tech.id > 200 && tech.id <= 299;
+        tech.isBaseDef = tech.id > 400 && tech.id <= 599;
+        tech.isLfBuilding = (tech.id > 11100 && tech.id <= 11199) || (tech.id > 12100 && tech.id <= 12199) || (tech.id > 13100 && tech.id <= 13199) || (tech.id > 14100 && tech.id <= 14199);
+        tech.isLfResearch = (tech.id > 11200 && tech.id <= 11299) || (tech.id > 12200 && tech.id <= 12299) || (tech.id > 13200 && tech.id <= 13299) || (tech.id > 14200 && tech.id <= 14299);
+
+        tech.base = {};
+        tech.base.metal = data.metal || 0;
+        tech.base.crystal = data.crystal || 0;
+        tech.base.deut = data.deut || 0;
+        tech.base.energy = data.energy || 0;
+        tech.base.duration = data.durationbase || 0;
+        tech.base.conso = data.conso || 0;
+        tech.base.population = data.bonus1BaseValue || 0;
+
+        tech.factor = {};
+        tech.factor.price = data.priceFactor || 2;
+        tech.factor.duration = data.durationfactor || 2;
+        tech.factor.energy = data.energyFactor || data.energyIncreaseFactor || 2;
+        tech.factor.population = data.bonus1IncreaseFactor || 2;
+
+        tech.bonus = {};
+        tech.bonus.price = 0;
+        tech.bonus.duration = 0;
+        tech.bonus.classDuration = 0;
+        tech.bonus.eventDuration = 0;
+        tech.bonus.technocrat = 0;
+        tech.bonus.engineer = 0;
+        tech.bonus.conso = 0;
+        tech.bonus.prodEnergy = 0;
+
+        if(this.ogl.account.class == 1) tech.bonus.prodEnergy += .1; // 10% rocktal energy bonus
+        if(this.ogl.db.allianceClass == 2) tech.bonus.prodEnergy += .05; // 5% trader alliance bonus
+
+        //tech.bonus.race = localBonusRaceLevel * (1 + localBonus11111 + localBonus13107 + localBonus13111);
+
+        if(planet.lifeform == 2)
+        {
+            // rocktal chamber
+            tech.bonus.prodEnergy += planetData[12107] * Datafinder.getTech(12107).bonus1BaseValue / 100;
+            tech.bonus.conso += planetData[12107] * Datafinder.getTech(12107).bonus2BaseValue / 100;
+
+            if(tech.isLfBuilding)
+            {
+                // rocktal monument
+                tech.bonus.price += planetData[12108] * Datafinder.getTech(12108).bonus1BaseValue / 100;
+                tech.bonus.duration += planetData[12108] * Datafinder.getTech(12108).bonus2BaseValue / 100;
+            }
+        }
+        else if(planet.lifeform == 3)
+        {
+            tech.bonus.prodEnergy += planetData[13107] * Datafinder.getTech(13107).bonus1BaseValue / 100;
+
+            if(tech.isBaseShip || tech.isBaseDef)
+            {
+                tech.bonus.duration += planetData[13106] * Datafinder.getTech(13106).bonus1BaseValue / 100; // meca center
+            }
+        }
+
+        if(tech.isBaseResearch && document.querySelector('.technology .acceleration')) tech.bonus.eventDuration += parseInt(document.querySelector('.technology .acceleration').getAttribute('data-value')) / 100; // research speed event bonus
+        //if(tech.isBaseResearch && this.ogl.account.class == 3) tech.bonus.classDuration += 0.25 * (1 + cumul[14218] * Datafinder.getTech(14218).bonus1BaseValue / 100 * tech.bonus.race); // explo class research speed bonus
+        if(tech.isBaseResearch && this.ogl.account.class == 3) tech.bonus.classDuration += .25 * (1 + (this.ogl.db.lfBonuses?.Characterclasses3?.bonus || 0) / 100); // explo class research speed bonus
+        if(tech.isBaseResearch && document.querySelector('#officers .technocrat.on')) tech.bonus.technocrat += 0.25; // technocrat research speed bonus
+        if(document.querySelector('#officers .engineer.on')) tech.bonus.engineer += 0.10; // engineer energy prod bonus
+
+        if(tech.isLfResearch)
+        {
+            if(planet.lifeform == 1) // human
+            {
+                tech.bonus.price += planetData[11103] * Datafinder.getTech(11103).bonus1BaseValue / 100;
+                tech.bonus.duration += planetData[11103] * Datafinder.getTech(11103).bonus2BaseValue / 100;
+            }
+            else if(planet.lifeform == 2) // rocktal
+            {
+                tech.bonus.price += planetData[12103] * Datafinder.getTech(12103).bonus1BaseValue / 100;
+                tech.bonus.duration += planetData[12103] * Datafinder.getTech(12103).bonus2BaseValue / 100;
+            }
+            else if(planet.lifeform == 3) // meca
+            {
+                tech.bonus.price += planetData[13103] * Datafinder.getTech(13103).bonus1BaseValue / 100;
+                tech.bonus.duration += planetData[13103] * Datafinder.getTech(13103).bonus2BaseValue / 100;
+            }
+            else if(planet.lifeform == 4) // kaelesh
+            {
+                tech.bonus.price += planetData[14103] * Datafinder.getTech(14103).bonus1BaseValue / 100;
+                tech.bonus.duration += planetData[14103] * Datafinder.getTech(14103).bonus2BaseValue / 100;
+            }
+
+            tech.bonus.price += (this.ogl.db.lfBonuses?.LfResearch?.cost || 0) / 100;
+            tech.bonus.duration += (this.ogl.db.lfBonuses?.LfResearch?.duration || 0) / 100;
+        }
+
+        if(planet.lifeform == 2 && (tech.id == 1 || tech.id == 2 || tech.id == 3 || tech.id == 4 || tech.id == 12 || tech.id == 12101 || tech.id == 12102))
+        {
+            tech.bonus.price += planetData[12111] * Datafinder.getTech(12111).bonus1BaseValue / 100;
+        }
+
+        if(tech.isBaseResearch || tech.isBaseDef || tech.isBaseShip)
+        {
+            tech.bonus.price += (this.ogl.db.lfBonuses?.[tech.id]?.cost || 0) / 100;
+            tech.bonus.duration += (this.ogl.db.lfBonuses?.[tech.id]?.duration || 0) / 100;
+        }
+
+        /*if(tech.isBaseResearch || tech.isLfResearch)
+        {
+            tech.bonus.duration += cumul[11206] * Datafinder.getTech(11206).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[11211] * Datafinder.getTech(11211).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[11217] * Datafinder.getTech(11217).bonus1BaseValue / 100;
+
+            tech.bonus.duration += cumul[14207] * Datafinder.getTech(14207).bonus1BaseValue / 100 ;
+            tech.bonus.duration += cumul[14213] * Datafinder.getTech(14213).bonus1BaseValue / 100;
+        }
+
+        if(planet.lifeform == 2 && (tech.id == 1 || tech.id == 2 || tech.id == 3 || tech.id == 4 || tech.id == 12 || tech.id == 12101 || tech.id == 12102))
+        {
+            tech.bonus.price += planetData[12111] * Datafinder.getTech(12111).bonus1BaseValue / 100;
+        }
+        else if(tech.id == 33) // terraformer
+        {
+            tech.bonus.price += cumul[11207] * Datafinder.getTech(11207).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[11207] * Datafinder.getTech(11207).bonus2BaseValue / 100;
+
+            tech.bonus.price += cumul[11212] * Datafinder.getTech(11212).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[11212] * Datafinder.getTech(11212).bonus2BaseValue / 100;
+        }
+        else if(tech.id == 34) // depot
+        {
+            tech.bonus.price += cumul[13204] * Datafinder.getTech(13204).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[13204] * Datafinder.getTech(13204).bonus2BaseValue / 100;
+        }
+        else if(tech.id == 44) // silo
+        {
+            tech.bonus.price += cumul[12214] * Datafinder.getTech(11207).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[12214] * Datafinder.getTech(11207).bonus2BaseValue / 100;
+        }
+        else if(tech.id == 106) // espionage
+        {
+            tech.bonus.price += cumul[11204] * Datafinder.getTech(11204).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[11204] * Datafinder.getTech(11204).bonus2BaseValue / 100;
+
+            tech.bonus.price += cumul[11213] * Datafinder.getTech(11213).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[11213] * Datafinder.getTech(11213).bonus2BaseValue / 100;
+
+            tech.bonus.price += cumul[13207] * Datafinder.getTech(13207).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[13207] * Datafinder.getTech(13207).bonus2BaseValue / 100;
+        }
+        else if(tech.id == 109) // weapon
+        {
+            tech.bonus.price += cumul[13217] * Datafinder.getTech(13217).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[13217] * Datafinder.getTech(13217).bonus2BaseValue / 100;
+        }
+        else if(tech.id == 110) // shield
+        {
+            tech.bonus.price += cumul[14217] * Datafinder.getTech(14217).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[14217] * Datafinder.getTech(14217).bonus2BaseValue / 100;
+        }
+        else if(tech.id == 111) // protection
+        {
+            tech.bonus.price += cumul[12217] * Datafinder.getTech(12217).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[12217] * Datafinder.getTech(12217).bonus2BaseValue / 100;
+        }
+        else if(tech.id == 113) // energy
+        {
+            tech.bonus.price += cumul[12215] * Datafinder.getTech(12215).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[12215] * Datafinder.getTech(12215).bonus2BaseValue / 100;
+
+            tech.bonus.price += cumul[13211] * Datafinder.getTech(13211).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[13211] * Datafinder.getTech(13211).bonus2BaseValue / 100;
+        }
+        else if(tech.id == 122) // plasma
+        {
+            tech.bonus.price += cumul[12209] * Datafinder.getTech(12209).bonus1BaseValue / 100;
+            tech.bonus.duration += cumul[12209] * Datafinder.getTech(12209).bonus2BaseValue / 100;
+        }
+        else if(tech.id == 124) // astro
+        {
+            tech.bonus.duration += cumul[11218] * Datafinder.getTech(11218).bonus1BaseValue / 100;
+        }*/
+
+        tech.target = {};
+
+        if(tech.isBaseBuilding || tech.isBaseResearch)
+        {
+            const rawMetal = Math.floor(tech.base.metal * Math.pow(tech.factor.price, level - 1));
+            const rawCrystal =  Math.floor(tech.base.crystal * Math.pow(tech.factor.price, level - 1));
+            const rawDeut =  Math.floor(tech.base.deut * Math.pow(tech.factor.price, level - 1));
+
+            tech.target.metal = Math.floor(rawMetal * (1 - tech.bonus.price));
+            tech.target.crystal =  Math.floor(rawCrystal * (1 - tech.bonus.price));
+            tech.target.deut =  Math.floor(rawDeut * (1 - tech.bonus.price));
+            tech.target.energy =  Math.floor(tech.base.energy * Math.pow(tech.factor.energy, level - 1));
+
+            if(tech.id == 1 || tech.id == 2) tech.target.conso = Math.ceil(10 * level * Math.pow(1.1, level)) - Math.ceil(10 * (level-1) * Math.pow(1.1, level-1));
+            if(tech.id == 3) tech.target.conso = Math.ceil(20 * level * Math.pow(1.1, level)) - Math.ceil(20 * (level-1) * Math.pow(1.1, level-1));
+            if(tech.id == 4) tech.target.prodEnergy = Math.floor(20 * level * Math.pow(1.1, level)) - Math.floor(20 * (level-1) * Math.pow(1.1, level-1));
+            if(tech.id == 12) tech.target.prodEnergy = Math.floor(30 * level * Math.pow((1.05 + (planetData[113] || 0) * 0.01), level)) - Math.floor(30 * (level-1) * Math.pow((1.05 + (planetData[113] || 0) * 0.01), level-1));
+
+            if(tech.isBaseBuilding) tech.target.duration = (rawMetal + rawCrystal) / (2500 * Math.max((id == 41 || id == 42 || id == 43) ? 1 : 4 - level / 2, 1)  * (1 + (planetData[14] || 0)) * (Math.pow(2, planetData[15] || 0))) * 3600 * 1000;
+            else tech.target.duration = (rawMetal + rawCrystal) / (1000 * (1 + (planetData[31] || 0) + bestLabs)) * 3600 * 1000;
+        }
+        else if(tech.isLfBuilding || tech.isLfResearch)
+        {
+            tech.target.metal = Math.floor(Math.floor(tech.base.metal * Math.pow(tech.factor.price, level - 1) * level) * (1 - tech.bonus.price));
+            tech.target.crystal = Math.floor(Math.floor(tech.base.crystal * Math.pow(tech.factor.price, level - 1) * level) * (1 - tech.bonus.price));
+            tech.target.deut =  Math.floor(Math.floor(tech.base.deut * Math.pow(tech.factor.price, level - 1) * level) * (1 - tech.bonus.price));
+            tech.target.energy = Math.floor(Math.floor(level * tech.base.energy * Math.pow(tech.factor.energy, level) * (1 - tech.bonus.price)));
+            tech.target.population = Math.floor(Math.floor(tech.base.population * Math.pow(tech.factor.population, level-1) * (1 - tech.bonus.price)));
+
+            if(level < 2) tech.target.conso = Math.floor(level * tech.base.energy);
+            else tech.target.conso = Math.floor(Math.floor(level * tech.base.energy * Math.pow(tech.factor.energy, level) - (level-1) * tech.base.energy * Math.pow(tech.factor.energy, level-1)));
+
+            if(tech.isLfBuilding) tech.target.duration = Math.floor(level * tech.base.duration * 1000 * (1 / ((1 + (planetData[14] || 0)) * (Math.pow(2, planetData[15] || 0)))) * Math.pow(tech.factor.duration, level));
+            else tech.target.duration = Math.floor(level * tech.base.duration * 1000 * Math.pow(tech.factor.duration, level));
+        }
+        else if(tech.isBaseShip || tech.isBaseDef)
+        {
+            const amount = level || 1;
+
+            tech.target.metal = tech.base.metal * amount;
+            tech.target.crystal =  tech.base.crystal * amount;
+            tech.target.deut =  tech.base.deut * amount;
+            tech.target.duration = ((tech.base.metal + tech.base.crystal) / 5000) * (2 / (1 + planetData[21] || 0)) * Math.pow(0.5, (planetData[15] || 0)) * 3600 * 1000;
+            if(tech.id == 212) tech.target.prodEnergy = Math.floor(((planetData.temperature + 40 + planetData.temperature) / 2 + 160) / 6) * amount;
+        }
+
+        if(this.ogl.db.options.debugMode)
+        {
+            const debugString = JSON.stringify(tech);
+            console.log(debugString);
+        }
+
+        tech.target.prodEnergy = Math.floor(tech.target.prodEnergy * (1 + tech.bonus.prodEnergy + tech.bonus.engineer)) || 0;
+        tech.target.conso = -Math.ceil(tech.target.conso * (1 - tech.bonus.conso)) || 0;
+        tech.target.duration = tech.target.duration / (this.ogl.server.economySpeed * (tech.isBaseResearch ? this.ogl.db.serverData.researchSpeed : 1)) * (1 - tech.bonus.eventDuration) * (1 - tech.bonus.classDuration) * (1 - tech.bonus.technocrat) * (1 - Math.min(tech.bonus.duration, .99));
+        tech.target.duration = Math.max(tech.target.duration, 1000);
+
+        if(tech.isBaseShip || tech.isBaseDef)
+        {
+            tech.target.duration = Math.floor(tech.target.duration / 1000) * 1000;
+            tech.target.duration = Math.max(tech.target.duration, 1000) * (level || 1);
+        }
+
+        let seconds = tech.target.duration / 1000;
+        let w = Math.floor(seconds / (3600*24*7));
+        let d = Math.floor(seconds % (3600*24*7) / (3600*24));
+        let h = Math.floor(seconds % (3600*24) / 3600);
+        let m = Math.floor(seconds % 3600 / 60);
+        let s = Math.floor(seconds % 60);
+
+        let displayed = 0;
+
+        tech.target.timeresult = '';
+
+        if(w > 0 && displayed < 3) { tech.target.timeresult += `${w}${LocalizationStrings.timeunits.short.week} `; displayed++; }
+        if(d > 0 && displayed < 3) { tech.target.timeresult += `${d}${LocalizationStrings.timeunits.short.day} `; displayed++; }
+        if(h > 0 && displayed < 3) { tech.target.timeresult += `${h}${LocalizationStrings.timeunits.short.hour} `; displayed++; }
+        if(m > 0 && displayed < 3) { tech.target.timeresult += `${m}${LocalizationStrings.timeunits.short.minute} `; displayed++; }
+        if(s > 0 && displayed < 3) { tech.target.timeresult += `${s}${LocalizationStrings.timeunits.short.second}`; displayed++; }
+
+        return tech;
+    }
+
+    static getCountdownString(date) {
+        var dataAtual = new Date();
+
+        var diferenca = date - dataAtual;
+
+        if (diferenca < 0) {
+            return '';
+        }
+
+        var dias = Math.floor(diferenca / (1000 * 60 * 60 * 24));
+        var horas = Math.floor((diferenca % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
+        var segundos = Math.floor((diferenca % (1000 * 60)) / 1000);
+
+        return dias + "d " + horas + "h " + minutos + "m " + segundos + "s";
+    }
+
 }
 
 
@@ -14314,6 +14483,16 @@ time span
     grid-template-columns:90px 24px 24px 100px 100px 60px 24px 130px 130px 130px;
 }
 
+.ogl_upgradeList
+{
+    color:#6a7d95;
+    display:grid;
+    font-size:11px;
+    font-weight:bold;
+    grid-gap:3px 8px;
+    grid-template-columns:90px 300px 100px 200px 200px;
+}
+
 .ogl_empire .ogl_icon
 {
     background:none !important;
@@ -14334,7 +14513,8 @@ time span
     padding:3px;
 }
 
-.ogl_empire > *:not(.ogl_close):not(.ogl_share):not(a)
+.ogl_empire > *:not(.ogl_close):not(.ogl_share):not(a),
+.ogl_upgradeList > *:not(.ogl_close):not(.ogl_share):not(a)
 {
     background:var(--secondary);
     border-radius:3px;
@@ -14464,7 +14644,7 @@ time span
     color:#546a89;
     display:grid;
     font-size:16px;
-    grid-template-columns:repeat(8, 1fr);
+    grid-template-columns:repeat(9, 1fr);
     text-align:center;
     user-select:none;
     width:205px;
@@ -18245,9 +18425,24 @@ message-footer-actions gradient-button[sq30]
     color:#ffcb55;
 }
 
+.ogl_buildIcon.ogl_baseBuilding
+{
+    color:#3888ff;
+}
+
+.ogl_buildIcon.ogl_baseResearch
+{
+    color:#38ffff;
+}
+
 .ogl_buildIcon.ogl_lfBuilding
 {
-    color:#e598ff;
+    color:#42ff38;
+}
+
+.ogl_buildIcon.ogl_lfResearch
+{
+    color:#f5ff38;
 }
 
 .ogl_buildList

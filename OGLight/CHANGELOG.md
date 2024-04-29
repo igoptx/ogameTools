@@ -1,5 +1,12 @@
 # OGLight - Changelog
 
+### [5.2.0] - 2024/04/29 18:00:00
+- Fix visual bug on Sync Data icon
+- Add table with all the upgrades in progress
+- Add colors to identify different types of upgrades
+- Code Refactor
+
+
 ### [5.1.8] - 2024/04/23 12:50:00
 - Fix bug on showing fleets correctly on FleetIcon (right of planet list)
 - Add toggle to show fleets splitted by mission type
