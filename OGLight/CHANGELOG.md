@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.3.2] - 2024/04/30 16:25:00
+- Fix error getting images from other sites
+- Fix CSS issues
+
 ### [5.3.1] - 2024/04/30 14:50:00
 - Fix bug on Discovery Stats Popup
 - Add new translations
