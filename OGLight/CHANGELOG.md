@@ -1,11 +1,13 @@
 # OGLight - Changelog
 
+### [5.3.0] - 2024/04/30 13:35:00
+- Add new stats table for discovery missions of lifeforms
+
 ### [5.2.0] - 2024/04/29 18:00:00
 - Fix visual bug on Sync Data icon
 - Add table with all the upgrades in progress
 - Add colors to identify different types of upgrades
 - Code Refactor
-
 
 ### [5.1.8] - 2024/04/23 12:50:00
 - Fix bug on showing fleets correctly on FleetIcon (right of planet list)

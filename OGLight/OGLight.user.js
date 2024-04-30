@@ -1062,7 +1062,13 @@ class LangManager extends Manager
             upgrade: 'Upgrade',
             level: 'Level',
             endAt: 'End At',
-            points: 'Points'
+            points: 'Points',
+            artefact: 'Artefact',
+            lifeform1: 'Humans',
+            lifeform2: 'Rock’tal',
+            lifeform3: 'Mechas',
+            lifeform4: 'Kaelesh',
+            expLfMessage: 'EXP'
         };
 
         this.fr =
@@ -1241,7 +1247,13 @@ class LangManager extends Manager
             upgrade: 'Upgrade',
             level: 'Level',
             endAt: 'End At',
-            points: 'Points'
+            points: 'Points',
+            artefact: 'Artefact',
+            lifeform1: 'Humans',
+            lifeform2: 'Rock’tal',
+            lifeform3: 'Mechas',
+            lifeform4: 'Kaelesh',
+            expLfMessage: 'EXP'
         };
 
         this.pt =
@@ -1420,7 +1432,13 @@ class LangManager extends Manager
             upgrade: 'A Atualizar',
             level: 'Nível',
             endAt: 'Termina em',
-            points: 'Pontos'
+            points: 'Pontos',
+            artefact: 'Artefacto',
+            lifeform1: 'Humanos',
+            lifeform2: 'Rock’tal',
+            lifeform3: 'Mechas',
+            lifeform4: 'Kaelesh',
+            expLfMessage: 'EXP'
         };
     }
 
@@ -7452,6 +7470,14 @@ class MessageManager extends Manager
             {
                 result.resultType = message.querySelector('.lifeform-item-icon').className.replace('lifeform-item-icon ', '');
                 result.gain[result.resultType] = '?';
+
+                var regex = new RegExp("(\\d+)\\s" + this.ogl._lang.find('expLfMessage') + "\\.");
+
+                var resultado = regex.exec(message.innerHTML);
+
+                if (resultado && resultado.length > 1) {
+                    result.gain[result.resultType] = parseInt(resultado[1]);
+                }
             }
             else
             {
@@ -9614,12 +9640,12 @@ class StatsManager extends Manager
     {
         const data = this.ogl.db.stats[key];
 
-        const ids = ['metal','crystal','deut','dm','artefact','blackhole',202,203,204,205,206,207,208,209,210,211,212,213,214,215,217,218,219,401,402,403,404,405,406,407,408];
+        const ids = ['metal','crystal','deut','dm','artefact','blackhole',202,203,204,205,206,207,208,209,210,211,212,213,214,215,217,218,219,401,402,403,404,405,406,407,408, 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4'];
         const result = {};
-        result.total = { metal:0, crystal:0, deut:0, dm:0, artefact:0, msu:0 };
+        result.total = { metal:0, crystal:0, deut:0, dm:0, artefact:0, msu:0, lifeform1:0, lifeform2:0, lifeform3:0, lifeform4:0};
         result.expe = {};
+        result.discovery = {};
         result.raid = {};
-
         this.types.forEach(type =>
         {
             result[type] = result[type] || {};
@@ -9633,6 +9659,7 @@ class StatsManager extends Manager
                         result.total[gainID] = (result.total[gainID] || 0) + amount;
                         if(type == 'raid' || type == 'debris') result.raid[gainID] = (result.raid[gainID] || 0) + amount;
                         if(type == 'expe' || type == 'debris16' || type == 'blackhole') result.expe[gainID] = (result.expe[gainID] || 0) + amount;
+                        if(type == 'discovery') result.discovery[gainID] = (result.discovery[gainID] || 0) + amount;
                     }
                     else // ship
                     {
@@ -9693,6 +9720,12 @@ class StatsManager extends Manager
 
     miniStats()
     {
+        this.miniStatsExpedition();
+        this.miniStatsExploration();
+    }
+
+    miniStatsExpedition()
+    {
         const now = serverTime;
         const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
         const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
@@ -9718,10 +9751,43 @@ class StatsManager extends Manager
 
         Object.entries(data.total).forEach(entry =>
         {
-            Util.addDom('div', {class:`ogl_icon ogl_${entry[0]}`, parent:content, child:`<span>${Util.formatToUnits(entry[1])}</span>`});
+            if (!(entry[0] == 'lifeform1' || entry[0] == 'lifeform2' || entry[0] == 'lifeform3' || entry[0] == 'lifeform4' || entry[0] == 'artefact'))
+                Util.addDom('div', {class:`ogl_icon ogl_${entry[0]}`, parent:content, child:`<span>${Util.formatToUnits(entry[1])}</span>`});
         });
 
         if(!document.querySelector('.ogl_blackHoleButton')) this.addBlackHoleButton();
+    }
+
+    miniStatsExploration()
+    {
+        const now = serverTime;
+        const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+        const data = this.getData(this.getKey(startDate.getTime()));
+
+        if(!this.miniDivExploration) this.miniDivExploration = Util.addDom('div', { class:'ogl_miniStatsExploration ogl_ogameDiv', parent:document.querySelector('#links'), onclick:event =>
+        {
+            if(!event.target.classList.contains('ogl_blackHoleButton'))
+            {
+                Util.runAsync(() => this.buildStatsExploration()).then(e => this.ogl._popup.open(e, true));
+            }
+        }});
+
+        this.miniDivExploration.innerText = '';
+
+        const start = new Date(startDate).toLocaleString('default', { day:'numeric', month:'long', year:'numeric' });
+        const end = new Date(endDate).toLocaleString('default', { day:'numeric', month:'long', year:'numeric' });
+        const title = start == end ? start : `${start}&#10140;<br>${end}`;
+
+        Util.addDom('h3', { class:'ogl_header', child:title, parent:this.miniDivExploration });
+
+        let content = Util.addDom('div', { parent:this.miniDivExploration });
+
+        Object.entries(data.total).forEach(entry =>
+        {
+            if (entry[0] == 'lifeform1' || entry[0] == 'lifeform2' || entry[0] == 'lifeform3' || entry[0] == 'lifeform4' || entry[0] == 'artefact')
+                Util.addDom('div', {class:`ogl_icon ogl_${entry[0]}`, parent:content, child:`<span>${Util.formatToUnits(entry[1])}</span>`});
+        });
     }
 
     buildStats(keyStart, keyEnd)
@@ -9837,9 +9903,9 @@ class StatsManager extends Manager
 
         for(let i=1; i<=monthEnd.getDate(); i++)
         {
+
             const barKey = this.getKeyDay(keyEnd, i);
             const data = this.getData(barKey);
-
             if(data.total?.msu < lowest) lowest = data.total?.msu || 0;
             if(data.total?.msu > highest) highest = data.total?.msu || 0;
 
@@ -9928,6 +9994,210 @@ class StatsManager extends Manager
         return container;
     }
 
+    buildStatsExploration(keyStart, keyEnd)
+    {
+        const now = serverTime;
+        keyStart = keyStart || this.getKey(new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime());
+        keyEnd = keyEnd || this.getKey(new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).getTime());
+
+        const dayEnd = new Date(keyEnd);
+        const monthEnd = new Date(dayEnd.getFullYear(), dayEnd.getMonth()+1, 0, 23, 59, 59);
+
+        const container = Util.addDom('div', { class:'ogl_stats' });
+        const month = Util.addDom('div', { parent:container, class:'ogl_statsMonth' });
+
+        Util.addDom('div', { parent:month, class:'ogl_button', child:LocalizationStrings?.timeunits?.short?.day || 'D', onclick:() =>
+        {
+            Util.runAsync(() => this.buildStatsExploration()).then(e => this.ogl._popup.open(e, true));
+        }});
+
+        Util.addDom('div', { parent:month, class:'ogl_button', child:LocalizationStrings?.timeunits?.short?.week || 'W', onclick:() =>
+        {
+            const currentMonthStart = this.getKey(new Date(now.getFullYear(), now.getMonth(), now.getDate()-6, 0, 0, 0).getTime());
+            const currentMonthEnd = this.getKey(new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).getTime());
+
+            Util.runAsync(() => this.buildStatsExploration(currentMonthStart, currentMonthEnd)).then(e => this.ogl._popup.open(e, true));
+        }});
+
+        Util.addDom('div', { parent:month, class:'ogl_button', child:LocalizationStrings?.timeunits?.short?.month || 'M', onclick:() =>
+        {
+            const currentMonthStart = this.getKey(new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0).getTime());
+            const currentMonthEnd = this.getKey(new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59).getTime());
+
+            Util.runAsync(() => this.buildStatsExploration(currentMonthStart, currentMonthEnd)).then(e => this.ogl._popup.open(e, true));
+        }});
+
+        Util.addDom('div', { parent:month, class:'ogl_separator' });
+
+        Util.addDom('div', { parent:month, class:'ogl_button material-icons', child:'arrow-left-thick', onclick:() =>
+        {
+            const prevMonth = this.getKeysPrevMonth(keyEnd);
+            Util.runAsync(() => this.buildStatsExploration(prevMonth[0], prevMonth[1])).then(e => this.ogl._popup.open(e, true));
+        }});
+
+        Util.addDom('div', { parent:month, child:monthEnd.toLocaleString('default', { month:'short', year:'numeric' }) });
+
+        Util.addDom('div', { parent:month, class:'ogl_button material-icons', child:'arrow-right-thick', onclick:() =>
+        {
+            const nextMonth = this.getKeysNextMonth(keyEnd);
+            Util.runAsync(() => this.buildStatsExploration(nextMonth[0], nextMonth[1])).then(e => this.ogl._popup.open(e, true));
+        }});
+
+        let first, initial;
+        const inRange = (num, num1, num2) => num >= Math.min(num1, num2) && num <= Math.max(num1, num2);
+        const reset = () =>
+        {
+            if(initial && dateBar)
+            {
+                dateBar.querySelectorAll('[data-day]').forEach(e => e.classList.remove('ogl_selected'));
+                initial.forEach(e => e.classList.add('ogl_selected'));
+            }
+        }
+
+        const dataset = [];
+        const subDataset = [];
+        const bars = [];
+        const dateBar = Util.addDom('div', { parent:container, class:'ogl_dateBar',
+        onmouseup:()=>
+        {
+            this.isMoving=false;
+
+            const selected = dateBar.querySelectorAll('[data-day].ogl_selected');
+
+            if(!selected || selected.length < 2)
+            {
+                reset();
+                initial.forEach(e => e.classList.add('ogl_selected'))
+                return;
+            }
+
+            const start = this.getKeyDay(keyEnd, selected[0].getAttribute('data-day'));
+            const end = this.getKeyDay(keyEnd, selected[selected.length - 1].getAttribute('data-day'));
+
+            Util.runAsync(() => this.buildStatsExploration(start, end)).then(e => this.ogl._popup.open(e, true));
+        },
+        onmousedown:e =>
+        {
+            initial = dateBar.querySelectorAll('[data-day].ogl_selected');
+
+            this.isMoving=true;
+            dateBar.querySelectorAll('[data-day]').forEach(b => b.classList.remove('ogl_selected'));
+
+            if(e.target.getAttribute('data-day'))
+            {
+                first = parseInt(e.target.getAttribute('data-day'));
+            }
+
+            if(e.target.parentNode.getAttribute('data-day'))
+            {
+                first = parseInt(e.target.parentNode.getAttribute('data-day'));
+            }
+        },
+        onmouseleave:()=>
+        {
+            this.isMoving=false;
+            first = false;
+            reset();
+        }});
+
+        const details = Util.addDom('div', { parent:container, class:'ogl_statsDetails' });
+
+        let highest = 0;
+        let lowest = 0;
+
+        for(let i=1; i<=monthEnd.getDate(); i++)
+        {
+
+            const barKey = this.getKeyDay(keyEnd, i);
+            const data = this.getData(barKey);
+            if(data.total?.msu < lowest) lowest = data.total?.msu || 0;
+            if(data.total?.msu > highest) highest = data.total?.msu || 0;
+
+            dataset.push(data);
+
+            const bar = Util.addDom('div', { class:'ogl_item', parent:dateBar, 'data-day':i, 'data-value':data.total?.msu || 0,
+            onclick:() =>
+            {
+                bars.forEach(e => e.classList.remove('ogl_selected'));
+                bar.classList.add('ogl_selected');
+                this.displayDetailsExploration([data], details, barKey, barKey);
+                initial = dateBar.querySelectorAll('[data-day].ogl_selected');
+            },
+            onmouseenter:() =>
+            {
+                if(this.isMoving)
+                {
+                    if(!first) first = parseInt(bar.getAttribute('data-day'));
+
+                    if(this.isMoving)
+                    {
+                        const current = parseInt(bar.getAttribute('data-day'));
+
+                        dateBar.querySelectorAll('[data-day]').forEach(b =>
+                        {
+                            const dataDay = parseInt(b.getAttribute('data-day'));
+
+                            if(inRange(dataDay, current, first))
+                            {
+                                b.classList.add('ogl_selected');
+                            }
+                            else
+                            {
+                                b.classList.remove('ogl_selected');
+                            }
+                        });
+                    }
+                }
+            }});
+
+            bars.push(bar);
+
+            if(Date.parse(barKey) >= Date.parse(keyStart) && Date.parse(barKey) <= Date.parse(keyEnd))
+            {
+                bar.classList.add('ogl_selected');
+            }
+        }
+
+        const timeStart = new Date(keyStart).getTime();
+        const timeEnd = new Date(keyEnd).getTime();
+
+        Object.keys(this.ogl.db.stats).filter(stat =>
+        {
+            const date = new Date(stat).getTime();
+
+            if(date >= timeStart && date <= timeEnd)
+            {
+                subDataset.push(this.getData(stat));
+            }
+        });
+
+        bars.forEach(bar =>
+        {
+            const value = parseInt(bar.getAttribute('data-value'));
+            let height = Math.ceil(Math.abs(value) / (Math.max(Math.abs(highest), Math.abs(lowest)) / 100));
+            height = height > 0 ? Math.max(height, 5) : 0;
+            const color = value > 0 ? '#35cf95' : '#e14848';
+
+            const content = Util.addDom('div', { parent:bar });
+            content.style.background = `linear-gradient(to top, ${color} ${height}%, #0e1116 ${height}%)`;
+
+
+            if(value != 0) bar.classList.add('ogl_active');
+        });
+
+        if(subDataset.length < 1)
+        {
+            const emptyData = {};
+            this.types.forEach(type => emptyData[type] = {});
+            emptyData.total = {};
+            subDataset.push(emptyData);
+        }
+
+        this.displayDetailsExploration(subDataset, details, keyStart, keyEnd);
+
+        return container;
+    }
+
     displayDetails(dataset, parent, keyStart, keyEnd)
     {
         parent.innerText = '';
@@ -9968,7 +10238,7 @@ class StatsManager extends Manager
         const sumTable = Util.addDom('div', { parent:parent, class:'ogl_sumTable' });
 
         const header = Util.addDom('div', { parent:sumTable });
-        ['', 'send', 'metal', 'crystal', 'deut', 'msu', 'dm', 'artefact'].forEach(resource =>
+        ['', 'send', 'metal', 'crystal', 'deut', 'msu', 'dm'].forEach(resource =>
         {
             if(resource == 'send') Util.addDom('div', { class:`ogl_textCenter ogl_icon material-icons`, child:'send', parent:header });
             else Util.addDom('div', { class:`ogl_icon ogl_${resource}`, parent:header });
@@ -9982,6 +10252,7 @@ class StatsManager extends Manager
             const count = {}
             count.expe = data.expe.count + data.debris16.count;
             count.raid = data.raid.count + data.debris.count;
+            count.discovery = data.discovery.count;
             count.total = data.debris.count + data.debris16.count + data.expe.count + data.raid.count + data.discovery.count;
 
             const missions = Util.addDom('div', { parent:line, child:Util.formatToUnits(count[type] || '-', false, true) });
@@ -10005,10 +10276,8 @@ class StatsManager extends Manager
             const uDM = data.expe.count;
             const uArtefacts = data.discovery.count;
 
-            ['metal', 'crystal', 'deut', 'msu', 'dm', 'artefact'].forEach(resource =>
-            {
-                if(type == 'u')
-                {
+            ['metal', 'crystal', 'deut', 'msu', 'dm'].forEach(resource => {
+                if(type == 'u') {
                     let value = 0;
 
                     if(resource == 'metal' || resource == 'crystal' || resource == 'deut' || resource == 'msu')
@@ -10018,10 +10287,6 @@ class StatsManager extends Manager
                     else if(resource == 'dm')
                     {
                         value = data.total[resource] / uDM;
-                    }
-                    else if(resource == 'artefact')
-                    {
-                        value = data.total[resource] / uArtefacts;
                     }
 
                     Util.addDom('div', { class:`ogl_${resource}`, parent:line, child:Util.formatToUnits(Math.floor(isFinite(value) ? value : 0), false, true) });
@@ -10038,6 +10303,84 @@ class StatsManager extends Manager
                 {
                     Util.addDom('div', { class:`ogl_${resource}`, parent:line, child:Util.formatToUnits(data[type]?.[resource] || 0, false, true) });
                 }
+            });
+        });
+    }
+
+    displayDetailsExploration(dataset, parent, keyStart, keyEnd)
+    {
+        parent.innerText = '';
+
+        const start = new Date(keyStart).toLocaleString('default', { day:'numeric', month:'long', year:'numeric' });
+        const end = new Date(keyEnd).toLocaleString('default', { day:'numeric', month:'long', year:'numeric' });
+        const title = keyStart == keyEnd ? start : `${start} -> ${end}`;
+
+        Util.addDom('h3', { child:title, parent:parent });
+
+        const data = dataset.reduce((acc, item) =>
+        {
+            Object.entries(item).forEach(([key, value]) =>
+            {
+                if(typeof value === 'object')
+                {
+                    acc[key] = acc[key] || {};
+                    Object.entries(value).forEach(([k, v]) => acc[key][k] = (acc[key][k] || 0) + v);
+                }
+                else
+                {
+                    acc[key] = (acc[key] || 0) + value;
+                }
+            });
+
+            return acc;
+        }, {});
+
+        parent.appendChild(this.buildPie(data.discoveryOccurence));
+
+        const sumTable = Util.addDom('div', { parent:parent, class:'ogl_sumTable' });
+
+        const header = Util.addDom('div', { parent:sumTable });
+        ['', 'send', 'lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artefact'].forEach(resource =>
+        {
+            if(resource == 'send') Util.addDom('div', { class:`ogl_textCenter ogl_icon material-icons`, child:'send', parent:header });
+            else Util.addDom('div', { class:`ogl_icon ogl_${resource}`, parent:header });
+        });
+
+        ['discovery'].forEach(type =>
+        {
+            const typeLabel = type == 'u' ? 'average' : type;
+            const line = Util.addDom('div', { parent:sumTable, child:`<div>${this.ogl._lang.find(typeLabel)}</div>` });
+
+            const count = {}
+            count.expe = data.expe.count + data.debris16.count;
+            count.raid = data.raid.count + data.debris.count;
+            count.discovery = data.discovery.count;
+            count.total = data.debris.count + data.debris16.count + data.expe.count + data.raid.count + data.discovery.count;
+
+            const missions = Util.addDom('div', { parent:line, child:Util.formatToUnits(count[type] || '-', false, true) });
+
+            if(count[type])
+            {
+                const tooltip =
+                      type == 'expe' ? `<div>${this.ogl._lang.find('expe')}: ${data.expe.count}</div><div>${this.ogl._lang.find('debrisp16')}: ${data.debris16.count}</div>` :
+                type == 'raid' ? `<div>${this.ogl._lang.find('raid')}: ${data.raid.count}</div><div>${this.ogl._lang.find('debris')}: ${data.debris.count}</div>` :
+                type == 'total' ? `<div>${this.ogl._lang.find('expe')}: ${data.expe.count}</div>
+                        <div>${this.ogl._lang.find('debrisp16')}: <span>${data.debris16.count}</span></div>
+                        <div>${this.ogl._lang.find('raid')}: <span>${data.raid.count}</span></div>
+                        <div>${this.ogl._lang.find('debris')}: <span>${data.debris.count}</span></div>
+                        <div>${this.ogl._lang.find('discovery')}: <span>${data.discovery.count}</span></div>` : '';
+
+                missions.classList.add('tooltip');
+                missions.setAttribute('data-title', tooltip);
+            }
+
+            const uResources = data.debris.count + data.debris16.count + data.expe.count + data.raid.count;
+            const uDM = data.expe.count;
+            const uArtefacts = data.discovery.count;
+
+            ['lifeform1', 'lifeform2', 'lifeform3', 'lifeform4', 'artefact'].forEach(resource => {
+                let value = data.total[resource];
+                Util.addDom('div', { class:`ogl_${resource}`, parent:line, child:Util.formatToUnits(Math.floor(isFinite(value) ? value : 0), false, true) });
             });
         });
     }
@@ -10067,6 +10410,11 @@ class StatsManager extends Manager
             blackhole:'#818181',
             duration:'#df5252',
             trader:'#ff7d30',
+            lifeform1:'#202DF3',
+            lifeform2:'#F03C16',
+            lifeform3:'#ACACA3',
+            lifeform4:'#37E1E1',
+            artefact:'#CDA126'
         }
 
         const pieData = {};
@@ -10079,6 +10427,11 @@ class StatsManager extends Manager
         pieData.item = occurencesExpeDetail.item || 0;
         pieData.battle = (occurencesExpeDetail.pirate || 0) + (occurencesExpeDetail.alien || 0);
         pieData.duration = (occurencesExpeDetail.early || 0) + (occurencesExpeDetail.late || 0);
+        pieData.lifeform1 = (occurencesExpeDetail.lifeform1 || 0);
+        pieData.lifeform2 = (occurencesExpeDetail.lifeform2 || 0);
+        pieData.lifeform3 = (occurencesExpeDetail.lifeform3 || 0);
+        pieData.lifeform4 = (occurencesExpeDetail.lifeform4 || 0);
+        pieData.artefact = (occurencesExpeDetail.artefact || 0);
 
         const size = 256;
         const center = size / 2;
@@ -11810,6 +12163,10 @@ const css =
     --artefact:#cda126;
     --population:#ccc;
     --lifeform:#d569b8;
+    --lifeform1:#202DF3;
+    --lifeform2:#F03C16;
+    --lifeform3:#ACACA3;
+    --lifeform4:#37E1E1;
     --msu:#c7c7c7;
 
     --nothing:#ddd;
@@ -11954,7 +12311,10 @@ line.ogl_line
 .ogl_energy, #resources_energy, .resource.energy  { color:var(--energy) !important; }
 .ogl_population, #resources_population, .resource.population  { color:var(--population) !important; }
 .ogl_artefact { color:var(--artefact) !important; }
-[class*="ogl_lifeform"] { color:var(--lifeform) !important; }
+.ogl_lifeform1 { color:var(--lifeform1) !important; }
+.ogl_lifeform2 { color:var(--lifeform2) !important; }
+.ogl_lifeform3 { color:var(--lifeform3) !important; }
+.ogl_lifeform4 { color:var(--lifeform4) !important; }
 .ogl_msu { color:var(--msu) !important; }
 
 .ogl_mission1, [data-mission-type="1"]:not(.fleetDetails) .detailsFleet { color:var(--mission1) !important; }
@@ -12000,7 +12360,9 @@ line.ogl_line
 }
 
 .ogl_metal.ogl_icon:before, .ogl_crystal.ogl_icon:before, .ogl_deut.ogl_icon:before, .ogl_food.ogl_icon:before,
-.ogl_dm.ogl_icon:before, .ogl_energy.ogl_icon:before, .ogl_artefact.ogl_icon:before, .ogl_icon.ogl_population:before,
+.ogl_dm.ogl_icon:before, .ogl_energy.ogl_icon:before, .ogl_artefact.ogl_icon:before,
+.ogl_lifeform1.ogl_icon:before, .ogl_lifeform2.ogl_icon:before, .ogl_lifeform3.ogl_icon:before, .ogl_lifeform4.ogl_icon:before,
+ .ogl_icon.ogl_population:before,
 .ogl_icon.ogl_msu:before
 {
     background-image:url(https://gf3.geo.gfsrv.net/cdned/7f14c18b15064d2604c5476f5d10b3.png);
@@ -12102,20 +12464,21 @@ line.ogl_line
 .ogl_lifeform3.ogl_icon:before, .ogl_lifeform4.ogl_icon:before
 {
     background-image:url(https://gf2.geo.gfsrv.net/cdna5/5681003b4f1fcb30edc5d0e62382a2.png);
-    background-size:245px;
+    background-size:270px;
     content:'';
     display:inline-block;
     height:24px;
     image-rendering:pixelated;
     vertical-align:middle;
-    width:24px;
+    width:28px;
+    margin-right: 10px
 }
 
 .ogl_icon.ogl_lifeform0:before { background-position:1% 11%; }
-.ogl_icon.ogl_lifeform1:before { background-position:0% 86%; }
-.ogl_icon.ogl_lifeform2:before { background-position:11% 86%; }
-.ogl_icon.ogl_lifeform3:before { background-position:22% 86%; }
-.ogl_icon.ogl_lifeform4:before { background-position:33% 86%; }
+.ogl_icon.ogl_lifeform1:before { background-position:0% 76%; }
+.ogl_icon.ogl_lifeform2:before { background-position:11% 76%; }
+.ogl_icon.ogl_lifeform3:before { background-position:22% 76%; }
+.ogl_icon.ogl_lifeform4:before { background-position:33% 76%; }
 
 .ogl_icon.ogl_msu:before
 {
@@ -13742,6 +14105,11 @@ time span
 [data-resultType="resource"] { color:var(--resource) !important; }
 [data-resultType="ship"] { color:var(--ship) !important; }
 [data-resultType="dm"], [data-resultType="darkmatter"] { color:var(--dm) !important; }
+[data-resultType="lifeform1"], [data-resultType="lifeform1"] { color:var(--lifeform1) !important; }
+[data-resultType="lifeform2"], [data-resultType="lifeform2"] { color:var(--lifeform2) !important; }
+[data-resultType="lifeform3"], [data-resultType="lifeform3"] { color:var(--lifeform3) !important; }
+[data-resultType="lifeform4"], [data-resultType="lifeform4"] { color:var(--lifeform4) !important; }
+[data-resultType="artefact"], [data-resultType="artefact"] { color:var(--artefact) !important; }
 
 .ogl_battle[data-resultType]:before
 {
@@ -15274,25 +15642,29 @@ label.ogl_off:hover
     position:relative;
 }
 
-.ogl_miniStats
+.ogl_miniStats,
+.ogl_miniStatsExploration
 {
     cursor:pointer;
     margin-top:10px;
     width:160px;
 }
 
-.ogl_miniStats:hover:not(:has(.ogl_button:hover))
+.ogl_miniStats:hover:not(:has(.ogl_button:hover)),
+.ogl_miniStatsExploration:hover:not(:has(.ogl_button:hover))
 {
     box-shadow:0 0 0 2px var(--ogl);
 }
 
-.ogl_miniStats > div
+.ogl_miniStats > div,
+.ogl_miniStatsExploration > div
 {
     font-size:11px;
     padding:4px;
 }
 
-.ogl_miniStats .ogl_header
+.ogl_miniStats .ogl_header,
+.ogl_miniStatsExploration .ogl_header
 {
     height:18px;
     line-height:18px;
@@ -15300,33 +15672,38 @@ label.ogl_off:hover
     user-select:none;
 }
 
-.ogl_miniStats .ogl_header span
+.ogl_miniStats .ogl_header span,
+.ogl_miniStatsExploration .ogl_header span
 {
     display:inline-block;
     line-height:15px;
     text-transform:capitalize;
 }
 
-.ogl_miniStats .ogl_header div
+.ogl_miniStats .ogl_header div,
+.ogl_miniStatsExploration .ogl_header div
 {
     color:#fff;
     cursor:pointer;
     z-index:1;
 }
 
-.ogl_miniStats .ogl_header div:first-child
+.ogl_miniStats .ogl_header div:first-child,
+.ogl_miniStatsExploration .ogl_header div:first-child
 {
     left:6px;
     position:absolute;
 }
 
-.ogl_miniStats .ogl_header div:last-child
+.ogl_miniStats .ogl_header div:last-child,
+.ogl_miniStatsExploration .ogl_header div:last-child
 {
     right:2px;
     position:absolute;
 }
 
-.ogl_miniStats .ogl_icon
+.ogl_miniStats .ogl_icon,
+.ogl_miniStatsExploration .ogl_icon
 {
     align-items:center;
     background:none;
@@ -15335,12 +15712,14 @@ label.ogl_off:hover
     padding:2px;
 }
 
-.ogl_miniStats .ogl_icon:before
+.ogl_miniStats .ogl_icon:before,
+.ogl_miniStatsExploration .ogl_icon:before
 {
     height:12px;
 }
 
-.ogl_miniStats .ogl_artefact:before
+.ogl_miniStats .ogl_artefact:before,
+.ogl_miniStatsExploration .ogl_artefact:before
 {
     background-size:23px;
 }
@@ -15614,7 +15993,7 @@ label.ogl_off:hover
     align-items:center;
     display:grid;
     grid-gap:3px;
-    grid-template-columns:repeat(8, 1fr);
+    grid-template-columns:repeat(7, 1fr);
     line-height:26px;
     text-align:center;
 }
@@ -16978,12 +17357,28 @@ label.ogl_off:hover
 .ogl_planetTooltip [class*='ogl_lifeform']
 {
     background:#000;
-    border:2px solid var(--lifeform);
     border-radius:50%;
     box-shadow:0 0 5px 2px #000;
     position:absolute;
     right:50%;
     transform:translate(30px, -10px) scale(.75);
+    width:24px;
+}
+
+.ogl_planetTooltip .ogl_lifeform1 {
+    border:2px solid var(--lifeform1);
+}
+
+.ogl_planetTooltip .ogl_lifeform2 {
+    border:2px solid var(--lifeform2);
+}
+
+.ogl_planetTooltip .ogl_lifeform3 {
+    border:2px solid var(--lifeform3);
+}
+
+.ogl_planetTooltip .ogl_lifeform4 {
+    border:2px solid var(--lifeform4);
 }
 
 .ogl_planetTooltip [class*='ogl_lifeform']:before
