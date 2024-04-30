@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.3.1] - 2024/04/30 14:50:00
+- Fix bug on Discovery Stats Popup
+- Add new translations
+
 ### [5.3.0] - 2024/04/30 13:35:00
 - Add new stats table for discovery missions of lifeforms
 

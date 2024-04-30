@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.2.0
+// @version      5.3.0
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -1068,7 +1068,9 @@ class LangManager extends Manager
             lifeform2: 'Rock’tal',
             lifeform3: 'Mechas',
             lifeform4: 'Kaelesh',
-            expLfMessage: 'EXP'
+            expLfMessage: 'EXP',
+            noMissionData: 'No mission\'s data',
+            missions: 'Missions'
         };
 
         this.fr =
@@ -1253,7 +1255,9 @@ class LangManager extends Manager
             lifeform2: 'Rock’tal',
             lifeform3: 'Mechas',
             lifeform4: 'Kaelesh',
-            expLfMessage: 'EXP'
+            expLfMessage: 'EXP',
+            noMissionData: 'No mission\'s data',
+            missions: 'Missions'
         };
 
         this.pt =
@@ -1438,7 +1442,9 @@ class LangManager extends Manager
             lifeform2: 'Rock’tal',
             lifeform3: 'Mechas',
             lifeform4: 'Kaelesh',
-            expLfMessage: 'EXP'
+            expLfMessage: 'EXP',
+            noMissionData: 'Sem dados de missões',
+            missions: 'Missões'
         };
     }
 
@@ -1453,7 +1459,6 @@ class LangManager extends Manager
         else return 'TEXT_NOT_FOUND';
     }
 }
-
 
 class TimeManager extends Manager
 {
@@ -10107,15 +10112,17 @@ class StatsManager extends Manager
 
         for(let i=1; i<=monthEnd.getDate(); i++)
         {
-
             const barKey = this.getKeyDay(keyEnd, i);
             const data = this.getData(barKey);
-            if(data.total?.msu < lowest) lowest = data.total?.msu || 0;
-            if(data.total?.msu > highest) highest = data.total?.msu || 0;
+
+            let amount = (data.discovery?.artefact || 0) + (data.discovery?.lifeform1 || 0) + (data.discovery?.lifeform2 || 0) + (data.discovery?.lifeform3 || 0) + (data.discovery?.lifeform4 || 0)
+
+            if(amount < lowest) lowest = amount;
+            if(amount > highest) highest = amount;
 
             dataset.push(data);
 
-            const bar = Util.addDom('div', { class:'ogl_item', parent:dateBar, 'data-day':i, 'data-value':data.total?.msu || 0,
+            const bar = Util.addDom('div', { class:'ogl_item', parent:dateBar, 'data-day':i, 'data-value':amount,
             onclick:() =>
             {
                 bars.forEach(e => e.classList.remove('ogl_selected'));
@@ -10180,7 +10187,6 @@ class StatsManager extends Manager
 
             const content = Util.addDom('div', { parent:bar });
             content.style.background = `linear-gradient(to top, ${color} ${height}%, #0e1116 ${height}%)`;
-
 
             if(value != 0) bar.classList.add('ogl_active');
         });
@@ -10391,7 +10397,7 @@ class StatsManager extends Manager
 
         if(!occurencesExpeDetail || Object.keys(occurencesExpeDetail || {}).length < 1)
         {
-            pie.innerHTML = '<div class="ogl_noExpe"><span class="material-icons">compass</span>No expedition data</div>';
+            pie.innerHTML = '<div class="ogl_noExpe"><span class="material-icons">compass</span>'+this.ogl._lang.find('noMissionData')+'</div>';
             return pie;
         }
 
@@ -10470,7 +10476,7 @@ class StatsManager extends Manager
             ctx.arc(size/2, size/2, size/3, 0, 2 * Math.PI, false);
             ctx.fill();
 
-            pie.setAttribute('data-pie', `${hoveredSlice ? this.ogl._lang.find(hoveredSlice.title) + '\r\n' : ''}${hoveredSlice ? hoveredSlice.percent + '%' : total + '\r\n' + this.ogl._lang.find('expe')}`);
+            pie.setAttribute('data-pie', `${hoveredSlice ? this.ogl._lang.find(hoveredSlice.title) + '\r\n' : ''}${hoveredSlice ? hoveredSlice.percent + '%' : total + '\r\n' + this.ogl._lang.find('missions')}`);
 
             legend.querySelectorAll('.ogl_active').forEach(e => e.classList.remove('ogl_active'));
 
