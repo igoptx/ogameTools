@@ -1,5 +1,10 @@
 # OGLight - Changelog
 
+### [5.4.0] - 2024/05/23 18:.0:00
+- Update with OGLight 5.1.1
+- Keep the old features
+- Stats Disabled
+
 ### [5.3.2] - 2024/04/30 16:25:00
 - Fix error getting images from other sites
 - Fix CSS issues
