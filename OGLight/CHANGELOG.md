@@ -1,6 +1,6 @@
 # OGLight - Changelog
 
-### [5.4.0] - 2024/05/23 18:.0:00
+### [5.4.0] - 2024/05/23 18:30:00
 - Update with OGLight 5.1.1
 - Keep the old features
 - Stats Disabled
