@@ -1731,7 +1731,7 @@ class UIManager extends Manager {
             n = Util.addDom("li", {
                 parent: e
             });
-        Util.addDom("span", {
+        const oglIcon = Util.addDom("span", {
             parent: n,
             class: "menu_icon ogl_leftMenuIcon",
             child: '<a class="tooltipRight" href="https://github.com/igoptx/ogameTools/tree/main/OGLight" target="_blank"><i class="material-icons">oglight_simple</i></a>'
@@ -1759,6 +1759,43 @@ class UIManager extends Manager {
                 child: '<span class="textlabel">PTRE</span>'
             })
         }
+
+        if(this.ogl.version.indexOf('-b') == -1)
+        {
+            var checkVersion = false;
+
+            if(typeof GM_xmlhttpRequest !== 'undefined' && (serverTime.getTime() > (this.ogl.db.lastVersionCheck || 0) + 3600000))
+            {
+                checkVersion = true;
+            }
+            else if(this.ogl.version.replace(/\D/g, '') != this.ogl.db.serverVersion)
+            {
+                checkVersion = true;
+                oglIcon.querySelector('i').classList.add('ogl_danger');
+                oglIcon.querySelector('a').setAttribute('data-title', this.ogl._lang.find('newUpdateAvailable'));
+            }
+
+            if (checkVersion) {
+
+                GM_xmlhttpRequest(
+                    {
+                        method:'GET',
+                        url:'https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js',
+                        onload:result =>
+                        {
+                            this.ogl.db.serverVersion = result.responseText.replace(/\D/g, '');
+                            this.ogl.db.lastVersionCheck = serverTime.getTime();
+
+                            if(this.ogl.version.replace(/\D/g, '') != this.ogl.db.serverVersion)
+                            {
+                                oglIcon.querySelector('i').classList.add('ogl_danger');
+                                oglIcon.querySelector('a').setAttribute('data-title', this.ogl._lang.find('newUpdateAvailable'));
+                            }
+                        }
+                    });
+            }
+        }
+
     }
     updateFooter() {
         const e = document.querySelector("#siteFooter .fright");
@@ -3442,7 +3479,7 @@ class GalaxyManager extends Manager {
                 this.ogl.db.pdb[l] = this.ogl.db.pdb[l] || {};
                 const e = this.ogl.db.udb[s] || this.ogl.createPlayer(s),
                     o = this.ogl.db.pdb[l];
-                !this.ogl.ptreKey || y.pid == h && (y.mid || -1) == f ? delete t[l] : (t[l].id = h, t[l].player_id = s, t[l].name = d || !1, t[l].rank = u || -1, t[l].score = e.score?.global || -1, t[l].fleet = e.score?.military || -1, t[l].status = p, f > -1 && (t[l].moon = {}, t[l].moon.id = f, t[l].moon.size = b), console.log(`${l} | ${y.pid} -> ${h} | ${y.mid} -> ${f}`)), o.uid = s, o.pid = h, o.mid = f, o.coo = l, e.uid = s, e.name = d, e.status = c, e.score = e.score || {}, e.score.globalRanking = u, e.planets = e.planets || [], e.planets.indexOf(l) < 0 && e.planets.push(l), this.updateRow(e, r, g, l), (e.pin || this.ogl.db.lastPinnedList.indexOf(s) > -1) && this.ogl.db.pdb[l] && (this.ogl.db.pdb[l].api = serverTime.getTime(), this.ogl.db.pdb[l].acti = [m[0], m[1], serverTime.getTime()], this.ogl.db.pdb[l].debris = i.total, document.querySelector(".ogl_side.ogl_active") && this.ogl.db.currentSide == s && this.ogl._topbar.openPinnedDetail(s), n[l] = {}, n[l].id = h, n[l].player_id = s, n[l].teamkey = this.ogl.ptreKey, n[l].mv = "v" == p, n[l].activity = m[0], n[l].galaxy = this.galaxy, n[l].system = this.system, n[l].position = a, n[l].main = this.ogl.db.pdb[l].home || !1, n[l].cdr_total_size = i.total, f > -1 && (n[l].moon = {}, n[l].moon.id = f, n[l].moon.activity = m[1]))
+                !this.ogl.ptreKey || y.pid == h && (y.mid || -1) == f ? delete t[l] : (t[l].id = h, t[l].player_id = s, t[l].name = d || !1, t[l].rank = u || -1, t[l].score = e.score?.global || -1, t[l].fleet = e.score?.military || -1, t[l].status = p, f > -1 && (t[l].moon = {}, t[l].moon.id = f, t[l].moon.size = b)), o.uid = s, o.pid = h, o.mid = f, o.coo = l, e.uid = s, e.name = d, e.status = c, e.score = e.score || {}, e.score.globalRanking = u, e.planets = e.planets || [], e.planets.indexOf(l) < 0 && e.planets.push(l), this.updateRow(e, r, g, l), (e.pin || this.ogl.db.lastPinnedList.indexOf(s) > -1) && this.ogl.db.pdb[l] && (this.ogl.db.pdb[l].api = serverTime.getTime(), this.ogl.db.pdb[l].acti = [m[0], m[1], serverTime.getTime()], this.ogl.db.pdb[l].debris = i.total, document.querySelector(".ogl_side.ogl_active") && this.ogl.db.currentSide == s && this.ogl._topbar.openPinnedDetail(s), n[l] = {}, n[l].id = h, n[l].player_id = s, n[l].teamkey = this.ogl.ptreKey, n[l].mv = "v" == p, n[l].activity = m[0], n[l].galaxy = this.galaxy, n[l].system = this.system, n[l].position = a, n[l].main = this.ogl.db.pdb[l].home || !1, n[l].cdr_total_size = i.total, f > -1 && (n[l].moon = {}, n[l].moon.id = f, n[l].moon.activity = m[1]))
             }
         })), Object.keys(t).length > 0 && this.ogl.PTRE.postPositions(t), Object.keys(n).length > 0 && this.ogl.PTRE.postActivities(n), this.checkCurrentSystem()
     }

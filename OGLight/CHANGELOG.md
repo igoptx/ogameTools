@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.4.2] - 2024/05/24 13:30:00
+- Fix update check
+
 ### [5.4.1] - 2024/05/24 13:25:00
 - Fix some javascript errors related to production queue
 - Remove some useless console logs
