@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.4.0
+// @version      5.4.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b5",
-    oglVersion = "5.4.0";
+    oglVersion = "5.4.1";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g),
@@ -1734,12 +1734,12 @@ class UIManager extends Manager {
         Util.addDom("span", {
             parent: n,
             class: "menu_icon ogl_leftMenuIcon",
-            child: '<a class="tooltipRight" href="https://openuserjs.org/scripts/nullNaN/OGLight" target="_blank"><i class="material-icons">oglight_simple</i></a>'
+            child: '<a class="tooltipRight" href="https://github.com/igoptx/ogameTools/tree/main/OGLight" target="_blank"><i class="material-icons">oglight_simple</i></a>'
         });
         if (Util.addDom("a", {
             parent: n,
             class: "menubutton tooltipRight",
-            href: "https://board.fr.ogame.gameforge.com/index.php?thread/722955-oglight/",
+            href: "https://github.com/igoptx/ogameTools/tree/main/OGLight",
             target: "_blank",
             child: `<span class="textlabel">OGLight ${t}</span>`
         }), this.ogl.ptreKey) {
@@ -1938,7 +1938,7 @@ class TopbarManager extends Manager {
             child: "favorite",
             title: this.ogl._lang.find("coffee"),
             target: "_blank",
-            href: "https://ko-fi.com/O4O22XV69"
+            href: "https://ko-fi.com/rodrigocorreia"
         }), this.syncBtn = Util.addDom("i", {
             class: "material-icons tooltip",
             child: "directory_sync",
@@ -2138,7 +2138,6 @@ class TopbarManager extends Manager {
                         if (upgrade.type == 'lfBuilding') labelClass = 'ogl_buildIcon ogl_lfBuilding';
                         if (upgrade.type == 'lfResearch') labelClass = 'ogl_buildIcon ogl_lfResearch';
 
-                        console.log(upgrade);
                         upgradesToShow.push(
                             {
                                 'line': line,
@@ -2817,13 +2816,17 @@ class TopbarManager extends Manager {
 
             if (n) {
                 Util.addDom('div', { class:'ogl_buildIcon ogl_baseBuilding material-icons', child:'stat_0', parent:parent });
-            } else if (b) {
+            }
+            if (b) {
                 Util.addDom('div', { class:'ogl_buildIcon ogl_baseResearch material-icons', child:'stat_0', parent:parent });
-            } else if (o) {
+            }
+            if (o) {
                 Util.addDom('div', { class:'ogl_buildIcon ogl_baseShip material-icons', child:'stat_0', parent:parent });
-            } else if (a) {
+            }
+            if (a) {
                 Util.addDom('div', { class:'ogl_buildIcon ogl_lfBuilding material-icons', child:'stat_0', parent:parent });
-            } else if (c) {
+            }
+            if (c) {
                 Util.addDom('div', { class:'ogl_buildIcon ogl_lfResearch material-icons', child:'stat_0', parent:parent });
             }
         }))
@@ -5724,9 +5727,13 @@ class TechManager extends Manager {
                             if (n && n != this.ogl.currentPlanet.obj.coords) {
                                 this.ogl.db.myPlanets[p].upgrades = this.ogl.db.myPlanets[p].upgrades || [], this.ogl.db.myPlanets[p].upgrades[t] = this.ogl.db.myPlanets[p].upgrades[t] || [], this.ogl.db.myPlanets[p].upgrades[t][0] = u
                             }
-                            else n == this.ogl.currentPlanet.obj.coords && (this.ogl.currentPlanet.obj.upgrades[t][0] = u)
+                            else {
+                                n == this.ogl.currentPlanet.obj.coords;
+                                if (this.ogl.currentPlanet.obj.type != "moon") {
+                                    this.ogl.currentPlanet.obj.upgrades[t][0] = u
+                                }
+                            }
                         }
-                        console.log(u);
                     }
                     else if (r == a - 1) {
                         const n = document.querySelector(`#${[e[1]]} .content`),
@@ -5742,8 +5749,6 @@ class TechManager extends Manager {
                 }))
             }
         }))
-
-        console.log(this.ogl.currentPlanet.obj.upgrades);
     }
 }
 class StatsManager extends Manager {
