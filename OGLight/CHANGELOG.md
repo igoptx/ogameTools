@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.4.4] - 2024/05/26 23:30:00
+- Fix 'Upgrade in Progress' table
+
 ### [5.4.3] - 2024/05/25 09:30:00
 - Update images
 - Optimize function to show missions aside planet list
