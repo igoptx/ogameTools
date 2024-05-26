@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b5",
-    oglVersion = "5.4.3";
+    oglVersion = "5.4.4";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g),
