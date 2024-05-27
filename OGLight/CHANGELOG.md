@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.4.5] - 2024/05/27 09:55:00
+- Add spy shortcut to the fleet page from side bar (almost the same in the old version)
+
 ### [5.4.4] - 2024/05/26 23:30:00
 - Fix 'Upgrade in Progress' table
 
