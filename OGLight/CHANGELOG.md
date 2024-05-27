@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.4.6] - 2024/05/27 14:50:00
+- Fix bug related to variable sometimes is not defined
+- Visual change on 'Upgrades in Progress' table
+
 ### [5.4.5] - 2024/05/27 09:55:00
 - Add spy shortcut to the fleet page from side bar (almost the same in the old version)
 
