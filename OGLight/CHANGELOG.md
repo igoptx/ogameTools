@@ -1,5 +1,10 @@
 # OGLight - Changelog
 
+### [5.4.7] - 2024/06/02 10:30:00
+- 'Fix' error related to cookies
+- Add the overall duration when see other levels of buildings, research, etc
+- Fix bug on get the current research in progress
+
 ### [5.4.6] - 2024/05/27 14:50:00
 - Fix bug related to variable sometimes is not defined
 - Visual change on 'Upgrades in Progress' table
