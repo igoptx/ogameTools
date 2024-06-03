@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.4.4
+// @version      5.4.5
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -1681,7 +1681,19 @@ class UIManager extends Manager {
                     "data-spy-coords": `${t[0]}:${t[1]}:${t[2]}:1`,
                     child: "language",
                     parent: e,
-                    onclick: e => this.ogl._notification.addToQueue(this.ogl._lang.find("notifyNoProbe"), !1, !0)
+                    onclick: (e) => {
+                        const url = new URL(window.location.href);
+
+                        const parametros = new URLSearchParams(url.search);
+                        const componente = parametros.get('component')
+
+                        if (componente == 'messages') {
+                            this.ogl._fleet.addToSpyQueue(6, t[0], t[1], t[2], 1);
+                        } else {
+                            window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${t[0]}&system=${t[1]}&position=${t[2]}&type=1&mission=6&am210=${this.ogl.db.spyProbesCount}&oglmode=4`;
+                        }
+
+                    }
                 }),
                 a = this.ogl.db.pdb[`${t[0]}:${t[1]}:${t[2]}`]?.spy?.[0] || 0;
             if (serverTime.getTime() - a < this.ogl.db.options.spyIndicatorDelay && (n.setAttribute("data-spy", "recent"), n.setAttribute("title", "recently spied")), o) {
@@ -1701,7 +1713,18 @@ class UIManager extends Manager {
                     "data-spy-coords": `${t[0]}:${t[1]}:${t[2]}:3`,
                     child: "bedtime",
                     parent: e,
-                    onclick: e => this.ogl._notification.addToQueue(this.ogl._lang.find("notifyNoProbe"), !1, !0)
+                    onclick: (e) => {
+                        const url = new URL(window.location.href);
+
+                        const parametros = new URLSearchParams(url.search);
+                        const componente = parametros.get('component')
+
+                        if (componente == 'messages') {
+                            this.ogl._fleet.addToSpyQueue(6, t[0], t[1], t[2], 3);
+                        } else {
+                            window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${t[0]}&system=${t[1]}&position=${t[2]}&type=3&mission=6&am210=${this.ogl.db.spyProbesCount}&oglmode=4`;
+                        }
+                    }
                 }) : Util.addDom("div", {
                     parent: e
                 }),
