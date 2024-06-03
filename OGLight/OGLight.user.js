@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.5.0
+// @version      5.5.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b26",
-    oglVersion = "5.5.0";
+    oglVersion = "5.5.1";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g);
@@ -5882,9 +5882,9 @@ class TechManager extends Manager {
                             const e = {};
                             if (e.name = this.ogl.db.serverData[l] || l, e.lvl = s, e.end = o, e.type = t, n && n != this.ogl.currentPlanet.obj.coords) {
                                 const o = Object.values(this.ogl.db.myPlanets).find((e => e.coords == n && "planet" == e.type)).id;
-                                this.ogl.db.myPlanets[o].upgrades = this.ogl.db.myPlanets[o].upgrades || [], this.ogl.db.myPlanets[o].upgrades[t] = this.ogl.db.myPlanets[o].upgrades[t] || [], this.ogl.db.myPlanets[o].upgrades[t][0] = e
+                                this.ogl.db.myPlanets[o].upgrades = this.ogl.db.myPlanets[o].upgrades || [], this.ogl.db.myPlanets[o].upgrades[t] = this.ogl.db.myPlanets[o].upgrades[t] || [], this.ogl.db.myPlanets[o].upgrades[t][0] = u
                             }
-                            else n == this.ogl.currentPlanet.obj.coords && "moon" != this.ogl.currentPlanet.obj.type && (this.ogl.currentPlanet.obj.upgrades[t][0] = e)
+                            else n == this.ogl.currentPlanet.obj.coords && "moon" != this.ogl.currentPlanet.obj.type && (this.ogl.currentPlanet.obj.upgrades[t][0] = u)
                         }
                     }
                     else if (r == a - 1) {

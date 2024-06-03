@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.5.1] - 2024/06/03 09:45:00
+- Fix getting points in 'Upgrades in Progress'
+
 ### [5.5.0] - 2024/06/03 09:40:00
 - Update with the OGLight 5.1.2
 - Stats are back !
