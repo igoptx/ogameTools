@@ -1727,7 +1727,7 @@ class UIManager extends Manager {
             n = Util.addDom("li", {
                 parent: e
             });
-        Util.addDom("span", {
+        const oglIcon = Util.addDom("span", {
             parent: n,
             class: "menu_icon ogl_leftMenuIcon",
             child: '<a class="tooltipRight" href="https://github.com/igoptx/ogameTools/tree/main/OGLight" target="_blank"><i class="material-icons">oglight_simple</i></a>'
@@ -1755,6 +1755,43 @@ class UIManager extends Manager {
                 child: '<span class="textlabel">PTRE</span>'
             })
         }
+
+        if(this.ogl.version.indexOf('-b') == -1)
+        {
+            var checkVersion = false;
+
+            if(typeof GM_xmlhttpRequest !== 'undefined' && (serverTime.getTime() > (this.ogl.db.lastVersionCheck || 0) + 3600000))
+            {
+                checkVersion = true;
+            }
+            else if(this.ogl.version.replace(/\D/g, '') != this.ogl.db.serverVersion)
+            {
+                checkVersion = true;
+                oglIcon.querySelector('i').classList.add('ogl_danger');
+                oglIcon.querySelector('a').setAttribute('data-title', this.ogl._lang.find('newUpdateAvailable'));
+            }
+
+            if (checkVersion) {
+
+                GM_xmlhttpRequest(
+                    {
+                        method:'GET',
+                        url:'https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js',
+                        onload:result =>
+                        {
+                            this.ogl.db.serverVersion = result.responseText.replace(/\D/g, '');
+                            this.ogl.db.lastVersionCheck = serverTime.getTime();
+
+                            if(this.ogl.version.replace(/\D/g, '') != this.ogl.db.serverVersion)
+                            {
+                                oglIcon.querySelector('i').classList.add('ogl_danger');
+                                oglIcon.querySelector('a').setAttribute('data-title', this.ogl._lang.find('newUpdateAvailable'));
+                            }
+                        }
+                    });
+            }
+        }
+
     }
     updateFooter() {
         const e = document.querySelector("#siteFooter .fright");
