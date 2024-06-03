@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.5.0] - 2024/06/03 09:40:00
+- Update with the OGLight 5.1.2
+- Stats are back !
+
 ### [5.4.7] - 2024/06/02 10:30:00
 - 'Fix' error related to cookies
 - Add the overall duration when see other levels of buildings, research, etc

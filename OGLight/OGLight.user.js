@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.4.7
+// @version      5.5.0
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b26",
-    oglVersion = "5.4.0";
+    oglVersion = "5.5.0";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g);
@@ -55,32 +55,33 @@ class OGLight {
             this.DBName = `${n}-${window.location.host.split(".")[0]}`, this.db = this.load(), !GM_getValue(this.DBName) && GM_getValue(window.location.host) && (GM_setValue(this.DBName, GM_getValue(window.location.host)), GM_deleteValue(window.location.host), window.location.reload()), this.db.lastServerUpdate = this.db.lastServerUpdate || 0, this.db.lastEmpireUpdate = this.db.lastEmpireUpdate || 0, this.db.lastLFBonusUpdate = this.db.lastLFBonusUpdate || 0, this.db.lastProductionQueueUpdate = this.db.lastProductionQueueUpdate || 0, this.db.udb = this.db.udb || {}, this.db.pdb = this.db.pdb || {}, this.db.tdb = this.db.tdb || {}, this.db.myPlanets = this.db.myPlanets || {}, this.db.dataFormat = this.db.dataFormat || 0, this.db.tags = 13 == Object.keys(this.db.tags || {}).length ? this.db.tags : {
                 red: !0,
                 orange: !0,
-            yellow: !0,
-            lime: !0,
-            green: !0,
-            blue: !0,
-            dblue: !0,
-            violet: !0,
-            magenta: !0,
-            pink: !0,
-            brown: !0,
-            gray: !0,
-            none: !1
-        }, this.db.lastPinTab = this.db.lastPinTab || "miner", this.db.shipsCapacity = this.db.shipsCapacity || {}, this.db.spytableSort = this.db.spytableSort || "total", this.db.lastTaggedInput = this.db.lastTaggedInput || [], this.db.lastPinnedList = this.db.lastPinnedList || [], this.db.initialTime = this.db.initialTime || Date.now(), this.db.fleetLimiter = this.db.fleetLimiter || {
-            data: {},
-            jumpgateData: {},
-            shipActive: !1,
-            resourceActive: !1,
-            jumpgateActive: !1
-        }, this.db.keepEnoughCapacityShip = this.db.keepEnoughCapacityShip || 200, this.db.keepEnoughCapacityShipJumpgate = this.db.keepEnoughCapacityShipJumpgate || 200, this.db.spyProbesCount = this.db.spyProbesCount || 6, this.db.configState = this.db.configState || {
-            fleet: !0,
-            general: !0,
-            expeditions: !0,
-            stats: !0,
-            messages: !0,
-            data: !0
-        }, this.db.options = this.db.options || {}, this.db.options.defaultShip = this.db.options.defaultShip || 202, this.db.options.defaultMission = this.db.options.defaultMission || 3, this.db.options.resourceTreshold = this.db.options.resourceTreshold || 3e5, this.db.options.ignoreConsumption = this.db.options.ignoreConsumption || !1, this.db.options.ignoreExpeShipsLoss = this.db.options.ignoreExpeShipsLoss || !1, this.db.options.useClientTime = this.db.options.useClientTime || !1, this.db.options.displayMiniStats = void 0 !== this.db.options.displayMiniStats ? this.db.options.displayMiniStats : "day", this.db.options.collectLinked = this.db.options.collectLinked || !1, this.db.options.expeditionValue = this.db.options.expeditionValue || 0, this.db.options.expeditionBigShips = this.db.options.expeditionBigShips || [204, 205, 206, 207, 215], this.db.options.expeditionRandomSystem = this.db.options.expeditionRandomSystem || 0, this.db.options.expeditionRedirect = this.db.options.expeditionRedirect || !1, this.db.options.expeditionShipRatio = Math.min(this.db.options.expeditionShipRatio, 100), this.db.options.displayPlanetTimers = !1 !== this.db.options.displayPlanetTimers, this.db.options.reduceLargeImages = this.db.options.reduceLargeImages || !1, this.db.options.showMenuResources = this.db.options.showMenuResources || 0, this.db.options.autoCleanReports = this.db.options.autoCleanReports || !1, this.db.options.tooltipDelay = !1 !== this.db.options.tooltipDelay ? Math.max(this.db.options.tooltipDelay, 100) : 400, this.db.options.spyIndicatorDelay = this.db.options.spyIndicatorDelay || 36e5, this.db.options.debugMode = this.db.options.debugMode || !1, this.db.options.sim = this.db.options.sim || !1, this.db.options.boardTab = !1 !== this.db.options.boardTab, this.db.options.msu = this.db.options.msu || "3:2:1", this.db.options.disablePlanetTooltips = this.db.options.disablePlanetTooltips || !1, this.db.options.displaySpyTable = !1 !== this.db.options.displaySpyTable, this.db.options.shortcutsOnRight = this.db.options.shortcutsOnRight || !1, this.db.options.keyboardActions = this.db.options.keyboardActions || {}, this.db.options.keyboardActions.menu = this.db.options.keyboardActions.menu || "²", this.db.options.keyboardActions.previousPlanet = this.db.options.keyboardActions.previousPlanet || "i", this.db.options.keyboardActions.nextPlanet = this.db.options.keyboardActions.nextPlanet || "o", this.db.options.keyboardActions.nextPinnedPosition = this.db.options.keyboardActions.nextPinnedPosition || "m", this.db.options.keyboardActions.fleetRepeat = this.db.options.keyboardActions.fleetRepeat || "p", this.db.options.keyboardActions.fleetSelectAll = this.db.options.keyboardActions.fleetSelectAll || "a", this.db.options.keyboardActions.fleetReverseAll = this.db.options.keyboardActions.fleetReverseAll || "r", this.db.options.keyboardActions.expeditionSC = this.db.options.keyboardActions.expeditionSC || "s", this.db.options.keyboardActions.expeditionLC = this.db.options.keyboardActions.expeditionLC || "l", this.db.options.keyboardActions.expeditionPF = this.db.options.keyboardActions.expeditionPF || "f", this.db.options.keyboardActions.quickRaid = this.db.options.keyboardActions.quickRaid || "t", this.db.options.keyboardActions.fleetResourcesSplit = this.db.options.keyboardActions.fleetResourcesSplit || "2-9", this.db.options.keyboardActions.galaxyUp = this.db.options.keyboardActions.galaxyUp || ("fr" == window.location.host.split(/[-.]/)[1] ? "z" : "w"), this.db.options.keyboardActions.galaxyLeft = this.db.options.keyboardActions.galaxyLeft || ("fr" == window.location.host.split(/[-.]/)[1] ? "q" : "a"), this.db.options.keyboardActions.galaxyDown = this.db.options.keyboardActions.galaxyDown || "s", this.db.options.keyboardActions.galaxyRight = this.db.options.keyboardActions.galaxyRight || "d", this.db.options.keyboardActions.galaxySpySystem = this.db.options.keyboardActions.galaxySpySystem || "r", this.db.options.keyboardActions.backFirstFleet = this.db.options.keyboardActions.backFirstFleet || "f", this.db.options.keyboardActions.backLastFleet = this.db.options.keyboardActions.backLastFleet || "l", this.db.options.keyboardActions.discovery = this.db.options.keyboardActions.discovery || "u", this.db.options.keyboardActions.showMenuResources = this.db.options.keyboardActions.showMenuResources || "v", this.db.options.customSplit = this.db.options.customSplit || 10, this.db.options.keyboardActions.toMoonFast = this.db.options.keyboardActions.toMoonFast || "q", this.db.options.keyboardActions.expeditionLCFast = this.db.options.keyboardActions.expeditionLCFast || "b", this.db.options.keyboardActions.expeditionRecFast = this.db.options.keyboardActions.expeditionRecFast || "n", this.db.options.keyboardActions.popupPlanets = this.db.options.keyboardActions.popupPlanets || 'm', this.db.options.keyboardActions.shortcutsPosition = this.db.options.keyboardActions.shortcutsPosition || '.', this.db.options.keyboardActions.nextDefaultShip = this.db.options.keyboardActions.nextDefaultShip || 'x', this.db.options.keyboardActions.previousDefaultShip = this.db.options.keyboardActions.previousDefaultShip || 'z', this.db.options.keyboardActions.customSplit = this.db.options.keyboardActions.customSplit || 'd', "loading" !== document.readyState ? this.init(e.cache) : document.onreadystatechange = () => {
-            "loading" === document.readyState || this.isReady || (this.isReady = !0, this.init(e.cache))
+                yellow: !0,
+                lime: !0,
+                green: !0,
+                blue: !0,
+                dblue: !0,
+                violet: !0,
+                magenta: !0,
+                pink: !0,
+                brown: !0,
+                gray: !0,
+                none: !1
+            }, this.db.lastPinTab = this.db.lastPinTab || "miner", this.db.shipsCapacity = this.db.shipsCapacity || {}, this.db.spytableSort = this.db.spytableSort || "total", this.db.lastTaggedInput = this.db.lastTaggedInput || [], this.db.lastPinnedList = this.db.lastPinnedList || [], this.db.initialTime = this.db.initialTime || Date.now(), this.db.fleetLimiter = this.db.fleetLimiter || {
+                data: {},
+                jumpgateData: {},
+                shipActive: !1,
+                resourceActive: !1,
+                jumpgateActive: !1
+            }, this.db.keepEnoughCapacityShip = this.db.keepEnoughCapacityShip || 200, this.db.keepEnoughCapacityShipJumpgate = this.db.keepEnoughCapacityShipJumpgate || 200, this.db.spyProbesCount = this.db.spyProbesCount || 6, this.db.configState = this.db.configState || {
+                fleet: !0,
+                general: !0,
+                expeditions: !0,
+                stats: !0,
+                messages: !0,
+                data: !0
+            }, this.db.options = this.db.options || {}, this.db.options.defaultShip = this.db.options.defaultShip || 202, this.db.options.defaultMission = this.db.options.defaultMission || 3, this.db.options.resourceTreshold = this.db.options.resourceTreshold || 3e5, this.db.options.ignoreConsumption = this.db.options.ignoreConsumption || !1, this.db.options.ignoreExpeShipsLoss = this.db.options.ignoreExpeShipsLoss || !1, this.db.options.useClientTime = this.db.options.useClientTime || !1, this.db.options.displayMiniStats = void 0 !== this.db.options.displayMiniStats ? this.db.options.displayMiniStats : "day", this.db.options.collectLinked = this.db.options.collectLinked || !1, this.db.options.expeditionValue = this.db.options.expeditionValue || 0, this.db.options.expeditionBigShips = this.db.options.expeditionBigShips || [204, 205, 206, 207, 215], this.db.options.expeditionRandomSystem = this.db.options.expeditionRandomSystem || 0, this.db.options.expeditionRedirect = this.db.options.expeditionRedirect || !1, this.db.options.expeditionShipRatio = Math.min(this.db.options.expeditionShipRatio, 100), this.db.options.displayPlanetTimers = !1 !== this.db.options.displayPlanetTimers, this.db.options.reduceLargeImages = this.db.options.reduceLargeImages || !1, this.db.options.showMenuResources = this.db.options.showMenuResources || 0, this.db.options.autoCleanReports = this.db.options.autoCleanReports || !1, this.db.options.tooltipDelay = !1 !== this.db.options.tooltipDelay ? Math.max(this.db.options.tooltipDelay, 100) : 400, this.db.options.spyIndicatorDelay = this.db.options.spyIndicatorDelay || 36e5, this.db.options.debugMode = this.db.options.debugMode || !1, this.db.options.sim = this.db.options.sim || !1, this.db.options.boardTab = !1 !== this.db.options.boardTab, this.db.options.msu = this.db.options.msu || "3:2:1", this.db.options.disablePlanetTooltips = this.db.options.disablePlanetTooltips || !1, this.db.options.displaySpyTable = !1 !== this.db.options.displaySpyTable, this.db.options.shortcutsOnRight = this.db.options.shortcutsOnRight || !1, this.db.options.keyboardActions = this.db.options.keyboardActions || {}, this.db.options.keyboardActions.menu = this.db.options.keyboardActions.menu || "²", this.db.options.keyboardActions.previousPlanet = this.db.options.keyboardActions.previousPlanet || "i", this.db.options.keyboardActions.nextPlanet = this.db.options.keyboardActions.nextPlanet || "o", this.db.options.keyboardActions.nextPinnedPosition = this.db.options.keyboardActions.nextPinnedPosition || "m", this.db.options.keyboardActions.fleetRepeat = this.db.options.keyboardActions.fleetRepeat || "p", this.db.options.keyboardActions.fleetSelectAll = this.db.options.keyboardActions.fleetSelectAll || "a", this.db.options.keyboardActions.fleetReverseAll = this.db.options.keyboardActions.fleetReverseAll || "r", this.db.options.keyboardActions.expeditionSC = this.db.options.keyboardActions.expeditionSC || "s", this.db.options.keyboardActions.expeditionLC = this.db.options.keyboardActions.expeditionLC || "l", this.db.options.keyboardActions.expeditionPF = this.db.options.keyboardActions.expeditionPF || "f", this.db.options.keyboardActions.quickRaid = this.db.options.keyboardActions.quickRaid || "t", this.db.options.keyboardActions.fleetResourcesSplit = this.db.options.keyboardActions.fleetResourcesSplit || "2-9", this.db.options.keyboardActions.galaxyUp = this.db.options.keyboardActions.galaxyUp || ("fr" == window.location.host.split(/[-.]/)[1] ? "z" : "w"), this.db.options.keyboardActions.galaxyLeft = this.db.options.keyboardActions.galaxyLeft || ("fr" == window.location.host.split(/[-.]/)[1] ? "q" : "a"), this.db.options.keyboardActions.galaxyDown = this.db.options.keyboardActions.galaxyDown || "s", this.db.options.keyboardActions.galaxyRight = this.db.options.keyboardActions.galaxyRight || "d", this.db.options.keyboardActions.galaxySpySystem = this.db.options.keyboardActions.galaxySpySystem || "r", this.db.options.keyboardActions.backFirstFleet = this.db.options.keyboardActions.backFirstFleet || "f", this.db.options.keyboardActions.backLastFleet = this.db.options.keyboardActions.backLastFleet || "l", this.db.options.keyboardActions.discovery = this.db.options.keyboardActions.discovery || "u", this.db.options.keyboardActions.showMenuResources = this.db.options.keyboardActions.showMenuResources || "v", this.db.options.customSplit = this.db.options.customSplit || 10, this.db.options.keyboardActions.toMoonFast = this.db.options.keyboardActions.toMoonFast || "q", this.db.options.keyboardActions.expeditionLCFast = this.db.options.keyboardActions.expeditionLCFast || "b", this.db.options.keyboardActions.expeditionRecFast = this.db.options.keyboardActions.expeditionRecFast || "n", this.db.options.keyboardActions.popupPlanets = this.db.options.keyboardActions.popupPlanets || 'm', this.db.options.keyboardActions.shortcutsPosition = this.db.options.keyboardActions.shortcutsPosition || '.', this.db.options.keyboardActions.nextDefaultShip = this.db.options.keyboardActions.nextDefaultShip || 'x', this.db.options.keyboardActions.previousDefaultShip = this.db.options.keyboardActions.previousDefaultShip || 'z', this.db.options.keyboardActions.customSplit = this.db.options.keyboardActions.customSplit || 'd', "loading" !== document.readyState ? this.init(e.cache) : document.onreadystatechange = () => {
+                "loading" === document.readyState || this.isReady || (this.isReady = !0, this.init(e.cache))
+            }
         }
     }
     init(e) {
@@ -2180,41 +2181,41 @@ class TopbarManager extends Manager {
 
             Object.values(planets || {}).forEach(planet => {
                 let line = 1;
-            Object.values(planet.upgrades || {}).forEach(upgradeType => {
-                upgradeType.forEach(upgrade => {
-                    let hasBaseBuilding = false;
-                    let hasBaseResearch = false;
-                    let hasBaseShip = false;
-                    let hasLFBuilding = false;
-                    let hasLFResearch = false;
-                    let labelClass = '';
-                    if(serverTime.getTime() < upgrade.end)
-                    {
-                        const name = this.ogl.db.serverData[upgrade.id] || upgrade.name;
+                Object.values(planet.upgrades || {}).forEach(upgradeType => {
+                    upgradeType.forEach(upgrade => {
+                        let hasBaseBuilding = false;
+                        let hasBaseResearch = false;
+                        let hasBaseShip = false;
+                        let hasLFBuilding = false;
+                        let hasLFResearch = false;
+                        let labelClass = '';
+                        if(serverTime.getTime() < upgrade.end)
+                        {
+                            const name = this.ogl.db.serverData[upgrade.id] || upgrade.name;
 
-                        if (upgrade.type == 'baseBuilding') labelClass = 'ogl_buildIcon ogl_baseBuilding';
-                        if (upgrade.type == 'baseResearch') labelClass = 'ogl_buildIcon ogl_baseResearch';
-                        if (upgrade.type == 'ship' || upgrade.type == 'def' || upgrade.type == 'mechaShip') labelClass = 'ogl_buildIcon ogl_baseShip';
-                        if (upgrade.type == 'lfBuilding') labelClass = 'ogl_buildIcon ogl_lfBuilding';
-                        if (upgrade.type == 'lfResearch') labelClass = 'ogl_buildIcon ogl_lfResearch';
+                            if (upgrade.type == 'baseBuilding') labelClass = 'ogl_buildIcon ogl_baseBuilding';
+                            if (upgrade.type == 'baseResearch') labelClass = 'ogl_buildIcon ogl_baseResearch';
+                            if (upgrade.type == 'ship' || upgrade.type == 'def' || upgrade.type == 'mechaShip') labelClass = 'ogl_buildIcon ogl_baseShip';
+                            if (upgrade.type == 'lfBuilding') labelClass = 'ogl_buildIcon ogl_lfBuilding';
+                            if (upgrade.type == 'lfResearch') labelClass = 'ogl_buildIcon ogl_lfResearch';
 
-                        upgradesToShow.push(
-                            {
-                                'line': line,
-                                'planetId': planet.id,
-                                'planetName': planet.name,
-                                'coords': planet.coords,
-                                'name': name,
-                                'level': upgrade.lvl,
-                                'countdown': Util.getCountdownString(new Date(upgrade.end)),
-                                'points': Util.formatNumber(Math.round(upgrade.points)),
-                                'labelClass': labelClass
-                            }
-                        );
+                            upgradesToShow.push(
+                                {
+                                    'line': line,
+                                    'planetId': planet.id,
+                                    'planetName': planet.name,
+                                    'coords': planet.coords,
+                                    'name': name,
+                                    'level': upgrade.lvl,
+                                    'countdown': Util.getCountdownString(new Date(upgrade.end)),
+                                    'points': Util.formatNumber(Math.round(upgrade.points)),
+                                    'labelClass': labelClass
+                                }
+                            );
 
-                        line++;
-                        totalPoints = totalPoints + upgrade.points;
-                    }
+                            line++;
+                            totalPoints = totalPoints + upgrade.points;
+                        }
                     });
                 });
             });
