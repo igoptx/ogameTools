@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.4.3
+// @version      5.4.4
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -1126,8 +1126,7 @@ class FetchManager extends Manager {
                             }
                         }
                         a.name = productionName;
-
-                        var productionId = Object.entries(this.ogl.db.serverData).find(([id, label]) => label === (a.name));
+                        var productionId = Object.entries(this.ogl.db.serverData).find(([id, label]) => label.trim() === (a.name).trim());
                         a.id = productionId ? productionId[0] : 0;
 
                         let productionLevelText = '';
@@ -5168,7 +5167,7 @@ class ShortcutManager extends Manager {
             }
 
             fleetDispatcher.refresh();
-        }),
+        }, '', '', true),
             this.add('expeditionRecFast', () => {
                 if (typeof fleetDispatcher !== 'undefined') {
                     var fast = true;
@@ -5347,17 +5346,7 @@ class ShortcutManager extends Manager {
                 }))
             }
             fleetDispatcher.refresh()
-        })), Util.addDom("div", {
-            class: "ogl_shortcut ogl_button",
-            "data-key": "enter",
-            child: '<span class="material-icons">subdirectory_arrow_left</span>',
-            parent: this.shortcutDiv,
-            onclick: () => {
-                document.querySelector("#fleetdispatchcomponent").dispatchEvent(new KeyboardEvent("keypress", {
-                    keyCode: 13
-                }))
-            }
-        })) : "messages" == this.ogl.page ? (Util.addDom("div", {
+        }))) : "messages" == this.ogl.page ? (Util.addDom("div", {
             class: "ogl_separator",
             parent: this.shortcutDiv
         }), this.add("enter", (() => {
