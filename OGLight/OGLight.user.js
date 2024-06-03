@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.4.6
+// @version      5.4.7
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -46,11 +46,15 @@ let betaVersion = "-b26",
     oglVersion = "5.4.0";
 class OGLight {
     constructor(e) {
-        const t = document.cookie.match(/prsess\_([0-9]+)=/g),
-            n = t[t.length - 1].replace(/\D/g, "");
-        this.DBName = `${n}-${window.location.host.split(".")[0]}`, this.db = this.load(), !GM_getValue(this.DBName) && GM_getValue(window.location.host) && (GM_setValue(this.DBName, GM_getValue(window.location.host)), GM_deleteValue(window.location.host), window.location.reload()), this.db.lastServerUpdate = this.db.lastServerUpdate || 0, this.db.lastEmpireUpdate = this.db.lastEmpireUpdate || 0, this.db.lastLFBonusUpdate = this.db.lastLFBonusUpdate || 0, this.db.lastProductionQueueUpdate = this.db.lastProductionQueueUpdate || 0, this.db.udb = this.db.udb || {}, this.db.pdb = this.db.pdb || {}, this.db.tdb = this.db.tdb || {}, this.db.myPlanets = this.db.myPlanets || {}, this.db.dataFormat = this.db.dataFormat || 0, this.db.tags = 13 == Object.keys(this.db.tags || {}).length ? this.db.tags : {
-            red: !0,
-            orange: !0,
+        const t = document.cookie.match(/prsess\_([0-9]+)=/g);
+        if (t == undefined || t == null) {
+            console.log(t);
+            console.log("Refresh page please!");
+        } else {
+            let n = t[t.length - 1].replace(/\D/g, "");
+            this.DBName = `${n}-${window.location.host.split(".")[0]}`, this.db = this.load(), !GM_getValue(this.DBName) && GM_getValue(window.location.host) && (GM_setValue(this.DBName, GM_getValue(window.location.host)), GM_deleteValue(window.location.host), window.location.reload()), this.db.lastServerUpdate = this.db.lastServerUpdate || 0, this.db.lastEmpireUpdate = this.db.lastEmpireUpdate || 0, this.db.lastLFBonusUpdate = this.db.lastLFBonusUpdate || 0, this.db.lastProductionQueueUpdate = this.db.lastProductionQueueUpdate || 0, this.db.udb = this.db.udb || {}, this.db.pdb = this.db.pdb || {}, this.db.tdb = this.db.tdb || {}, this.db.myPlanets = this.db.myPlanets || {}, this.db.dataFormat = this.db.dataFormat || 0, this.db.tags = 13 == Object.keys(this.db.tags || {}).length ? this.db.tags : {
+                red: !0,
+                orange: !0,
             yellow: !0,
             lime: !0,
             green: !0,
@@ -5559,7 +5563,8 @@ class TechManager extends Manager {
         for (let [t, n] of Object.entries(this.detailCumul[e] || {})) t >= this.initialLevel && t <= this.initialLevel + this.levelOffset && Object.entries(n).forEach((e => {
             "energy" == e[0] || "population" == e[0] ? i[e[0]] = e[1] : i[e[0]] = (i[e[0]] || 0) + e[1]
         }));
-        unsafeWindow.technologyDetails && (technologyDetails.id = e, technologyDetails.lvl = t), this.ogl.db.options.debugMode && !o.querySelector("[data-debug]") && (o.querySelector(".build_duration time").setAttribute("data-debug", o.querySelector(".build_duration time").innerText), o.querySelector(".information .level") && o.querySelector(".information .level").setAttribute("data-debug", o.querySelector(".information .level").innerText), o.querySelector(".costs .metal") && o.querySelector(".costs .metal").setAttribute("data-debug", o.querySelector(".costs .metal").innerText), o.querySelector(".costs .crystal") && o.querySelector(".costs .crystal").setAttribute("data-debug", o.querySelector(".costs .crystal").innerText), o.querySelector(".costs .deuterium") && o.querySelector(".costs .deuterium").setAttribute("data-debug", o.querySelector(".costs .deuterium").innerText), o.querySelector(".costs .energy") && o.querySelector(".costs .energy").setAttribute("data-debug", o.querySelector(".costs .energy").innerText), o.querySelector(".costs .population") && o.querySelector(".costs .population").setAttribute("data-debug", o.querySelector(".costs .population").innerText), o.querySelector(".additional_energy_consumption .value") && o.querySelector(".additional_energy_consumption .value").setAttribute("data-debug", o.querySelector(".additional_energy_consumption .value").innerText), o.querySelector(".energy_production .value") && o.querySelector(".energy_production .value").setAttribute("data-debug", o.querySelector(".energy_production .value").innerText));
+        o.querySelector(".build_duration time").setAttribute("data-debug", Util.secondsToString((i['duration']/1000)));
+        unsafeWindow.technologyDetails && (technologyDetails.id = e, technologyDetails.lvl = t), !o.querySelector("[data-debug]") && (o.querySelector(".information .level") && o.querySelector(".information .level").setAttribute("data-debug", o.querySelector(".information .level").innerText), o.querySelector(".costs .metal") && o.querySelector(".costs .metal").setAttribute("data-debug", o.querySelector(".costs .metal").innerText), o.querySelector(".costs .crystal") && o.querySelector(".costs .crystal").setAttribute("data-debug", o.querySelector(".costs .crystal").innerText), o.querySelector(".costs .deuterium") && o.querySelector(".costs .deuterium").setAttribute("data-debug", o.querySelector(".costs .deuterium").innerText), o.querySelector(".costs .energy") && o.querySelector(".costs .energy").setAttribute("data-debug", o.querySelector(".costs .energy").innerText), o.querySelector(".costs .population") && o.querySelector(".costs .population").setAttribute("data-debug", o.querySelector(".costs .population").innerText), o.querySelector(".additional_energy_consumption .value") && o.querySelector(".additional_energy_consumption .value").setAttribute("data-debug", o.querySelector(".additional_energy_consumption .value").innerText), o.querySelector(".energy_production .value") && o.querySelector(".energy_production .value").setAttribute("data-debug", o.querySelector(".energy_production .value").innerText));
         const r = o.querySelector(".ogl_costsWrapper") || Util.addDom("div", {
             class: "ogl_costsWrapper",
             parent: o.querySelector(".costs")
@@ -5585,7 +5590,7 @@ class TechManager extends Manager {
             parent: l,
             class: "material-icons",
             child: "globe"
-        }), ["metal", "crystal", "deut", "energy", "population"].forEach((e => {
+        }), ["metal", "crystal", "deut", "energy", "population", 'duration'].forEach((e => {
             if (o.querySelector(`.costs .${e.replace("deut","deuterium")}`)) {
                 const t = o.querySelector(".build_amount") ? (this.ogl.currentPlanet.obj[e] || 0) - (a.target[e] || 0) : (this.ogl.currentPlanet.obj[e] || 0) - (i[e] || 0),
                     n = Util.addDom("div", {
