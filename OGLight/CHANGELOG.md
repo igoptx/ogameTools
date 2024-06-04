@@ -1,5 +1,10 @@
 # OGLight - Changelog
 
+### [5.5.2] - 2024/06/04 16:25:00
+- Add image of default cargo ship to the bottom right box
+- Add 'Points until this upgrade' as tooltip in points column at 'Upgrades in Progress' table
+- Fix minor visual stuff
+
 ### [5.5.1] - 2024/06/03 09:45:00
 - Fix getting points in 'Upgrades in Progress'
 
