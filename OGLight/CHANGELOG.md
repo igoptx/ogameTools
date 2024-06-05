@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.5.3] - 2024/06/05 10:20:00
+- Hide spy table in "Transport Tab"
+
 ### [5.5.2] - 2024/06/04 16:25:00
 - Add image of default cargo ship to the bottom right box
 - Add 'Points until this upgrade' as tooltip in points column at 'Upgrades in Progress' table

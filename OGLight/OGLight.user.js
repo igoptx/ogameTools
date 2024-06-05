@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.5.2
+// @version      5.5.3
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b26",
-    oglVersion = "5.5.2";
+    oglVersion = "5.5.3";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g);
@@ -4005,7 +4005,8 @@ class MessageManager extends Manager {
     }
     check() {
         const e = document.querySelector(".tabsWrapper .innerTabItem.active.trashcan");
-        if (this.reportList = [], [20, 21, 22, 24].indexOf(this.tabID) >= 0) {
+
+        if (this.reportList = [], [20, 21, 22, 23, 24].indexOf(this.tabID) >= 0) {
             (new DOMParser).parseFromString(ogame.messages.content.join(""), "text/html").querySelectorAll(".msg").forEach((t => {
                 const n = t.querySelector(".rawMessageData");
                 if (!n) return;
