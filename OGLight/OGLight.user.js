@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.5.3
+// @version      5.5.4
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b26",
-    oglVersion = "5.5.3";
+    oglVersion = "5.5.4";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g);
@@ -533,7 +533,8 @@ class LangManager extends Manager {
             lifeform4: 'Kaelesh',
             expLfMessage: 'EXP',
             noMissionData: 'No mission\'s data',
-            missions: 'Missions'
+            missions: 'Missions',
+            totalPointsUntil: 'Total points until this upgrade'
         }, this.fr = {
             ship: "Vaisseaux",
             item: "Item",
@@ -717,7 +718,8 @@ class LangManager extends Manager {
             lifeform4: 'Kaelesh',
             expLfMessage: 'EXP',
             noMissionData: 'No mission\'s data',
-            missions: 'Missions'
+            missions: 'Missions',
+            totalPointsUntil: 'Total points until this upgrade'
         },this.pt =
             {
                 ship:"Naves",
@@ -902,7 +904,8 @@ class LangManager extends Manager {
                 lifeform4: 'Kaelesh',
                 expLfMessage: 'EXP',
                 noMissionData: 'Sem dados de missões',
-                missions: 'Missões'
+                missions: 'Missões',
+                totalPointsUntil: 'Total de pontos até este upgrade'
             }
     }
     find(e, t) {
@@ -2254,9 +2257,10 @@ class TopbarManager extends Manager {
             Util.addDom('div', { child: upgrade.level, parent: upgradeListDiv });
             let a_label = Util.addDom('span', { id: upgrade.planetId+'-'+upgrade.line, child: upgrade.countdown, parent: upgradeListDiv });
             Util.addDom('div', { child: a_label, parent: upgradeListDiv });
-            let p_label = Util.addDom('span', { child: Util.formatNumber(Math.round(upgrade.points)), parent: upgradeListDiv, title: Util.formatNumber(Math.round(points_until_upgrade)) });
+            let p_label = Util.addDom('span', { child: Util.formatNumber(Math.round(upgrade.points)), parent: upgradeListDiv, class: 'tooltip ogl_ready', title: '<div class="htmlTooltip" style="text-align: center">'+this.ogl._lang.find('totalPointsUntil')+'<br/><h3>'+Util.formatNumber(Math.round(points_until_upgrade))+'</h3></div>' });
 
             Util.addDom('div', { child: p_label, parent: upgradeListDiv });
+            initTooltips();
         });
 
         Util.addDom("div", { class: "ogl_invisible", parent: upgradeListDiv });
@@ -3808,7 +3812,7 @@ class TooltipManager extends Manager {
                 Util.addDom("div", {
                     parent: a,
                     class: `ogl_icon ogl_${n}`,
-                    child: e
+                    child: '<table width="100%" style="margin-left: 5px"><tr><td style="text-align: left">'+this.ogl._lang.find(n)+'</td><td style="text-align: right">'+e+'</td></tr></table>'
                 }), r.ships[n] = {
                     count: o
                 }, i += `${t}: ${Util.formatNumber(parseInt(o))}\n`
@@ -5011,7 +5015,6 @@ class MovementManager extends Manager {
 
         for (const missionType in missionsByType) {
             if (missionsByType.hasOwnProperty(missionType)) {
-
                 const icon = Util.addDom('div', { class:`material-icons ogl_fleetIcon ogl_mission${missionType}`, parent:targetDom, 'data-list':missionsByType[missionType].length, onclick:() =>
                     {
                         const container = Util.addDom('div', { class:'ogl_sideFleetTooltip' });

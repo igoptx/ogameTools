@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.5.4] - 2024/06/06 09:50:00
+- Fix tooltip on 'Upgrades in Progress' table
+- Add ship names to the fleet tooltip (event list)
+
 ### [5.5.3] - 2024/06/05 10:20:00
 - Hide spy table in "Transport Tab"
 
