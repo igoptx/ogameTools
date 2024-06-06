@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.5.5] - 2024/06/06 11:40:00
+- Add tooltips of ships to fleet list of each planet
+
 ### [5.5.4] - 2024/06/06 09:50:00
 - Fix tooltip on 'Upgrades in Progress' table
 - Add ship names to the fleet tooltip (event list)
