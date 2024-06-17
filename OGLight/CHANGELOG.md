@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.6.0] - 2024/06/17 09:00:00
+- Update with OGLight 5.2.0
+
 ### [5.5.5] - 2024/06/06 11:40:00
 - Add tooltips of ships to fleet list of each planet
 
