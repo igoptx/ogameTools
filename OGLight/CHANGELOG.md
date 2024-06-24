@@ -1,7 +1,12 @@
 # OGLight - Changelog
 
+### [5.6.2] - 2024/06/24 11:40:00
+- Add estimated position after upgrades
+- Fix minor bug when getting upgrade id
+- Add shortcuts to Player's planets list on sidebar to galaxy page to spy from there
+
 ### [5.6.1] - 2024/06/17 10:50:00
-- Fix CSS 
+- Fix CSS
 
 ### [5.6.0] - 2024/06/17 09:00:00
 - Update with OGLight 5.2.0
