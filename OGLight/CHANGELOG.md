@@ -2,7 +2,7 @@
 
 ### [5.6.3] - 2024/06/25 20:35:00
 - Show highest and lowest mines in "Account Overview" popup
-- Add punctuation changes in "Upgrades in Progress" popup
+- Add score/classification changes in "Upgrades in Progress" popup
 
 ### [5.6.2] - 2024/06/24 11:40:00
 - Add estimated position after upgrades
