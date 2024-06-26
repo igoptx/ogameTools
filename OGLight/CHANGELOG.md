@@ -1,5 +1,10 @@
 # OGLight - Changelog
 
+### [5.6.4] - 2024/06/26 10:30:00
+- Refactor classifications data
+- Update classifications and status data on "Classifications" page
+- Add info cumulative "Energy Produced" and "Energy Consumed" in build details
+
 ### [5.6.3] - 2024/06/25 20:35:00
 - Show highest and lowest mines in "Account Overview" popup
 - Add score/classification changes in "Upgrades in Progress" popup
