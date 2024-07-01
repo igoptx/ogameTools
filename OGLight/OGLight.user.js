@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.6.5
+// @version      5.6.6
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b7",
-    oglVersion = "5.6.5";
+    oglVersion = "5.6.6";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g);
@@ -6511,7 +6511,7 @@ class Util {
     }
     static get converterList() {
         return {
-            ogotcha: "https://ogotcha.universeview.be/",
+            ogotcha: "https://ogotcha.oplanet.eu/",
             topraider: "https://topraider.eu/index.php",
             "ogame.tools": "https://battleconvertor.fr"
         }
@@ -6710,7 +6710,7 @@ class Util {
         return "ogotcha" == o ? `${a}${n}?CR_KEY=${t}&utm_source=OGLight` : "topraider" == o ? `${a}?CR_KEY=${t}&lang=${n}` : "ogame.tools" == o ? `${a}?CR_KEY=${t}` : void 0
     }
     static genOgotchaLink(e, t) {
-        return `https://ogotcha.universeview.be/${"us"==e.account.lang?"en":"ar"==e.account.lang?"es":e.account.lang}?CR_KEY=${t}&utm_source=OGLight`
+        return `https://ogotcha.oplanet.eu//${"us"==e.account.lang?"en":"ar"==e.account.lang?"es":e.account.lang}?CR_KEY=${t}&utm_source=OGLight`
     }
     static genTopRaiderLink(e, t) {
         return `https://topraider.eu/index.php?CR_KEY=${t}&lang=${"us"==e.account.lang?"en":"ar"==e.account.lang?"es":e.account.lang}`

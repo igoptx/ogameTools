@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.6.6] - 2024/07/01 16:30:00
+- Update Report Converter link
+
 ### [5.6.5] - 2024/07/01 12:10:00
 - Add planet/moon name in Planet's Fleet popup
 - Add details ships numbers in the popup

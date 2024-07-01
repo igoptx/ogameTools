@@ -7,9 +7,9 @@
 </table>
 
 # OGLight
-Version: 5.6.5
+Version: 5.6.6
 
-Last Update: 2024/07/01 12:10:00
+Last Update: 2024/07/01 16:30:00
 
 [Install](https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.user.js)
 
