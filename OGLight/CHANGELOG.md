@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.6.5] - 2024/07/01 12:10:00
+- Add planet/moon name in Planet's Fleet popup
+- Add details ships numbers in the popup
+
 ### [5.6.4] - 2024/06/26 10:30:00
 - Refactor classifications data
 - Update classifications and status data on "Classifications" page
