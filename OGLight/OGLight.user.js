@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.6.6
+// @version      5.6.7
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b7",
-    oglVersion = "5.6.6";
+    oglVersion = "5.6.7";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g);
@@ -81,7 +81,7 @@ class OGLight {
                 data: !0,
                 PTRE: !0,
                 interface: !0
-            }, this.db.options = this.db.options || {}, this.db.options.defaultShip = this.db.options.defaultShip || 202, this.db.options.defaultMission = this.db.options.defaultMission || 3, this.db.options.resourceTreshold = this.db.options.resourceTreshold || 3e5, this.db.options.ignoreConsumption = this.db.options.ignoreConsumption || !1, this.db.options.ignoreExpeShipsLoss = this.db.options.ignoreExpeShipsLoss || !1, this.db.options.useClientTime = this.db.options.useClientTime || !1, this.db.options.displayMiniStats = void 0 !== this.db.options.displayMiniStats ? this.db.options.displayMiniStats : "day", this.db.options.collectLinked = this.db.options.collectLinked || !1, this.db.options.expeditionValue = this.db.options.expeditionValue || 0, this.db.options.expeditionBigShips = this.db.options.expeditionBigShips || [204, 205, 206, 207, 215], this.db.options.expeditionRandomSystem = this.db.options.expeditionRandomSystem || 0, this.db.options.expeditionRedirect = this.db.options.expeditionRedirect || !1, this.db.options.expeditionShipRatio = Math.min(this.db.options.expeditionShipRatio, 100), this.db.options.displayPlanetTimers = !1 !== this.db.options.displayPlanetTimers, this.db.options.reduceLargeImages = this.db.options.reduceLargeImages || !1, this.db.options.colorblindMode = this.db.options.colorblindMode || !1, this.db.options.showMenuResources = this.db.options.showMenuResources || 0, this.db.options.autoCleanReports = this.db.options.autoCleanReports || !1, this.db.options.tooltipDelay = !1 !== this.db.options.tooltipDelay ? Math.max(this.db.options.tooltipDelay, 100) : 400, this.db.options.spyIndicatorDelay = this.db.options.spyIndicatorDelay || 36e5, this.db.options.debugMode = this.db.options.debugMode || !1, this.db.options.sim = this.db.options.sim || !1, this.db.options.boardTab = !1 !== this.db.options.boardTab, this.db.options.msu = this.db.options.msu || "3:2:1", this.db.options.disablePlanetTooltips = this.db.options.disablePlanetTooltips || !1, this.db.options.displaySpyTable = !1 !== this.db.options.displaySpyTable, this.db.options.shortcutsOnRight = this.db.options.shortcutsOnRight || !1, this.db.options.keyboardActions = this.db.options.keyboardActions || {}, this.db.options.keyboardActions.menu = this.db.options.keyboardActions.menu || "²", this.db.options.keyboardActions.previousPlanet = this.db.options.keyboardActions.previousPlanet || "i", this.db.options.keyboardActions.nextPlanet = this.db.options.keyboardActions.nextPlanet || "o", this.db.options.keyboardActions.nextPinnedPosition = this.db.options.keyboardActions.nextPinnedPosition || "m", this.db.options.keyboardActions.fleetRepeat = this.db.options.keyboardActions.fleetRepeat || "p", this.db.options.keyboardActions.fleetSelectAll = this.db.options.keyboardActions.fleetSelectAll || "a", this.db.options.keyboardActions.fleetReverseAll = this.db.options.keyboardActions.fleetReverseAll || "r", this.db.options.keyboardActions.expeditionSC = this.db.options.keyboardActions.expeditionSC || "s", this.db.options.keyboardActions.expeditionLC = this.db.options.keyboardActions.expeditionLC || "l", this.db.options.keyboardActions.expeditionPF = this.db.options.keyboardActions.expeditionPF || "f", this.db.options.keyboardActions.quickRaid = this.db.options.keyboardActions.quickRaid || "t", this.db.options.keyboardActions.fleetResourcesSplit = this.db.options.keyboardActions.fleetResourcesSplit || "2-9", this.db.options.keyboardActions.galaxyUp = this.db.options.keyboardActions.galaxyUp || ("fr" == window.location.host.split(/[-.]/)[1] ? "z" : "w"), this.db.options.keyboardActions.galaxyLeft = this.db.options.keyboardActions.galaxyLeft || ("fr" == window.location.host.split(/[-.]/)[1] ? "q" : "a"), this.db.options.keyboardActions.galaxyDown = this.db.options.keyboardActions.galaxyDown || "s", this.db.options.keyboardActions.galaxyRight = this.db.options.keyboardActions.galaxyRight || "d", this.db.options.keyboardActions.galaxySpySystem = this.db.options.keyboardActions.galaxySpySystem || "r", this.db.options.keyboardActions.backFirstFleet = this.db.options.keyboardActions.backFirstFleet || "f", this.db.options.keyboardActions.backLastFleet = this.db.options.keyboardActions.backLastFleet || "l", this.db.options.keyboardActions.discovery = this.db.options.keyboardActions.discovery || "u", this.db.options.keyboardActions.showMenuResources = this.db.options.keyboardActions.showMenuResources || "v", this.db.options.customSplit = this.db.options.customSplit || 10, this.db.options.keyboardActions.toMoonFast = this.db.options.keyboardActions.toMoonFast || "q", this.db.options.keyboardActions.expeditionLCFast = this.db.options.keyboardActions.expeditionLCFast || "b", this.db.options.keyboardActions.expeditionRecFast = this.db.options.keyboardActions.expeditionRecFast || "n", this.db.options.keyboardActions.popupPlanets = this.db.options.keyboardActions.popupPlanets || 'm', this.db.options.keyboardActions.shortcutsPosition = this.db.options.keyboardActions.shortcutsPosition || '.', this.db.options.keyboardActions.nextDefaultShip = this.db.options.keyboardActions.nextDefaultShip || 'x', this.db.options.keyboardActions.previousDefaultShip = this.db.options.keyboardActions.previousDefaultShip || 'z', this.db.options.keyboardActions.customSplit = this.db.options.keyboardActions.customSplit || 'd', this.db.sortedScores = this.db.sortedScores || [], "loading" !== document.readyState ? this.init(e.cache) : document.onreadystatechange = () => {
+            }, this.db.options = this.db.options || {}, this.db.options.defaultShip = this.db.options.defaultShip || 202, this.db.options.defaultMission = this.db.options.defaultMission || 3, this.db.options.resourceTreshold = this.db.options.resourceTreshold || 3e5, this.db.options.ignoreConsumption = this.db.options.ignoreConsumption || !1, this.db.options.ignoreExpeShipsLoss = this.db.options.ignoreExpeShipsLoss || !1, this.db.options.useClientTime = this.db.options.useClientTime || !1, this.db.options.displayMiniStats = void 0 !== this.db.options.displayMiniStats ? this.db.options.displayMiniStats : "day", this.db.options.collectLinked = this.db.options.collectLinked || !1, this.db.options.expeditionValue = this.db.options.expeditionValue || 0, this.db.options.expeditionBigShips = this.db.options.expeditionBigShips || [204, 205, 206, 207, 215], this.db.options.expeditionRandomSystem = this.db.options.expeditionRandomSystem || 0, this.db.options.expeditionRedirect = this.db.options.expeditionRedirect || !1, this.db.options.expeditionShipRatio = Math.min(this.db.options.expeditionShipRatio, 100), this.db.options.displayPlanetTimers = !1 !== this.db.options.displayPlanetTimers, this.db.options.reduceLargeImages = this.db.options.reduceLargeImages || !1, this.db.options.colorblindMode = this.db.options.colorblindMode || !1, this.db.options.showMenuResources = this.db.options.showMenuResources || 0, this.db.options.autoCleanReports = this.db.options.autoCleanReports || !1, this.db.options.tooltipDelay = !1 !== this.db.options.tooltipDelay ? Math.max(this.db.options.tooltipDelay, 100) : 400, this.db.options.spyIndicatorDelay = this.db.options.spyIndicatorDelay || 36e5, this.db.options.debugMode = this.db.options.debugMode || !1, this.db.options.sim = this.db.options.sim || !1, this.db.options.boardTab = !1 !== this.db.options.boardTab, this.db.options.msu = this.db.options.msu || "3:2:1", this.db.options.disablePlanetTooltips = this.db.options.disablePlanetTooltips || !1, this.db.options.displaySpyTable = !1 !== this.db.options.displaySpyTable, this.db.options.shortcutsOnRight = this.db.options.shortcutsOnRight || !1, this.db.options.keyboardActions = this.db.options.keyboardActions || {}, this.db.options.keyboardActions.menu = this.db.options.keyboardActions.menu || "²", this.db.options.keyboardActions.previousPlanet = this.db.options.keyboardActions.previousPlanet || "i", this.db.options.keyboardActions.nextPlanet = this.db.options.keyboardActions.nextPlanet || "o", this.db.options.keyboardActions.nextPinnedPosition = this.db.options.keyboardActions.nextPinnedPosition || "m", this.db.options.keyboardActions.fleetRepeat = this.db.options.keyboardActions.fleetRepeat || "p", this.db.options.keyboardActions.fleetSelectAll = this.db.options.keyboardActions.fleetSelectAll || "a", this.db.options.keyboardActions.fleetReverseAll = this.db.options.keyboardActions.fleetReverseAll || "r", this.db.options.keyboardActions.expeditionSC = this.db.options.keyboardActions.expeditionSC || "s", this.db.options.keyboardActions.expeditionLC = this.db.options.keyboardActions.expeditionLC || "l", this.db.options.keyboardActions.expeditionPF = this.db.options.keyboardActions.expeditionPF || "f", this.db.options.keyboardActions.quickRaid = this.db.options.keyboardActions.quickRaid || "t", this.db.options.keyboardActions.fleetResourcesSplit = this.db.options.keyboardActions.fleetResourcesSplit || "2-9", this.db.options.keyboardActions.galaxyUp = this.db.options.keyboardActions.galaxyUp || ("fr" == window.location.host.split(/[-.]/)[1] ? "z" : "w"), this.db.options.keyboardActions.galaxyLeft = this.db.options.keyboardActions.galaxyLeft || ("fr" == window.location.host.split(/[-.]/)[1] ? "q" : "a"), this.db.options.keyboardActions.galaxyDown = this.db.options.keyboardActions.galaxyDown || "s", this.db.options.keyboardActions.galaxyRight = this.db.options.keyboardActions.galaxyRight || "d", this.db.options.keyboardActions.galaxySpySystem = this.db.options.keyboardActions.galaxySpySystem || "r", this.db.options.keyboardActions.backFirstFleet = this.db.options.keyboardActions.backFirstFleet || "f", this.db.options.keyboardActions.backLastFleet = this.db.options.keyboardActions.backLastFleet || "l", this.db.options.keyboardActions.discovery = this.db.options.keyboardActions.discovery || "u", this.db.options.keyboardActions.showMenuResources = this.db.options.keyboardActions.showMenuResources || "v", this.db.options.customSplit = this.db.options.customSplit || 10, this.db.options.keyboardActions.toMoonFast = this.db.options.keyboardActions.toMoonFast || "q", this.db.options.keyboardActions.expeditionLCFast = this.db.options.keyboardActions.expeditionLCFast || "b", this.db.options.keyboardActions.expeditionRecFast = this.db.options.keyboardActions.expeditionRecFast || "n", this.db.options.keyboardActions.popupPlanets = this.db.options.keyboardActions.popupPlanets || 'm', this.db.options.keyboardActions.shortcutsPosition = this.db.options.keyboardActions.shortcutsPosition || '.', this.db.options.keyboardActions.nextDefaultShip = this.db.options.keyboardActions.nextDefaultShip || 'x', this.db.options.keyboardActions.previousDefaultShip = this.db.options.keyboardActions.previousDefaultShip || 'z', this.db.options.keyboardActions.customSplit = this.db.options.keyboardActions.customSplit || 'd', this.db.sortedScores = this.db.sortedScores || {}, this.db.sortedScores.global = this.db.sortedScores.global || [], "loading" !== document.readyState ? this.init(e.cache) : document.onreadystatechange = () => {
                 "loading" === document.readyState || this.isReady || (this.isReady = !0, this.init(e.cache))
             }
         }
@@ -2078,15 +2078,16 @@ class UIManager extends Manager {
         0 == currentType && Util.runAsync((() => this.displayScoreDiff(t))), this.ogl._fetch.pending.push({
             url: `https://${window.location.host}/api/highscore.xml?category=${currentCategory}&type=${currentType}`,
             callback: n => {
+                let type = e[currentType];
                 console.log(`ranking ${e[currentType]} score fetched`), t.timestamps = t.timestamps || {};
-                this.ogl.db.sortedScores = [];
+                this.ogl.db.sortedScores[type] = [];
                 let o = (new DOMParser).parseFromString(n, "text/html");
                 t.timestamps[e[currentType]] = 1e3 * parseInt(o.querySelector("highscore").getAttribute("timestamp")), o.querySelectorAll("player").forEach((n => {
                     const o = n.getAttribute("id"),
                         a = parseInt(n.getAttribute("score")),
                         p = parseInt(n.getAttribute("position"));
 
-                    this.ogl.db.sortedScores.push({playerId: o, position: p, score: a});
+                    this.ogl.db.sortedScores[type].push({playerId: o, position: p, score: a});
 
                     t[o] && typeof t[o] == typeof {} || (t[o] = {}), t[o][e[currentType]] = a
                 })), localStorage.setItem(`${window.location.host}_highscore`, JSON.stringify(t)), 0 == currentType && this.displayScoreDiff(t)
@@ -2522,10 +2523,12 @@ class TopbarManager extends Manager {
     upgradeList() {
         let me = {};
 
-        for (let i = 0; i < this.ogl.db.sortedScores.length; i++) {
-            if (this.ogl.db.sortedScores[i].playerId === this.ogl.account.id) {
-                me = this.ogl.db.sortedScores[i];
-                break;
+        if (this.ogl.db.sortedScores.global != undefined) {
+            for (let i = 0; i < this.ogl.db.sortedScores.global.length; i++) {
+                if (this.ogl.db.sortedScores.global[i].playerId === this.ogl.account.id) {
+                    me = this.ogl.db.sortedScores.global[i];
+                    break;
+                }
             }
         }
 
@@ -2537,7 +2540,12 @@ class TopbarManager extends Manager {
         Util.addDom('div', { child: this.ogl._lang.find('level'), parent: upgradeListDiv });
         Util.addDom('div', { child: this.ogl._lang.find('endAt'), parent: upgradeListDiv });
         Util.addDom('div', { child: this.ogl._lang.find('points'), parent: upgradeListDiv });
-        Util.addDom('div', { child: this.ogl._lang.find('classification'), parent: upgradeListDiv });
+
+        if (me.playerId != undefined) {
+            Util.addDom('div', { child: this.ogl._lang.find('classification'), parent: upgradeListDiv });
+        } else {
+            Util.addDom("div", { class: "ogl_invisible", parent: upgradeListDiv });
+        }
 
         const planets = this.ogl.db.myPlanets;
 
@@ -2630,9 +2638,9 @@ class TopbarManager extends Manager {
 
             if (me.playerId != undefined) {
                 let target = {};
-                for (let i = 0; i < this.ogl.db.sortedScores.length; i++) {
-                    if (this.ogl.db.sortedScores[i].score < (me.score + points_until_upgrade)) {
-                        target = this.ogl.db.sortedScores[i];
+                for (let i = 0; i < this.ogl.db.sortedScores.global.length; i++) {
+                    if (this.ogl.db.sortedScores.global[i].score < (me.score + points_until_upgrade)) {
+                        target = this.ogl.db.sortedScores.global[i];
                         break;
                     }
                 }
@@ -4195,7 +4203,7 @@ class TooltipManager extends Manager {
                 "metal" == n && Util.addDom("hr", {
                     parent: a
                 });
-                const e = "metal" == n || "crystal" == n || "deut" == n || "food" == n ? Util.formatNumber(parseInt(o)) : Util.formatToUnits(o);
+                const e = "metal" == n || "crystal" == n || "deut" == n || "food" == n ? Util.formatNumber(parseInt(o)) : Util.formatNumber(o);
                 Util.addDom("div", {
                     parent: a,
                     class: `ogl_icon ogl_${n}`,

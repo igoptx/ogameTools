@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.6.7] - 2024/07/08 12:50:00
+- Fix bug in 'Upgrades in Progress' table column 'Classification'
+
 ### [5.6.6] - 2024/07/01 16:30:00
 - Update Report Converter link
 
