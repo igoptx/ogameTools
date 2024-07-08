@@ -833,7 +833,7 @@ const translations = {
         minerPlayerClass: 'Coleccionador',
         mines: 'Minas',
         miscellaneous: 'Detalhes',
-        months: 'mêses',
+        months: 'meses',
         moon: 'Lua',
         moons: 'Luas',
         moonBuildings: 'Edifícios da Lua',
