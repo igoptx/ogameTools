@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.6.9
+// @version      5.6.10
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b7",
-    oglVersion = "5.6.9";
+    oglVersion = "5.6.10";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g);
@@ -384,7 +384,7 @@ class LangManager extends Manager {
             ignoreExpeShips: "Ignore ships found in expeditions",
             ignoreExpeShipsLoss: "Ignore ships lost in expeditions",
             ignoreConsumption: "Ignore fleet consumption",
-            resourceTreshold: "Resource treshold",
+            resourceTreshold: "Resource threshold",
             tooltipDelay: "Tooltip delay (ms)",
             galaxyUp: "Next galaxy",
             galaxyDown: "Previous galaxy",
@@ -548,7 +548,8 @@ class LangManager extends Manager {
             debris16: 'Destroços P16',
             loot: 'Roubo',
             all: 'Tudo',
-            cannotReadFile: 'Não foi possivel ler o ficheiro'
+            cannotReadFile: 'Não foi possivel ler o ficheiro',
+            place: 'place'
         }, this.fr = {
             ship: "Vaisseaux",
             item: "Item",
@@ -739,7 +740,8 @@ class LangManager extends Manager {
             debris16: 'Destroços P16',
             loot: 'Roubo',
             all: 'Tudo',
-            cannotReadFile: 'Não foi possivel ler o ficheiro'
+            cannotReadFile: 'Não foi possivel ler o ficheiro',
+            place: 'place'
         }, this.pt = {
             ship:"Naves",
             item:"Item",
@@ -930,7 +932,8 @@ class LangManager extends Manager {
             debris16: 'Destroços P16',
             loot: 'Roubo',
             all: 'Tudo',
-            cannotReadFile: 'Não foi possivel ler o ficheiro'
+            cannotReadFile: 'Não foi possivel ler o ficheiro',
+            place: 'lugar'
         },this.de = {
             ship: "Schiffe",
             item: "Item",
@@ -1041,7 +1044,8 @@ class LangManager extends Manager {
             debris16: 'Destroços P16',
             loot: 'Roubo',
             all: 'Tudo',
-            cannotReadFile: 'Não foi possivel ler o ficheiro'
+            cannotReadFile: 'Não foi possivel ler o ficheiro',
+            place: 'place'
         }, this.gr = {
             ship: "Πλοία",
             item: "Αντικείμενο",
@@ -1152,7 +1156,8 @@ class LangManager extends Manager {
             debris16: 'Destroços P16',
             loot: 'Roubo',
             all: 'Tudo',
-            cannotReadFile: 'Não foi possivel ler o ficheiro'
+            cannotReadFile: 'Não foi possivel ler o ficheiro',
+            place: 'place'
         }
     }
     find(e, t) {
@@ -2700,7 +2705,7 @@ class TopbarManager extends Manager {
                     style = 'color: lime';
                 }
                 prevChange = change;
-                Util.addDom('div', { child: `(+${change}) ${target.position}º lugar`, parent: upgradeListDiv, style:style });
+                Util.addDom('div', { child: `(+${change}) ${target.position}º ${this.ogl._lang.find('place')}`, parent: upgradeListDiv, style:style });
             } else {
                 Util.addDom("div", { class: "ogl_invisible", parent: upgradeListDiv });
             }

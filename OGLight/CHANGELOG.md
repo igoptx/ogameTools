@@ -1,5 +1,9 @@
 # OGLight - Changelog
 
+### [5.6.10] - 2024/07/10 16:35:00
+- Add translation
+- Script Documentation
+
 ### [5.6.9] - 2024/07/10 14:40:00
 - Update the update flow related to scores and status
 
