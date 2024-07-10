@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.6.7
+// @version      5.6.8
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -43,7 +43,7 @@ if (void 0 === GM_saveTab) var GM_saveTab = e => {
     GM_setValue("ogl_tab", JSON.stringify(e || {}))
 };
 let betaVersion = "-b7",
-    oglVersion = "5.6.7";
+    oglVersion = "5.6.8";
 class OGLight {
     constructor(e) {
         const t = document.cookie.match(/prsess\_([0-9]+)=/g);
@@ -544,7 +544,11 @@ class LangManager extends Manager {
             noMissionData: 'No mission\'s data',
             missions: 'Missions',
             totalPointsUntil: 'Total points until this upgrade',
-            classification: 'Classification'
+            classification: 'Classification',
+            debris16: 'Destroços P16',
+            loot: 'Roubo',
+            all: 'Tudo',
+            cannotReadFile: 'Não foi possivel ler o ficheiro'
         }, this.fr = {
             ship: "Vaisseaux",
             item: "Item",
@@ -731,8 +735,12 @@ class LangManager extends Manager {
             noMissionData: 'No mission\'s data',
             missions: 'Missions',
             totalPointsUntil: 'Total points until this upgrade',
-            classification: 'Classification'
-        },this.pt = {
+            classification: 'Classification',
+            debris16: 'Destroços P16',
+            loot: 'Roubo',
+            all: 'Tudo',
+            cannotReadFile: 'Não foi possivel ler o ficheiro'
+        }, this.pt = {
             ship:"Naves",
             item:"Item",
             other:"Outros",
@@ -827,6 +835,7 @@ class LangManager extends Manager {
             emptyPlayerList:"Não existe nenhum jogador na lista",
             debugMode:"Modo de Depuração",
             sim:"Simulador de batalha",
+            converter: "Conversor de batalhas",
             siblingPlanetMoon:"Planeta / Lua irmãos",
             oglMessageDone:"Esta mensagem foi lida pelo OGLight",
             boardTab:"Mostrar notícias",
@@ -917,7 +926,11 @@ class LangManager extends Manager {
             noMissionData: 'Sem dados de missões',
             missions: 'Missões',
             totalPointsUntil: 'Total de pontos até este upgrade',
-            classification: 'Classificação'
+            classification: 'Classificação',
+            debris16: 'Destroços P16',
+            loot: 'Roubo',
+            all: 'Tudo',
+            cannotReadFile: 'Não foi possivel ler o ficheiro'
         },this.de = {
             ship: "Schiffe",
             item: "Item",
@@ -1024,7 +1037,11 @@ class LangManager extends Manager {
             ptreActivityImported: "Aktivität zum PTRE importiert",
             ptreActivityAlreadyImported: "Aktivität bereits im PTRE",
             ptreSyncTarget: "Synchronisiere mit PTRE",
-            ptreManageTarget: "Verwalte auf PTRE"
+            ptreManageTarget: "Verwalte auf PTRE",
+            debris16: 'Destroços P16',
+            loot: 'Roubo',
+            all: 'Tudo',
+            cannotReadFile: 'Não foi possivel ler o ficheiro'
         }, this.gr = {
             ship: "Πλοία",
             item: "Αντικείμενο",
@@ -1131,7 +1148,11 @@ class LangManager extends Manager {
             ptreActivityImported: "δραστηριότητα εισήχθη στο PTRE",
             ptreActivityAlreadyImported: "δραστηριότητα που έχει ήδη εισαχθεί PTRE",
             ptreSyncTarget: "Συγχρονισμός με PTRE",
-            ptreManageTarget: "Διαχείριση PTRE"
+            ptreManageTarget: "Διαχείριση PTRE",
+            debris16: 'Destroços P16',
+            loot: 'Roubo',
+            all: 'Tudo',
+            cannotReadFile: 'Não foi possivel ler o ficheiro'
         }
     }
     find(e, t) {
@@ -1679,7 +1700,7 @@ class UIManager extends Manager {
         Util.addDom("label", {
             class: "ogl_button",
             for: "ogl_import",
-            child: "Import data",
+            child: this.ogl._lang.find('importData'),
             parent: t
         });
         const n = Util.addDom("input", {
@@ -1697,7 +1718,7 @@ class UIManager extends Manager {
                         e = JSON.parse(t.result)
                     }
                     catch (e) {
-                        n = "cannot read file"
+                        n = this.ogl._lang.find('cannotReadFile')
                     }!n && e && e.dataFormat > 10 ? (this.ogl.db = e, document.location.reload()) : this.ogl._notification.addToQueue(`Error, ${n||"wrong data format"}`, !1)
                 }, t.readAsText(e)
             }
@@ -1705,7 +1726,7 @@ class UIManager extends Manager {
         return Util.addDom("a", {
             class: "ogl_button",
             download: `oglight_${this.ogl.server.name}_${this.ogl.server.lang}_${serverTime.getTime()}`,
-            child: "Export data",
+            child: this.ogl._lang.find('exportData'),
             parent: t,
             href: URL.createObjectURL(new Blob([JSON.stringify(this.ogl.db)], {
                 type: "application/json"
@@ -2075,7 +2096,7 @@ class UIManager extends Manager {
         };
         if (document.querySelector("#stat_list_content").setAttribute("data-category", currentCategory), document.querySelector("#stat_list_content").setAttribute("data-type", currentType), 1 != currentCategory || !e[currentType]) return;
         const t = JSON.parse(localStorage.getItem(`${window.location.host}_highscore`) || "{}");
-        0 == currentType && Util.runAsync((() => this.displayScoreDiff(t))), this.ogl._fetch.pending.push({
+        0 == currentType && Util.runAsync((() => this.displayScoreDiff(t))), (!t.timestamps?.[e[currentType]] || serverTime.getTime() - t.timestamps?.[e[currentType]] > 1728e5) && this.ogl._fetch.pending.push({
             url: `https://${window.location.host}/api/highscore.xml?category=${currentCategory}&type=${currentType}`,
             callback: n => {
                 let type = e[currentType];
@@ -2096,9 +2117,8 @@ class UIManager extends Manager {
     }
     updateStatus() {
         if (serverTime.getTime() - this.statusDelay < 500) return;
-        if (this.statusDelay = serverTime.getTime(), 1 != currentCategory) return;
         const e = JSON.parse(localStorage.getItem(`${window.location.host}_highscore`) || "{}");
-        Util.runAsync((() => this.displayStatus(e))), this.ogl._fetch.pending.push({
+        Util.runAsync((() => this.displayStatus(e))), (!e.statusTimestamp || serverTime.getTime() - e.statusTimestamp > 864e5) && this.ogl._fetch.pending.push({
             url: `https://${window.location.host}/api/players.xml`,
             callback: t => {
                 console.log("ranking status fetched");
@@ -2219,7 +2239,13 @@ class TopbarManager extends Manager {
             parent: this.topbar,
             title: this.ogl._lang.find("accountSummary"),
             onclick: () => this.openAccount()
-        }), Util.addDom('i', { class:'material-icons tooltipTop', child:'precision_manufacturing', parent:this.topbar, title:this.ogl._lang.find('upgradeList'), onclick:() => this.upgradeList() }), Util.addDom("i", {
+        }), Util.addDom('i', {
+            class:'material-icons tooltip',
+            child:'precision_manufacturing',
+            parent:this.topbar,
+            title:this.ogl._lang.find('upgradeList'),
+            onclick:() => this.upgradeList()
+        }), Util.addDom("i", {
             class: "material-icons tooltip",
             child: "stroke_full",
             parent: this.topbar,
@@ -2313,25 +2339,25 @@ class TopbarManager extends Manager {
             class: "ogl_icon ogl_deut",
             parent: e
         }), Util.addDom("div", {
-            child: "Coords",
+            child: this.ogl._lang.find('coords'),
             parent: e
         }), Util.addDom("div", {
-            child: "P",
+            child: this.ogl._lang.find('P'),
             parent: e
         }), Util.addDom("div", {
-            child: "M",
+            child: this.ogl._lang.find('M'),
             parent: e
         }), Util.addDom("div", {
-            child: "Name",
+            child: this.ogl._lang.find('name'),
             parent: e
         }), Util.addDom("div", {
-            child: "Fields",
+            child: this.ogl._lang.find('fields'),
             parent: e
         }), Util.addDom("div", {
-            child: "T°c",
+            child: this.ogl._lang.find('T'),
             parent: e
         }), Util.addDom("div", {
-            child: "LF",
+            child: this.ogl._lang.find('lf'),
             parent: e
         });
         let o = Util.addDom("div", {
@@ -2674,7 +2700,7 @@ class TopbarManager extends Manager {
     openSettings(e) {
         const t = Util.addDom("div", {
             class: "ogl_config",
-            child: '<h2>Settings<i class="material-icons">settings</i></h2>'
+            child: '<h2>'+this.ogl._lang.find('settings')+'<i class="material-icons">settings</i></h2>'
         });
         let n;
         ["defaultShip", "defaultMission", "profileButton", "resourceTreshold", 'customSplit', "msu", "sim", "converter", "useClientTime", "keyboardActions", "showMenuResources", "shortcutsOnRight", "disablePlanetTooltips", "reduceLargeImages", "colorblindMode", "displayPlanetTimers", 'showMissionsSplitted', "expeditionValue", "expeditionRandomSystem", "expeditionRedirect", "expeditionBigShips", "expeditionShipRatio", "ignoreExpeShipsLoss", "ignoreConsumption", "displaySpyTable", "boardTab", "ptreTeamKey", "ptreLogs", "manageData", "debugMode"].forEach((e => {
@@ -2686,7 +2712,7 @@ class TopbarManager extends Manager {
                 "data-container": n
             }), this.ogl.db.configState[n] && i.classList.add("ogl_active"), Util.addDom("h3", {
                 parent: i,
-                child: n,
+                child: this.ogl._lang.find(n),
                 onclick: () => {
                     i.classList.contains("ogl_active") ? (i.classList.remove("ogl_active"), this.ogl.db.configState[i.getAttribute("data-container")] = !1) : (i.classList.add("ogl_active"), this.ogl.db.configState[i.getAttribute("data-container")] = !0)
                 }
@@ -2757,10 +2783,10 @@ class TopbarManager extends Manager {
                         this.ogl.db.options[e] = parseInt(t.value), localStorage.setItem("ogl_menulayout", this.ogl.db.options[e]), document.body.setAttribute("data-menulayout", t.value)
                     }
                 });
-                ["All", "Coords", "Resources"].forEach(((n, o) => {
+                ["layoutAll", "layoutCoords", "layoutResources"].forEach(((n, o) => {
                     const a = Util.addDom("option", {
                         parent: t,
-                        child: n,
+                        child: this.ogl._lang.find(n),
                         value: o
                     });
                     this.ogl.db.options[e] == o && (a.selected = !0)
@@ -2849,7 +2875,7 @@ class TopbarManager extends Manager {
         }), "pinned", e), Util.runAsync((() => {
             const e = Util.addDom("div", {
                     class: "ogl_pinned",
-                    child: '<h2>Pinned players<i class="material-icons">push_pin</i></h2>'
+                    child: '<h2>'+this.ogl._lang.find('pinnedPlayers')+'<i class="material-icons">push_pin</i></h2>'
                 }),
                 t = Util.addDom("div", {
                     class: "ogl_tabs ogl_flagSelector material-icons",
@@ -3084,7 +3110,7 @@ class TopbarManager extends Manager {
         }), "tagged"), Util.runAsync((() => {
             const e = Util.addDom("div", {
                     class: "ogl_tagged",
-                    child: '<h2>Tagged planets<i class="material-icons">stroke_full</i></h2>'
+                    child: '<h2>'+this.ogl._lang.find('taggedPlanets')+'<i class="material-icons">stroke_full</i></h2>'
                 }),
                 t = Util.addDom("div", {
                     class: "ogl_tabs ogl_tagSelector material-icons",
@@ -3100,7 +3126,7 @@ class TopbarManager extends Manager {
             const o = Util.addDom("div", {
                     class: "ogl_list",
                     parent: e,
-                    child: '<p class="ogl_emptyList">Select a galaxy/system range</p>'
+                    child: '<p class="ogl_emptyList">'+this.ogl._lang.find('selectGalaxySystemRange')+'</p>'
                 }),
                 a = () => {
                     const e = Util.coordsToID(`${r.value}:${l.value}:000`),
@@ -3585,7 +3611,7 @@ class FleetManager extends Manager {
             });
         Util.addDom("legend", {
             parent: t,
-            child: '<i class="material-icons">settings</i> Settings'
+            child: '<i class="material-icons">settings</i> '+this.ogl._lang.find('settings')
         });
         const n = Util.addDom("label", {
                 class: "ogl_limiterLabel tooltip",
@@ -4478,7 +4504,7 @@ class MessageManager extends Manager {
                     }), Util.addDom("div", {
                         class: "ogl_spyHeader",
                         parent: this.spytable,
-                        child: '\n                                <b class="ogl_textCenter">#</b>\n                                <b class="material-icons" data-filter="age">schedule</b>\n                                <b class="ogl_textCenter">*</b>\n                                <b class="ogl_textCenter">&nbsp;</b>\n                                <b data-filter="rawCoords">coords</b>\n                                <b data-filter="playerName">name</b>\n                                <b data-filter="wave1DESC">loot</b>\n                                <b class="material-icons" data-filter="fleetValueDESC">rocket_launch</b>\n                                <b class="material-icons" data-filter="defValueDESC">security</b>\n                                <b></b>\n                            ',
+                        child: '\n                                <b class="ogl_textCenter">#</b>\n                                <b class="material-icons" data-filter="age">schedule</b>\n                                <b class="ogl_textCenter">*</b>\n                                <b class="ogl_textCenter">&nbsp;</b>\n                                <b data-filter="rawCoords">'+this.ogl._lang.find('coords')+'</b>\n                                <b data-filter="playerName">'+this.ogl._lang.find('name')+'</b>\n                                <b data-filter="wave1DESC">'+this.ogl._lang.find('loot')+'</b>\n                                <b class="material-icons" data-filter="fleetValueDESC">rocket_launch</b>\n                                <b class="material-icons" data-filter="defValueDESC">security</b>\n                                <b></b>\n                            ',
                         onclick: e => {
                             let t = e.target.getAttribute("data-filter");
                             t && (document.querySelectorAll(".ogl_spyHeader .ogl_active").forEach((e => e.classList.remove("ogl_active"))), e.target.classList.add("ogl_active"), this.ogl.db.spytableSort = this.ogl.db.spytableSort !== t ? t : t.indexOf("DESC") < 0 ? t + "DESC" : t.replace("DESC", ""), this.createSpyTable())
@@ -6017,7 +6043,7 @@ class StatsManager extends Manager {
             o[e] = o[e] || {};
             for (let [a, i] of Object.entries(t?.[e]?.gain || {}))
                 if (n.findIndex((e => e == a || e == -a)) > -1)
-                    if (isNaN(a)) o.total[a] = (o.total[a] || 0) + i, "raid" != e && "debris" != e || (o.raid[a] = (o.raid[a] || 0) + i), "expe" != e && "debris16" != e && "blackhole" != e || (o.expe[a] = (o.expe[a] || 0) + i);
+                    if (isNaN(a)) o.total[a] = (o.total[a] || 0) + i, "raid" != e || (o.raid[a] = (o.raid[a] || 0) + i), "debris" != e || (o.debris[a] = (o.debris[a] || 0) + i), "expe" != e && "blackhole" != e || (o.expe[a] = (o.expe[a] || 0) + i), "debris16" != e || (o.debris16[a] = (o.debris16[a] || 0) + i);
                     else {
                         const t = Datafinder.getTech(Math.abs(a)),
                             n = "expe" == e ? this.ogl.db.options.expeditionShipRatio / 100 : 1,
@@ -6027,7 +6053,7 @@ class StatsManager extends Manager {
             o[e].count = (o[e].count || 0) + (t?.[e]?.count || 0)
         })), o.conso = (o.conso || 0) + (t?.conso || 0), this.ogl.db.options.ignoreConsumption || (o.total.deut -= o.conso);
         const a = this.ogl.db.options.msu;
-        return o.total.msu = Util.getMSU(o.total.metal, o.total.crystal, o.total.deut, a), o.expe.msu = Util.getMSU(o.expe.metal, o.expe.crystal, o.expe.deut, a), o.raid.msu = Util.getMSU(o.raid.metal, o.raid.crystal, o.raid.deut, a), o
+        return o.total.msu = Util.getMSU(o.total.metal, o.total.crystal, o.total.deut, a), o.expe.msu = Util.getMSU(o.expe.metal, o.expe.crystal, o.expe.deut, a), o.debris16.msu = Util.getMSU(o.debris16.metal, o.debris16.crystal, o.debris16.deut, a), o.raid.msu = Util.getMSU(o.raid.metal, o.raid.crystal, o.raid.deut, a),o.debris.msu = Util.getMSU(o.debris.metal, o.debris.crystal, o.debris.deut, a), o
     }
     miniStats() {
         const e = serverTime,
@@ -6109,7 +6135,7 @@ class StatsManager extends Manager {
         }), Util.addDom("div", {
             parent: r,
             class: "ogl_button",
-            child: "All",
+            child: this.ogl._lang.find('all'),
             onclick: () => {
                 const e = new Date(this.ogl.db.initialTime),
                     t = this.getKey(new Date(e.getFullYear(), e.getMonth(), e.getDate(), 0, 0, 0).getTime()),
@@ -6264,22 +6290,25 @@ class StatsManager extends Manager {
                 class: `ogl_icon ogl_${e}`,
                 parent: c
             })
-        })), ["expe", "raid", "conso", "u", "total"].forEach((e => {
+        })), ["expe","debris16","invisible", "raid", "debris","invisible", "conso", "u","invisible", "total"].forEach((e => {
+            if(e == "invisible") {
+                Util.addDom("div", {
+                    class: "ogl_invisible",
+                    parent: d
+                })
+                return;
+            }
             const t = "u" == e ? "average" : e,
                 n = Util.addDom("div", {
                     parent: d,
-                    child: `<div>${t}</div>`
+                    child: `<div>${this.ogl._lang.find(t)}</div>`
                 }),
                 o = {};
-            o.expe = l.expe.count + l.debris16.count, o.raid = l.raid.count + l.debris.count, o.total = l.debris.count + l.debris16.count + l.expe.count + l.raid.count + l.discovery.count;
+            o.expe = l.expe.count, o.debris16 = l.debris16.count, o.raid = l.raid.count, o.debris = l.debris.count, o.total = l.debris.count + l.debris16.count + l.expe.count + l.raid.count + l.discovery.count;
             const a = Util.addDom("div", {
                 parent: n,
                 child: Util.formatToUnits(o[e] || "-", !1, !0)
             });
-            if (o[e]) {
-                const t = "expe" == e ? `<div>Expedition: ${l.expe.count}</div><div>Debris p16: ${l.debris16.count}</div>` : "raid" == e ? `<div>Raid: ${l.raid.count}</div><div>Debris: ${l.debris.count}</div>` : "total" == e ? `<div>Expedition: ${l.expe.count}</div>\n                        <div>Debris p16: <span>${l.debris16.count}</span></div>\n                        <div>Raid: <span>${l.raid.count}</span></div>\n                        <div>Debris: <span>${l.debris.count}</span></div>\n                        <div>Discovery: <span>${l.discovery.count}</span></div>` : "";
-                a.classList.add("tooltip"), a.setAttribute("title", t)
-            }
             const i = l.debris.count + l.debris16.count + l.expe.count + l.raid.count,
                 r = l.expe.count,
                 s = l.discovery.count;
@@ -6333,7 +6362,7 @@ class StatsManager extends Manager {
             s = e => {
                 c.clearRect(0, 0, i, i), l.forEach((t => {
                     c.beginPath(), c.arc(r, r, 128, t.startAngle, t.endAngle), c.lineTo(r, r), c.closePath(), c.fillStyle = t.title == e?.title ? "white" : t.color, c.fill()
-                })), c.fillStyle = "rgba(0,0,0,.5)", c.beginPath(), c.arc(128, 128, i / 2.7, 0, 2 * Math.PI, !1), c.fill(), c.fillStyle = "#1b212a", c.beginPath(), c.arc(128, 128, i / 3, 0, 2 * Math.PI, !1), c.fill(), t.setAttribute("data-pie", `${e?this.ogl._lang.find(e.title)+"\r\n":""}${e?e.percent+"%":u+"\r\nExpeditions"}`), p.querySelectorAll(".ogl_active").forEach((e => e.classList.remove("ogl_active"))), e && p.querySelector(`[data-entry="${e.title}"]`).classList.add("ogl_active")
+                })), c.fillStyle = "rgba(0,0,0,.5)", c.beginPath(), c.arc(128, 128, i / 2.7, 0, 2 * Math.PI, !1), c.fill(), c.fillStyle = "#1b212a", c.beginPath(), c.arc(128, 128, i / 3, 0, 2 * Math.PI, !1), c.fill(), t.setAttribute("data-pie", `${e?this.ogl._lang.find(e.title)+"\r\n":""}${e?e.percent+"%":u+"\r\n"+this.ogl._lang.find('expeditions')}`), p.querySelectorAll(".ogl_active").forEach((e => e.classList.remove("ogl_active"))), e && p.querySelector(`[data-entry="${e.title}"]`).classList.add("ogl_active")
             },
             d = Util.addDom("canvas", {
                 parent: t,

@@ -1,5 +1,11 @@
 # OGLight - Changelog
 
+### [5.6.8] - 2024/07/10 11:50:00
+- Add translations
+- Add detailed info in 'Stats' popup
+- Fix css minor bugs
+- Limit the refresh in 'Classifications' page
+
 ### [5.6.7] - 2024/07/08 12:50:00
 - Fix bug in 'Upgrades in Progress' table column 'Classification'
 
