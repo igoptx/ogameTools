@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.7.1
+// @version      5.7.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -39,7 +39,7 @@ document.body ? updateOGLBody() : new MutationObserver((function () {
     childList: !0
 });
 let betaVersion = "-rc99",
-    oglVersion = "5.7.1";
+    oglVersion = "5.7.2";
 void 0 === window?.GM_getTab && (window.GM_getTab = e => {
     e(JSON.parse(GM_getValue("ogl_tab") || "{}"));
 }), void 0 === window?.GM_saveTab && (window.GM_saveTab = e => {
@@ -3940,8 +3940,11 @@ class FleetManager extends Manager {
     }
 
     spy() {
-        if (!this.spyReady) return;
+        if (this.spyReady == undefined) {
+            this.spyReady = true;
+        }
         if (this.spyQueue.length <= 0) return clearInterval(this.spyInterval), this.spyInterval = !1, void (this.spyReady = !0);
+        if (!this.spyReady) return;
         this.spyReady = !1;
         const e = this,
             t = {
