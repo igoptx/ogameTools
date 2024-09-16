@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.7.1] - 2024/09/16 11:20:00
+- Fix CSS
+
 ### [5.7.0] - 2024/09/16 09:35:00
 - Update with OGLight 5.2.1
  
