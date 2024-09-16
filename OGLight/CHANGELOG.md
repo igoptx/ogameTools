@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.7.0] - 2024/09/16 09:35:00
+- Update with OGLight 5.2.1
+ 
 ### [5.6.10] - 2024/07/10 16:35:00
 - Add translation
 - Script Documentation
