@@ -473,7 +473,7 @@ class LangManager extends Manager {
             spyPlanet: "Spy this planet",
             spyMoon: "Spy this moon",
             resourceLimiter: "Substract the amount of resources defined in your profile limiter",
-            fleetLimiter: "Substract the amount of ships defined in your profile limiter",
+            fleetLimiterXP: "Substract the amount of ships defined in your profile limiter",
             forceKeepCapacity: "Keep enough capacity on you planet to move your resources (has priority over limiters)",
             forceIgnoreFood: "Ignore food (has priority over limiters)",
             resetStats: "Reset stats",
@@ -513,14 +513,14 @@ class LangManager extends Manager {
             raid: 'Raids',
             debris: 'Debris',
             debrisp16: 'Debris p16',
-            discovery: 'Discovery',
+            Discovery: 'Discovery',
             conso: 'Conso',
             average: 'Average',
             total: 'Total',
             fleet: 'Fleet',
             general: 'General',
             expeditions: 'Expeditions',
-            stats: 'STATS',
+            Stats: 'STATS',
             messages: 'Messages',
             PTRE: 'PTRE',
             data: 'Data',
@@ -534,8 +534,6 @@ class LangManager extends Manager {
             lf: 'LF',
             selectGalaxySystemRange: 'Select a galaxy/system range',
             noResult: 'No Result',
-            taggedPlanets: 'Tagged planets',
-            pinnedPlayers: 'Pinned players',
             newUpdateAvailable: 'New Update Available',
             ptreLastRequestStatus: 'PTRE last request status',
             ptreErrors: 'PTRE errors',
@@ -671,7 +669,7 @@ class LangManager extends Manager {
             spyPlanet: "Espionner cette planète",
             spyMoon: "Espionner cette lune",
             resourceLimiter: "Soustraire le montant de ressources indiqué dans le limiteur",
-            fleetLimiter: "Soustraire le nombre de vaisseaux indiqué dans le limiteur",
+            fleetLimiterXP: "Soustraire le nombre de vaisseaux indiqué dans le limiteur",
             forceKeepCapacity: "Garder assez de capacité sur la planète pour bouger les ressources (a la priorité sur le limiteur)",
             forceIgnoreFood: "Ignorer la nourriture (a la priorité sur le limiteur)",
             resetStats: "Réinitialiser stats",
@@ -711,14 +709,14 @@ class LangManager extends Manager {
             raid: 'Raids',
             debris: 'Debris',
             debrisp16: 'Debris p16',
-            discovery: 'Discovery',
+            Discovery: 'Discovery',
             conso: "Conso",
             average: "Average",
             total: 'Total',
             fleet: 'Fleet',
             general: 'General',
             expeditions: 'Expeditions',
-            stats: 'STATS',
+            Stats: 'STATS',
             messages: 'Messages',
             PTRE: 'PTRE',
             data: 'Data',
@@ -732,8 +730,6 @@ class LangManager extends Manager {
             lf: 'LF',
             selectGalaxySystemRange: 'Select a galaxy/system range',
             noResult: 'No Result',
-            taggedPlanets: 'Tagged planets',
-            pinnedPlayers: 'Pinned players',
             newUpdateAvailable: 'New Update Available',
             ptreLastRequestStatus: 'PTRE last request status',
             ptreErrors: 'PTRE errors',
@@ -787,9 +783,6 @@ class LangManager extends Manager {
             all: 'Tudo',
             cannotReadFile: 'Não foi possivel ler o ficheiro',
             place: 'place',
-            scanPlayers: 'Scan Players',
-            createDebrisFast: 'Create Debris Fast',
-            expeditionProbFast: 'Expedition Prob Fast'
         }, this.pt = {
             ship: "Naves",
             item: "Item",
@@ -869,7 +862,7 @@ class LangManager extends Manager {
             spyPlanet: "Espiar este planeta",
             spyMoon: "Espiar esta lua",
             resourceLimiter: "Subtrair a quantidade de recursos definida no perfil Limitador",
-            fleetLimiter: "Subtrair a quantidade de naves de definidas no perfil Limitador",
+            fleetLimiterXP: "Subtrair a quantidade de naves de definidas no perfil Limitador",
             forceKeepCapacity: "Manter capacidade suficiente no planeta para mover os recursos (tem prioridade acima dos limitadores)",
             forceIgnoreFood: "Ignorar comida (tem prioridade acima dos limitadores)",
             resetStats: "Reiniciar estatísticas",
@@ -908,14 +901,14 @@ class LangManager extends Manager {
             raid: 'Combates',
             debris: 'Destroços',
             debrisp16: 'Destroços p16',
-            discovery: 'Explorações',
+            Discovery: 'Explorações',
             conso: 'Consumo',
             average: 'Média',
             total: 'Total',
             fleet: 'Frota',
             general: 'Geral',
             expeditions: 'Expedições',
-            stats: 'Estatísticas',
+            Stats: 'Estatísticas',
             messages: 'Mensagens',
             PTRE: 'PTRE',
             data: 'Dados',
@@ -929,8 +922,6 @@ class LangManager extends Manager {
             lf: 'FdV',
             selectGalaxySystemRange: 'Selecionar intervalo de galaxia/sistema',
             noResult: 'Sem resultados',
-            taggedPlanets: 'Planetas Marcados',
-            pinnedPlayers: 'Jogadores Marcados',
             newUpdateAvailable: 'Atualização Disponível',
             ptreLastRequestStatus: 'Estado do último pedido do PTRE',
             ptreErrors: 'Log do PTRE',
@@ -984,9 +975,6 @@ class LangManager extends Manager {
             all: 'Tudo',
             cannotReadFile: 'Não foi possivel ler o ficheiro',
             place: 'lugar',
-            scanPlayers: 'Scan Players',
-            createDebrisFast: 'Create Debris Fast',
-            expeditionProbFast: 'Expedition Prob Fast'
         }, this.de = {
             ship: "Schiffe",
             item: "Item",
@@ -1066,7 +1054,7 @@ class LangManager extends Manager {
             spyPlanet: "Spioniere diesen Planeten",
             spyMoon: "Spioniere diesen Mond",
             resourceLimiter: "Subtrahiere Anzahl der Ressourcen die im Profilmaximalwert definiert sind.",
-            fleetLimiter: "Subtrahiere Anzahl der Schiffe die im Profilmaximalwert definiert sind.",
+            fleetLimiterXP: "Subtrahiere Anzahl der Schiffe die im Profilmaximalwert definiert sind.",
             forceKeepCapacity: "Genügend Ladekapazität zurückhalten, um Rohstoffe zu transportieren (hat Priorität über definierten Grenzwerten)",
             forceIgnoreFood: "Ignoriere Nahrung (hat Priorität über definierten Grenzwerten)",
             resetStats: "Setze Statistik zurück",
@@ -1173,7 +1161,7 @@ class LangManager extends Manager {
             spyPlanet: "Κατασκοπεία αυτού του πλανήτη",
             spyMoon: "Κατασκοπεία αυτού του φεγγαριού",
             resourceLimiter: "Αφαιρέστε το ποσό των πόρων που ορίζονται στον περιοριστή ",
-            fleetLimiter: "Αφαιρέστε τον αριθμό των πλοίων που ορίζεται στον περιοριστή ",
+            fleetLimiterXP: "Αφαιρέστε τον αριθμό των πλοίων που ορίζεται στον περιοριστή ",
             forceKeepCapacity: "Διατηρήστε αρκετή ποσότητα στον πλανήτη σας για να μεταφέρετε τους πόρους σας(has priority over limiters)",
             forceIgnoreFood: "Αγνόησε την τροφή (has priority over limiters)",
             resetStats: "Επαναφορά στατιστικών",
@@ -1206,9 +1194,6 @@ class LangManager extends Manager {
             all: 'Tudo',
             cannotReadFile: 'Não foi possivel ler o ficheiro',
             place: 'place',
-            scanPlayers: 'Scan Players',
-            createDebrisFast: 'Create Debris Fast',
-            expeditionProbFast: 'Expedition Prob Fast'
         };
     }
 
@@ -2846,7 +2831,7 @@ class TopbarManager extends Manager {
                     }
                 });
             } else if ("msu" == e) {
-                r.classList.add("tooltipLeft"), r.setAttribute("title", this.ogl._lang.find("format")+":<br>"+this.ogl._lang.find("metal")+":"+this.ogl._lang.find("crystal")+":"+this.ogl._lang.find("deut"));
+                r.classList.add("tooltipLeft"), r.setAttribute("title", this.ogl._lang.find("format") + ":<br>" + this.ogl._lang.find("metal") + ":" + this.ogl._lang.find("crystal") + ":" + this.ogl._lang.find("deut"));
                 const t = Util.addDom("input", {
                     type: "text",
                     placeholder: "m:c:d",
@@ -3128,7 +3113,7 @@ class TopbarManager extends Manager {
                     this.ogl.PTRE.getPlayerPositions({
                         name: n.name,
                         id: e
-                    })
+                    });
                 }
             }), this.ogl.db.lastPinnedList = Array.from(new Set([e, ...this.ogl.db.lastPinnedList].map(Number))), this.ogl.db.lastPinnedList.length > 30 && (this.ogl.db.lastPinnedList.length = 30), t || (Util.addDom("div", {
                 class: "ogl_loading",
@@ -3918,6 +3903,7 @@ class FleetManager extends Manager {
     prepareRedirection() {
         this.redirectionReady && !this.ogl.mode || (this.redirectionReady = !0);
     }
+
     sendNextMiniFleet() {
         if (this.miniFleetQueue.length < 1) return;
         const e = this.miniFleetQueue[0],
@@ -3939,7 +3925,9 @@ class FleetManager extends Manager {
             dataType: "json",
             type: "POST"
         });
-    }addToSpyQueue(e, t, n, o, a, i, r) {
+    }
+
+    addToSpyQueue(e, t, n, o, a, i, r) {
         this.spyQueue = this.spyQueue || [], this.spyQueue.push({
             order: e,
             galaxy: t,
@@ -5834,7 +5822,7 @@ class ShortcutManager extends Manager {
         }
         const r = n => {
             !1 !== t(n) && this.ogl._notification.addToQueue(this.ogl._lang.find(e));
-        }
+        };
 
         const i = Util.addDom("div", {
             "data-key": a,
