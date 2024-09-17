@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.7.2
+// @version      5.7.3
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -39,7 +39,7 @@ document.body ? updateOGLBody() : new MutationObserver((function () {
     childList: !0
 });
 let betaVersion = "-rc99",
-    oglVersion = "5.7.2";
+    oglVersion = "5.7.3";
 void 0 === window?.GM_getTab && (window.GM_getTab = e => {
     e(JSON.parse(GM_getValue("ogl_tab") || "{}"));
 }), void 0 === window?.GM_saveTab && (window.GM_saveTab = e => {
@@ -5433,7 +5433,7 @@ class MovementManager extends Manager {
                 }),
                 a = {};
             if (a.id = parseInt(e.getAttribute("id").replace("eventRow-", "")), a.mission = e.getAttribute("data-mission-type"), a.isBack = "true" === e.getAttribute("data-return-flight"), a.arrivalTime = 1e3 * parseInt(e.getAttribute("data-arrival-time")), a.isBack || n.push(a.id + 1), n.indexOf(a.id) > -1) return;
-            if (a.from = {}, a.from.anotherPlayer = !Boolean(Array.from(document.querySelectorAll("#planetList .planet-koords")).find((t => t.innerText === e.querySelector(".coordsOrigin").innerText.trim().slice(1, -1)))), a.from.isMoon = Boolean(e.querySelector(".originFleet figure.moon")), a.from.coords = e.querySelector(".coordsOrigin").innerText.trim().slice(1, -1), a.to = {}, a.to.anotherPlayer = !Boolean(Array.from(document.querySelectorAll("#planetList .planet-koords")).find((t => t.innerText === e.querySelector(".destCoords").innerText.trim().slice(1, -1)))), a.to.isMoon = Boolean(e.querySelector(".destFleet figure.moon")), a.to.coords = e.querySelector(".destCoords").innerText.trim().slice(1, -1), (1 == a.mission || 6 == a.mission || 9 == a.mission) && a.from.anotherPlayer) {
+            if (a.from = {}, a.from.anotherPlayer = !Boolean(Array.from(document.querySelectorAll("#planetList .planet-koords")).find((t => t.innerText === e.querySelector(".coordsOrigin").innerText.trim().slice(1, -1)))), a.from.isMoon = Boolean(e.querySelector(".originFleet figure.moon")), a.from.coords = e.querySelector(".coordsOrigin").innerText.trim().slice(1, -1), a.from.name = e.querySelector(".originFleet").innerText.trim(), a.to = {}, a.to.anotherPlayer = !Boolean(Array.from(document.querySelectorAll("#planetList .planet-koords")).find((t => t.innerText === e.querySelector(".destCoords").innerText.trim().slice(1, -1)))), a.to.isMoon = Boolean(e.querySelector(".destFleet figure.moon")), a.to.coords = e.querySelector(".destCoords").innerText.trim().slice(1, -1), a.to.name = e.querySelector(".destFleet").innerText.trim(), (1 == a.mission || 6 == a.mission || 9 == a.mission) && a.from.anotherPlayer) {
                 const t = Array.from(document.querySelectorAll("#planetList .planet-koords")).find((t => t.innerText === e.querySelector(".destCoords").innerText.trim().slice(1, -1)));
                 if (t) {
                     const e = t.closest(".smallplanet");

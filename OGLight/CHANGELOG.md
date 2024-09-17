@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.7.3] - 2024/09/17 10:16:00
+- Fix Fleet details in Fleet Icons
+
 ### [5.7.2] - 2024/09/16 12:05:00
 - Fix Spy Issue
 
