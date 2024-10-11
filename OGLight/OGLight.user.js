@@ -39,7 +39,7 @@ document.body ? updateOGLBody() : new MutationObserver((function () {
     childList: !0
 });
 let betaVersion = "-rc99",
-    oglVersion = "5.7.3";
+    oglVersion = "5.7.4";
 void 0 === window?.GM_getTab && (window.GM_getTab = e => {
     e(JSON.parse(GM_getValue("ogl_tab") || "{}"));
 }), void 0 === window?.GM_saveTab && (window.GM_saveTab = e => {
