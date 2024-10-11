@@ -1,5 +1,10 @@
 # OGLight - Changelog
 
+### [5.7.4] - 2024/10/11 14:30:00
+- Add Translations
+- Fix bug on getting ranks
+- Change the number format of ships in the fleet list
+
 ### [5.7.3] - 2024/09/17 10:16:00
 - Fix Fleet details in Fleet Icons
 

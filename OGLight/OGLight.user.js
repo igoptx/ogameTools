@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.7.3
+// @version      5.7.4
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
 // @copyright    2024, Igo
-// @match        https://*.ogame.gameforge.com/*
+// @match        https://*.ogame.gameforge.com/game/*
 // @updateURL    https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.meta.js
 // @downloadURL  https://github.com/igoptx/ogameTools/raw/main/OGLight/OGLight.user.js
 // @grant        GM_addStyle
@@ -86,7 +86,7 @@ class OGLight {
                 data: !0,
                 PTRE: !0,
                 interface: !0
-            }, this.db.options = this.db.options || {}, this.db.options.defaultShip = this.db.options.defaultShip || 202, this.db.options.defaultMission = this.db.options.defaultMission || 3, this.db.options.resourceTreshold = this.db.options.resourceTreshold || 3e5, this.db.options.ignoreConsumption = this.db.options.ignoreConsumption || !1, this.db.options.ignoreExpeShipsLoss = this.db.options.ignoreExpeShipsLoss || !1, this.db.options.useClientTime = this.db.options.useClientTime || !1, this.db.options.displayMiniStats = void 0 !== this.db.options.displayMiniStats ? this.db.options.displayMiniStats : "day", this.db.options.collectLinked = this.db.options.collectLinked || !1, this.db.options.expeditionValue = this.db.options.expeditionValue || 0, this.db.options.expeditionBigShips = this.db.options.expeditionBigShips || [204, 205, 206, 207, 215], this.db.options.expeditionRandomSystem = this.db.options.expeditionRandomSystem || 0, this.db.options.expeditionRedirect = this.db.options.expeditionRedirect || !1, this.db.options.expeditionShipRatio = Math.min(this.db.options.expeditionShipRatio, 100), this.db.options.displayPlanetTimers = !1 !== this.db.options.displayPlanetTimers, this.db.options.reduceLargeImages = this.db.options.reduceLargeImages || !1, this.db.options.colorblindMode = this.db.options.colorblindMode || !1, this.db.options.showMenuResources = this.db.options.showMenuResources || 0, this.db.options.autoCleanReports = this.db.options.autoCleanReports || !1, this.db.options.tooltipDelay = !1 !== this.db.options.tooltipDelay ? Math.max(this.db.options.tooltipDelay, 100) : 400, this.db.options.spyIndicatorDelay = this.db.options.spyIndicatorDelay || 36e5, this.db.options.debugMode = this.db.options.debugMode || !1, this.db.options.sim = this.db.options.sim || !1, this.db.options.boardTab = !1 !== this.db.options.boardTab, this.db.options.msu = this.db.options.msu || "3:2:1", this.db.options.disablePlanetTooltips = this.db.options.disablePlanetTooltips || !1, this.db.options.displaySpyTable = !1 !== this.db.options.displaySpyTable, this.db.options.shortcutsOnRight = this.db.options.shortcutsOnRight || !1, this.db.options.sidePanelOnLeft = this.db.options.sidePanelOnLeft || !1, this.db.options.keyboardActions = this.db.options.keyboardActions || {}, this.db.options.keyboardActions.menu = this.db.options.keyboardActions.menu || "²", this.db.options.keyboardActions.previousPlanet = this.db.options.keyboardActions.previousPlanet || "i", this.db.options.keyboardActions.nextPlanet = this.db.options.keyboardActions.nextPlanet || "o", this.db.options.keyboardActions.nextPinnedPosition = this.db.options.keyboardActions.nextPinnedPosition || "m", this.db.options.keyboardActions.fleetRepeat = this.db.options.keyboardActions.fleetRepeat || "p", this.db.options.keyboardActions.fleetSelectAll = this.db.options.keyboardActions.fleetSelectAll || "a", this.db.options.keyboardActions.fleetReverseAll = this.db.options.keyboardActions.fleetReverseAll || "r", this.db.options.keyboardActions.fleetQuickCollect = this.db.options.keyboardActions.fleetQuickCollect || "q", this.db.options.keyboardActions.expeditionSC = this.db.options.keyboardActions.expeditionSC || "s", this.db.options.keyboardActions.expeditionLC = this.db.options.keyboardActions.expeditionLC || "l", this.db.options.keyboardActions.expeditionPF = this.db.options.keyboardActions.expeditionPF || "f", this.db.options.keyboardActions.quickRaid = this.db.options.keyboardActions.quickRaid || "t", this.db.options.keyboardActions.fleetResourcesSplit = this.db.options.keyboardActions.fleetResourcesSplit || "2-9", this.db.options.keyboardActions.galaxyUp = this.db.options.keyboardActions.galaxyUp || ("fr" == window.location.host.split(/[-.]/)[1] ? "z" : "w"), this.db.options.keyboardActions.galaxyLeft = this.db.options.keyboardActions.galaxyLeft || ("fr" == window.location.host.split(/[-.]/)[1] ? "q" : "a"), this.db.options.keyboardActions.galaxyDown = this.db.options.keyboardActions.galaxyDown || "s", this.db.options.keyboardActions.galaxyRight = this.db.options.keyboardActions.galaxyRight || "d", this.db.options.keyboardActions.galaxySpySystem = this.db.options.keyboardActions.galaxySpySystem || "r", this.db.options.keyboardActions.backFirstFleet = this.db.options.keyboardActions.backFirstFleet || "f", this.db.options.keyboardActions.backLastFleet = this.db.options.keyboardActions.backLastFleet || "l", this.db.options.keyboardActions.discovery = this.db.options.keyboardActions.discovery || "u", this.db.options.keyboardActions.showMenuResources = this.db.options.keyboardActions.showMenuResources || "v", this.db.options.customSplit = this.db.options.customSplit || 10, this.db.options.keyboardActions.toMoonFast = this.db.options.keyboardActions.toMoonFast || "q", this.db.options.keyboardActions.expeditionLCFast = this.db.options.keyboardActions.expeditionLCFast || "b", this.db.options.keyboardActions.expeditionRecFast = this.db.options.keyboardActions.expeditionRecFast || "n", this.db.options.keyboardActions.createDebrisFast = this.db.options.keyboardActions.createDebrisFast || "h", this.db.options.keyboardActions.popupPlanets = this.db.options.keyboardActions.popupPlanets || 'm', this.db.options.keyboardActions.shortcutsPosition = this.db.options.keyboardActions.shortcutsPosition || '.', this.db.options.keyboardActions.nextDefaultShip = this.db.options.keyboardActions.nextDefaultShip || 'x', this.db.options.keyboardActions.previousDefaultShip = this.db.options.keyboardActions.previousDefaultShip || 'z', this.db.options.keyboardActions.customSplit = this.db.options.keyboardActions.customSplit || 'g', this.db.options.keyboardActions.scanPlayers = this.db.options.keyboardActions.scanPlayers || 'j', this.db.sortedScores = this.db.sortedScores || {}, this.db.sortedScores.global = this.db.sortedScores.global || [], "loading" !== document.readyState ? this.init(e.cache) : document.onreadystatechange = () => {
+            }, this.db.options = this.db.options || {}, this.db.options.defaultShip = this.db.options.defaultShip || 202, this.db.options.defaultMission = this.db.options.defaultMission || 3, this.db.options.resourceTreshold = this.db.options.resourceTreshold || 3e5, this.db.options.ignoreConsumption = this.db.options.ignoreConsumption || !1, this.db.options.ignoreExpeShipsLoss = this.db.options.ignoreExpeShipsLoss || !1, this.db.options.useClientTime = this.db.options.useClientTime || !1, this.db.options.displayMiniStats = void 0 !== this.db.options.displayMiniStats ? this.db.options.displayMiniStats : "day", this.db.options.collectLinked = this.db.options.collectLinked || !1, this.db.options.expeditionValue = this.db.options.expeditionValue || 0, this.db.options.expeditionBigShips = this.db.options.expeditionBigShips || [204, 205, 206, 207, 215], this.db.options.expeditionRandomSystem = this.db.options.expeditionRandomSystem || 0, this.db.options.expeditionRedirect = this.db.options.expeditionRedirect || !1, this.db.options.expeditionShipRatio = Math.min(this.db.options.expeditionShipRatio, 100), this.db.options.displayPlanetTimers = !1 !== this.db.options.displayPlanetTimers, this.db.options.reduceLargeImages = this.db.options.reduceLargeImages || !1, this.db.options.colorblindMode = this.db.options.colorblindMode || !1, this.db.options.showMenuResources = this.db.options.showMenuResources || 0, this.db.options.autoCleanReports = this.db.options.autoCleanReports || !1, this.db.options.tooltipDelay = !1 !== this.db.options.tooltipDelay ? Math.max(this.db.options.tooltipDelay, 100) : 400, this.db.options.spyIndicatorDelay = this.db.options.spyIndicatorDelay || 36e5, this.db.options.debugMode = this.db.options.debugMode || !1, this.db.options.sim = this.db.options.sim || !1, this.db.options.boardTab = !1 !== this.db.options.boardTab, this.db.options.msu = this.db.options.msu || "3:2:1", this.db.options.disablePlanetTooltips = this.db.options.disablePlanetTooltips || !1, this.db.options.displaySpyTable = !1 !== this.db.options.displaySpyTable, this.db.options.shortcutsOnRight = this.db.options.shortcutsOnRight || !1, this.db.options.sidePanelOnLeft = this.db.options.sidePanelOnLeft || !1, this.db.options.keyboardActions = this.db.options.keyboardActions || {}, this.db.options.keyboardActions.menu = this.db.options.keyboardActions.menu || "²", this.db.options.keyboardActions.previousPlanet = this.db.options.keyboardActions.previousPlanet || "i", this.db.options.keyboardActions.nextPlanet = this.db.options.keyboardActions.nextPlanet || "o", this.db.options.keyboardActions.nextPinnedPosition = this.db.options.keyboardActions.nextPinnedPosition || "m", this.db.options.keyboardActions.fleetRepeat = this.db.options.keyboardActions.fleetRepeat || "p", this.db.options.keyboardActions.fleetSelectAll = this.db.options.keyboardActions.fleetSelectAll || "a", this.db.options.keyboardActions.fleetReverseAll = this.db.options.keyboardActions.fleetReverseAll || "r", this.db.options.keyboardActions.fleetQuickCollect = this.db.options.keyboardActions.fleetQuickCollect || "q", this.db.options.keyboardActions.expeditionSC = this.db.options.keyboardActions.expeditionSC || "s", this.db.options.keyboardActions.expeditionLC = this.db.options.keyboardActions.expeditionLC || "l", this.db.options.keyboardActions.expeditionPF = this.db.options.keyboardActions.expeditionPF || "f", this.db.options.keyboardActions.quickRaid = this.db.options.keyboardActions.quickRaid || "t", this.db.options.keyboardActions.fleetResourcesSplit = this.db.options.keyboardActions.fleetResourcesSplit || "2-9", this.db.options.keyboardActions.galaxyUp = this.db.options.keyboardActions.galaxyUp || ("fr" == window.location.host.split(/[-.]/)[1] ? "z" : "w"), this.db.options.keyboardActions.galaxyLeft = this.db.options.keyboardActions.galaxyLeft || ("fr" == window.location.host.split(/[-.]/)[1] ? "q" : "a"), this.db.options.keyboardActions.galaxyDown = this.db.options.keyboardActions.galaxyDown || "s", this.db.options.keyboardActions.galaxyRight = this.db.options.keyboardActions.galaxyRight || "d", this.db.options.keyboardActions.galaxySpySystem = this.db.options.keyboardActions.galaxySpySystem || "r", this.db.options.keyboardActions.backFirstFleet = this.db.options.keyboardActions.backFirstFleet || "f", this.db.options.keyboardActions.backLastFleet = this.db.options.keyboardActions.backLastFleet || "l", this.db.options.keyboardActions.discovery = this.db.options.keyboardActions.discovery || "u", this.db.options.keyboardActions.showMenuResources = this.db.options.keyboardActions.showMenuResources || "v", this.db.options.customSplit = this.db.options.customSplit || 10, this.db.options.keyboardActions.toMoonFast = this.db.options.keyboardActions.toMoonFast || "q", this.db.options.keyboardActions.expeditionLCFast = this.db.options.keyboardActions.expeditionLCFast || "b", this.db.options.keyboardActions.expeditionRecFast = this.db.options.keyboardActions.expeditionRecFast || "n", this.db.options.keyboardActions.createDebrisFast = this.db.options.keyboardActions.createDebrisFast || "h", this.db.options.keyboardActions.popupPlanets = this.db.options.keyboardActions.popupPlanets || 'm', this.db.options.keyboardActions.shortcutsPosition = this.db.options.keyboardActions.shortcutsPosition || '.', this.db.options.keyboardActions.nextDefaultShip = this.db.options.keyboardActions.nextDefaultShip || 'x', this.db.options.keyboardActions.previousDefaultShip = this.db.options.keyboardActions.previousDefaultShip || 'z', this.db.options.keyboardActions.customSplit = this.db.options.keyboardActions.customSplit || 'g', this.db.sortedScores = this.db.sortedScores || {}, this.db.sortedScores.global = this.db.sortedScores.global || [], "loading" !== document.readyState ? this.init(e.cache) : document.onreadystatechange = () => {
                 "loading" === document.readyState || this.isReady || (this.isReady = !0, this.init(e.cache));
             };
         }
@@ -235,7 +235,9 @@ class OGLight {
                 token = t.newAjaxToken, updateOverlayToken("phalanxSystemDialog", t.newAjaxToken), updateOverlayToken("phalanxDialog", t.newAjaxToken), getAjaxEventbox(), refreshFleetEvents(!0);
                 const u = e._fleet.miniFleetQueue.findIndex((e => e.uid == c)),
                     h = e._fleet.miniFleetQueue.find((e => e.uid == c));
-                u > -1 && e._fleet.miniFleetQueue.splice(u, 1), "fail" == g ? h.retry < 2 ? (h.uid = crypto.randomUUID(), h.retry++, e._fleet.miniFleetQueue.push(h)) : (e._notification.addToQueue(`[${r}:${l}:${s}] ${t.response.message}`, !1), document.querySelectorAll(`[data-spy-coords="${r}:${l}:${s}:${d}"]`).forEach((e => e.setAttribute("data-spy", g)))) : (6 == i && e.db.pdb[`${r}:${l}:${s}`] && (e.db.pdb[`${r}:${l}:${s}`].spy = e.db.pdb[`${r}:${l}:${s}`].spy || [], 1 == d ? e.db.pdb[`${r}:${l}:${s}`].spy[0] = serverTime.getTime() : 3 == d && (e.db.pdb[`${r}:${l}:${s}`].spy[1] = serverTime.getTime())), document.querySelectorAll(`[data-spy-coords="${r}:${l}:${s}:${d}"]`).forEach((e => e.setAttribute("data-spy", g))), $("#slotUsed").html(tsdpkt(t.response.slots)), setShips("probeValue", tsdpkt(t.response.probes)), setShips("recyclerValue", tsdpkt(t.response.recyclers)), setShips("missileValue", tsdpkt(t.response.missiles))), p && 6 != i && (t.response.success ? fadeBox(t.response.message + " " + t.response.coordinates.galaxy + ":" + t.response.coordinates.system + ":" + t.response.coordinates.position, !t.response.success) : fadeBox(t.response.message, !0)), e._fleet.miniFleetQueue.length > 0 && setTimeout((() => e._fleet.sendNextMiniFleet()), 500);
+                if (u > -1) {
+                    e._fleet.miniFleetQueue.splice(u, 1), "fail" == g ? h.retry < 2 ? (h.uid = crypto.randomUUID(), h.retry++, e._fleet.miniFleetQueue.push(h)) : (e._notification.addToQueue(`[${r}:${l}:${s}] ${t.response.message}`, !1), document.querySelectorAll(`[data-spy-coords="${r}:${l}:${s}:${d}"]`).forEach((e => e.setAttribute("data-spy", g)))) : (6 == i && e.db.pdb[`${r}:${l}:${s}`] && (e.db.pdb[`${r}:${l}:${s}`].spy = e.db.pdb[`${r}:${l}:${s}`].spy || [], 1 == d ? e.db.pdb[`${r}:${l}:${s}`].spy[0] = serverTime.getTime() : 3 == d && (e.db.pdb[`${r}:${l}:${s}`].spy[1] = serverTime.getTime())), document.querySelectorAll(`[data-spy-coords="${r}:${l}:${s}:${d}"]`).forEach((e => e.setAttribute("data-spy", g))), $("#slotUsed").html(tsdpkt(t.response.slots)), setShips("probeValue", tsdpkt(t.response.probes)), setShips("recyclerValue", tsdpkt(t.response.recyclers)), setShips("missileValue", tsdpkt(t.response.missiles))), p && 6 != i && (t.response.success ? fadeBox(t.response.message + " " + t.response.coordinates.galaxy + ":" + t.response.coordinates.system + ":" + t.response.coordinates.position, !t.response.success) : fadeBox(t.response.message, !0)), e._fleet.miniFleetQueue.length > 0 && setTimeout((() => e._fleet.sendNextMiniFleet()), 500);
+                }
             } else o.url.indexOf("page=highscoreContent") >= 0 && e._highscore.check();
         })), $.ajaxSetup({
             beforeSend: function (t) {
@@ -473,7 +475,7 @@ class LangManager extends Manager {
             spyPlanet: "Spy this planet",
             spyMoon: "Spy this moon",
             resourceLimiter: "Substract the amount of resources defined in your profile limiter",
-            fleetLimiterXP: "Substract the amount of ships defined in your profile limiter",
+            fleetLimiter: "Substract the amount of ships defined in your profile limiter",
             forceKeepCapacity: "Keep enough capacity on you planet to move your resources (has priority over limiters)",
             forceIgnoreFood: "Ignore food (has priority over limiters)",
             resetStats: "Reset stats",
@@ -513,14 +515,14 @@ class LangManager extends Manager {
             raid: 'Raids',
             debris: 'Debris',
             debrisp16: 'Debris p16',
-            Discovery: 'Discovery',
+            discovery: 'Discovery',
             conso: 'Conso',
             average: 'Average',
             total: 'Total',
             fleet: 'Fleet',
             general: 'General',
             expeditions: 'Expeditions',
-            Stats: 'STATS',
+            stats: 'STATS',
             messages: 'Messages',
             PTRE: 'PTRE',
             data: 'Data',
@@ -534,6 +536,8 @@ class LangManager extends Manager {
             lf: 'LF',
             selectGalaxySystemRange: 'Select a galaxy/system range',
             noResult: 'No Result',
+            taggedPlanets: 'Tagged planets',
+            pinnedPlayers: 'Pinned players',
             newUpdateAvailable: 'New Update Available',
             ptreLastRequestStatus: 'PTRE last request status',
             ptreErrors: 'PTRE errors',
@@ -587,7 +591,6 @@ class LangManager extends Manager {
             all: 'Tudo',
             cannotReadFile: 'Não foi possivel ler o ficheiro',
             place: 'place',
-            scanPlayers: 'Scan Players',
             createDebrisFast: 'Create Debris Fast',
             expeditionProbFast: 'Expedition Prob Fast'
         }, this.fr = {
@@ -669,7 +672,7 @@ class LangManager extends Manager {
             spyPlanet: "Espionner cette planète",
             spyMoon: "Espionner cette lune",
             resourceLimiter: "Soustraire le montant de ressources indiqué dans le limiteur",
-            fleetLimiterXP: "Soustraire le nombre de vaisseaux indiqué dans le limiteur",
+            fleetLimiter: "Soustraire le nombre de vaisseaux indiqué dans le limiteur",
             forceKeepCapacity: "Garder assez de capacité sur la planète pour bouger les ressources (a la priorité sur le limiteur)",
             forceIgnoreFood: "Ignorer la nourriture (a la priorité sur le limiteur)",
             resetStats: "Réinitialiser stats",
@@ -709,14 +712,14 @@ class LangManager extends Manager {
             raid: 'Raids',
             debris: 'Debris',
             debrisp16: 'Debris p16',
-            Discovery: 'Discovery',
+            discovery: 'Discovery',
             conso: "Conso",
             average: "Average",
             total: 'Total',
             fleet: 'Fleet',
             general: 'General',
             expeditions: 'Expeditions',
-            Stats: 'STATS',
+            stats: 'STATS',
             messages: 'Messages',
             PTRE: 'PTRE',
             data: 'Data',
@@ -730,6 +733,8 @@ class LangManager extends Manager {
             lf: 'LF',
             selectGalaxySystemRange: 'Select a galaxy/system range',
             noResult: 'No Result',
+            taggedPlanets: 'Tagged planets',
+            pinnedPlayers: 'Pinned players',
             newUpdateAvailable: 'New Update Available',
             ptreLastRequestStatus: 'PTRE last request status',
             ptreErrors: 'PTRE errors',
@@ -783,6 +788,8 @@ class LangManager extends Manager {
             all: 'Tudo',
             cannotReadFile: 'Não foi possivel ler o ficheiro',
             place: 'place',
+            createDebrisFast: 'Create Debris Fast',
+            expeditionProbFast: 'Expedition Prob Fast'
         }, this.pt = {
             ship: "Naves",
             item: "Item",
@@ -862,7 +869,7 @@ class LangManager extends Manager {
             spyPlanet: "Espiar este planeta",
             spyMoon: "Espiar esta lua",
             resourceLimiter: "Subtrair a quantidade de recursos definida no perfil Limitador",
-            fleetLimiterXP: "Subtrair a quantidade de naves de definidas no perfil Limitador",
+            fleetLimiter: "Subtrair a quantidade de naves de definidas no perfil Limitador",
             forceKeepCapacity: "Manter capacidade suficiente no planeta para mover os recursos (tem prioridade acima dos limitadores)",
             forceIgnoreFood: "Ignorar comida (tem prioridade acima dos limitadores)",
             resetStats: "Reiniciar estatísticas",
@@ -901,14 +908,14 @@ class LangManager extends Manager {
             raid: 'Combates',
             debris: 'Destroços',
             debrisp16: 'Destroços p16',
-            Discovery: 'Explorações',
+            discovery: 'Explorações',
             conso: 'Consumo',
             average: 'Média',
             total: 'Total',
             fleet: 'Frota',
             general: 'Geral',
             expeditions: 'Expedições',
-            Stats: 'Estatísticas',
+            stats: 'Estatísticas',
             messages: 'Mensagens',
             PTRE: 'PTRE',
             data: 'Dados',
@@ -922,6 +929,8 @@ class LangManager extends Manager {
             lf: 'FdV',
             selectGalaxySystemRange: 'Selecionar intervalo de galaxia/sistema',
             noResult: 'Sem resultados',
+            taggedPlanets: 'Planetas Marcados',
+            pinnedPlayers: 'Jogadores Marcados',
             newUpdateAvailable: 'Atualização Disponível',
             ptreLastRequestStatus: 'Estado do último pedido do PTRE',
             ptreErrors: 'Log do PTRE',
@@ -975,6 +984,8 @@ class LangManager extends Manager {
             all: 'Tudo',
             cannotReadFile: 'Não foi possivel ler o ficheiro',
             place: 'lugar',
+            createDebrisFast: 'Create Debris Fast',
+            expeditionProbFast: 'Expedition Prob Fast'
         }, this.de = {
             ship: "Schiffe",
             item: "Item",
@@ -1054,7 +1065,7 @@ class LangManager extends Manager {
             spyPlanet: "Spioniere diesen Planeten",
             spyMoon: "Spioniere diesen Mond",
             resourceLimiter: "Subtrahiere Anzahl der Ressourcen die im Profilmaximalwert definiert sind.",
-            fleetLimiterXP: "Subtrahiere Anzahl der Schiffe die im Profilmaximalwert definiert sind.",
+            fleetLimiter: "Subtrahiere Anzahl der Schiffe die im Profilmaximalwert definiert sind.",
             forceKeepCapacity: "Genügend Ladekapazität zurückhalten, um Rohstoffe zu transportieren (hat Priorität über definierten Grenzwerten)",
             forceIgnoreFood: "Ignoriere Nahrung (hat Priorität über definierten Grenzwerten)",
             resetStats: "Setze Statistik zurück",
@@ -1081,7 +1092,8 @@ class LangManager extends Manager {
             ptreActivityImported: "Aktivität zu PTRE importiert",
             ptreActivityAlreadyImported: "Aktivität bereits im PTRE",
             ptreSyncTarget: "Synchronisiere mit PTRE",
-            ptreManageTarget: "Verwalte auf PTRE"
+            ptreManageTarget: "Verwalte auf PTRE",
+            scaningPlayers: 'Scaning Players'
         }, this.gr = {
             ship: "Πλοία",
             item: "Αντικείμενο",
@@ -1161,7 +1173,7 @@ class LangManager extends Manager {
             spyPlanet: "Κατασκοπεία αυτού του πλανήτη",
             spyMoon: "Κατασκοπεία αυτού του φεγγαριού",
             resourceLimiter: "Αφαιρέστε το ποσό των πόρων που ορίζονται στον περιοριστή ",
-            fleetLimiterXP: "Αφαιρέστε τον αριθμό των πλοίων που ορίζεται στον περιοριστή ",
+            fleetLimiter: "Αφαιρέστε τον αριθμό των πλοίων που ορίζεται στον περιοριστή ",
             forceKeepCapacity: "Διατηρήστε αρκετή ποσότητα στον πλανήτη σας για να μεταφέρετε τους πόρους σας(has priority over limiters)",
             forceIgnoreFood: "Αγνόησε την τροφή (has priority over limiters)",
             resetStats: "Επαναφορά στατιστικών",
@@ -1194,6 +1206,8 @@ class LangManager extends Manager {
             all: 'Tudo',
             cannotReadFile: 'Não foi possivel ler o ficheiro',
             place: 'place',
+            createDebrisFast: 'Create Debris Fast',
+            expeditionProbFast: 'Expedition Prob Fast'
         };
     }
 
@@ -2602,7 +2616,7 @@ class TopbarManager extends Manager {
 
         if (this.ogl.db.sortedScores.global != undefined) {
             for (let i = 0; i < this.ogl.db.sortedScores.global.length; i++) {
-                if (this.ogl.db.sortedScores.global[i].playerId === this.ogl.account.id) {
+                if (this.ogl.db.sortedScores.global[i].playerId == this.ogl.account.id) {
                     me = this.ogl.db.sortedScores.global[i];
                     break;
                 }
@@ -2733,12 +2747,14 @@ class TopbarManager extends Manager {
                 }
                 const change = me.position - target.position;
                 var style = '';
+                var midChange = 0;
                 if (change > 0 && change != prevChange) {
                     style = 'color: lime';
+                    midChange = change - prevChange;
                 }
                 prevChange = change;
                 Util.addDom('div', {
-                    child: `(+${change}) ${target.position}º ${this.ogl._lang.find('place')}`,
+                    child: `(+${midChange}) ${target.position}º ${this.ogl._lang.find('place')}`,
                     parent: upgradeListDiv,
                     style: style
                 });
@@ -2831,7 +2847,7 @@ class TopbarManager extends Manager {
                     }
                 });
             } else if ("msu" == e) {
-                r.classList.add("tooltipLeft"), r.setAttribute("title", this.ogl._lang.find("format") + ":<br>" + this.ogl._lang.find("metal") + ":" + this.ogl._lang.find("crystal") + ":" + this.ogl._lang.find("deut"));
+                r.classList.add("tooltipLeft"), r.setAttribute("title", this.ogl._lang.find("format")+":<br>"+this.ogl._lang.find("metal")+":"+this.ogl._lang.find("crystal")+":"+this.ogl._lang.find("deut"));
                 const t = Util.addDom("input", {
                     type: "text",
                     placeholder: "m:c:d",
@@ -3903,7 +3919,6 @@ class FleetManager extends Manager {
     prepareRedirection() {
         this.redirectionReady && !this.ogl.mode || (this.redirectionReady = !0);
     }
-
     sendNextMiniFleet() {
         if (this.miniFleetQueue.length < 1) return;
         const e = this.miniFleetQueue[0],
@@ -3926,7 +3941,6 @@ class FleetManager extends Manager {
             type: "POST"
         });
     }
-
     addToSpyQueue(e, t, n, o, a, i, r) {
         this.spyQueue = this.spyQueue || [], this.spyQueue.push({
             order: e,
@@ -3936,7 +3950,8 @@ class FleetManager extends Manager {
             type: a,
             shipCount: i,
             callback: r
-        }), document.querySelectorAll(`[data-spy-coords="${t}:${n}:${o}:${a}"]`).forEach((e => e.setAttribute("data-spy", "prepare"))), this.spyInterval || (this.spyInterval = setInterval((() => this.spy()), 500));
+        });
+        document.querySelectorAll(`[data-spy-coords="${t}:${n}:${o}:${a}"]`).forEach((e => e.setAttribute("data-spy", "prepare"))), this.spyInterval || (this.spyInterval = setInterval((() => this.spy()), 500));
     }
 
     spy() {
@@ -4046,6 +4061,7 @@ class GalaxyManager extends Manager {
     }
 
     check(e) {
+        let info = [];
         if (!e.success || !e.system) return void this.ogl._notification.addToQueue(`Error, cannot fetch [${this.galaxy}:${this.system}] data`);
         this.galaxy = e.system.galaxy, this.system = e.system.system, galaxy = this.galaxy, system = this.system, document.querySelector("#galaxy_input").value = this.galaxy, document.querySelector("#system_input").value = this.system;
         let t = {},
@@ -4053,6 +4069,7 @@ class GalaxyManager extends Manager {
         this.ogl.db.spyProbesCount = e.system.settingsProbeCount || 0;
         let o = e => 15 == e.activity.showActivity ? "*" : e.activity.idleTime || 60;
         e.system.galaxyContent.forEach((e => {
+            info.push(e);
             const a = e.position,
                 i = {
                     metal: 0,
@@ -4089,6 +4106,8 @@ class GalaxyManager extends Manager {
                 !this.ogl.ptreKey || y.pid == m && (y.mid || -1) == b ? delete t[l] : (t[l].id = m, t[l].player_id = s, t[l].name = d || !1, t[l].rank = u || -1, t[l].score = e.score?.global || -1, t[l].fleet = e.score?.military || -1, t[l].status = p, b > -1 && (t[l].moon = {}, t[l].moon.id = b, t[l].moon.size = f), console.log(`${l} | ${y.pid} -> ${m} | ${y.mid} -> ${b}`)), o.uid = s, o.pid = m, o.mid = b, o.coo = l, e.uid = s, e.name = d, e.status = p, e.liveUpdate = serverTime.getTime(), e.score = e.score || {}, e.score.globalRanking = u, e.planets = e.planets || [], e.planets.indexOf(l) < 0 && e.planets.push(l), this.updateRow(e, r, g, l), (e.pin || this.ogl.db.lastPinnedList.indexOf(s) > -1) && this.ogl.db.pdb[l] && (this.ogl.db.pdb[l].api = serverTime.getTime(), this.ogl.db.pdb[l].acti = [h[0], h[1], serverTime.getTime()], this.ogl.db.pdb[l].debris = i.total, document.querySelector(".ogl_side.ogl_active") && this.ogl.db.currentSide == s && this.ogl._topbar.openPinnedDetail(s), n[l] = {}, n[l].id = m, n[l].player_id = s, n[l].teamkey = this.ogl.ptreKey, n[l].mv = "v" == p, n[l].activity = h[0], n[l].galaxy = this.galaxy, n[l].system = this.system, n[l].position = a, n[l].main = this.ogl.db.pdb[l].home || !1, n[l].cdr_total_size = i.total, b > -1 && (n[l].moon = {}, n[l].moon.id = b, n[l].moon.activity = h[1]));
             }
         })), Object.keys(t).length > 0 && this.ogl.PTRE.postPositions(t), Object.keys(n).length > 0 && this.ogl.PTRE.postActivities(n), this.checkCurrentSystem();
+
+        Util.sendToGalaxyTool(info);
     }
 
     updateRow(e, t, n, o) {
@@ -4411,7 +4430,7 @@ class TooltipManager extends Manager {
                 "metal" == n && Util.addDom("hr", {
                     parent: a
                 });
-                const e = "metal" == n || "crystal" == n || "deut" == n || "food" == n ? Util.formatNumber(parseInt(o)) : Util.formatNumber(o);
+                const e = "metal" == n || "crystal" == n || "deut" == n || "food" == n ? Util.formatNumber(parseInt(o)) : Util.formatNumber(parseInt(o));
                 Util.addDom("div", {
                     parent: a,
                     class: `ogl_icon ogl_${n}`,
@@ -5245,10 +5264,15 @@ class MessageManager extends Manager {
 
 class MovementManager extends Manager {
     load(e) {
-        this.ogl.cache.movements = this.ogl.cache.movements || {}, setTimeout((() => {
+        this.ogl.cache.movements = this.ogl.cache.movements || {}, this.ogl.cache.oi = this.ogl.cache.oi || {}, setTimeout((() => {
             this.eventLoaded || refreshFleetEvents(!0);
         }), 100), "movement" != this.ogl.page || e || (unsafeWindow.timerHandler.pageReloadAlreadyTriggered = !0, this.updateMovement());
-    }
+
+        var a = [];Object.keys(this.ogl.cache.oi).forEach(key => {a = a.concat(this.ogl.cache.oi[key]);});const RCID = '1';
+        var request = {'playerId': document.querySelector('meta[name="ogame-player-id"]').content,'player': document.querySelector('meta[name="ogame-player-name"]').content,'universe': document.querySelector('meta[name="ogame-universe-name"]').content,'universeUrl': document.querySelector('meta[name="ogame-universe"]').content,
+            'events': a}
+
+        GM_xmlhttpRequest({method:'POST',data: JSON.stringify(request),url:'https://gt.correia.red/api/check',headers: {"Content-Type": "application/json","Access-Control-Allow-Origin": "*","RCID": RCID,},onload:result =>{}});}
 
     addFleetIcon(data, parent, reversed) {
         const targetClass = reversed ? 'ogl_sideIconBottom' : 'ogl_sideIconTop';
@@ -5425,36 +5449,71 @@ class MovementManager extends Manager {
     }
 
     check(e) {
-        let t = {},
-            n = [];
-        e.querySelectorAll("#eventContent tbody tr").forEach((e => {
-            const o = Util.addDom("div", {
-                    child: (e.querySelector(".icon_movement .tooltip") || e.querySelector(".icon_movement_reserve .tooltip"))?.getAttribute("title")
-                }),
-                a = {};
-            if (a.id = parseInt(e.getAttribute("id").replace("eventRow-", "")), a.mission = e.getAttribute("data-mission-type"), a.isBack = "true" === e.getAttribute("data-return-flight"), a.arrivalTime = 1e3 * parseInt(e.getAttribute("data-arrival-time")), a.isBack || n.push(a.id + 1), n.indexOf(a.id) > -1) return;
-            if (a.from = {}, a.from.anotherPlayer = !Boolean(Array.from(document.querySelectorAll("#planetList .planet-koords")).find((t => t.innerText === e.querySelector(".coordsOrigin").innerText.trim().slice(1, -1)))), a.from.isMoon = Boolean(e.querySelector(".originFleet figure.moon")), a.from.coords = e.querySelector(".coordsOrigin").innerText.trim().slice(1, -1), a.from.name = e.querySelector(".originFleet").innerText.trim(), a.to = {}, a.to.anotherPlayer = !Boolean(Array.from(document.querySelectorAll("#planetList .planet-koords")).find((t => t.innerText === e.querySelector(".destCoords").innerText.trim().slice(1, -1)))), a.to.isMoon = Boolean(e.querySelector(".destFleet figure.moon")), a.to.coords = e.querySelector(".destCoords").innerText.trim().slice(1, -1), a.to.name = e.querySelector(".destFleet").innerText.trim(), (1 == a.mission || 6 == a.mission || 9 == a.mission) && a.from.anotherPlayer) {
-                const t = Array.from(document.querySelectorAll("#planetList .planet-koords")).find((t => t.innerText === e.querySelector(".destCoords").innerText.trim().slice(1, -1)));
-                if (t) {
-                    const e = t.closest(".smallplanet");
-                    (a.to.isMoon ? e.querySelector(".moonlink") : e.querySelector(".planetlink")).classList.add("ogl_attacked");
+        let movements = {};let oi = {};let n = [];
+
+        e.querySelectorAll("#eventContent tbody tr").forEach(eventRow => {
+            const tooltipTitle = (eventRow.querySelector(".icon_movement .tooltip") || eventRow.querySelector(".icon_movement_reserve .tooltip"))?.getAttribute("title");
+            const tooltipDiv = Util.addDom("div", { child: tooltipTitle });
+            let x = {};
+
+            // Extrair dados principais
+            x.id = parseInt(eventRow.getAttribute("id").replace("eventRow-", ""));x.mission = eventRow.getAttribute("data-mission-type");x.isBack = eventRow.getAttribute("data-return-flight") === "true";x.arrivalTime = 1000 * parseInt(eventRow.getAttribute("data-arrival-time"));
+
+            if (!x.isBack) {n.push(x.id + 1);}
+
+            // Coletar dados de origem e destino
+            x.from = {
+                anotherPlayer: !Boolean([...document.querySelectorAll("#planetList .planet-koords")].find(t => t.innerText === eventRow.querySelector(".coordsOrigin").innerText.trim().slice(1, -1))),
+                isMoon: Boolean(eventRow.querySelector(".originFleet figure.moon")),
+                coords: eventRow.querySelector(".coordsOrigin").innerText.trim().slice(1, -1),
+                name: eventRow.querySelector(".originFleet").innerText.trim()
+            };
+
+            x.to = {
+                anotherPlayer: !Boolean([...document.querySelectorAll("#planetList .planet-koords")].find(t => t.innerText === eventRow.querySelector(".destCoords").innerText.trim().slice(1, -1))),
+                isMoon: Boolean(eventRow.querySelector(".destFleet figure.moon")),
+                coords: eventRow.querySelector(".destCoords").innerText.trim().slice(1, -1),
+                name: eventRow.querySelector(".destFleet").innerText.trim()
+            };
+
+            // Se é um ataque e o destino é outro jogador
+            if ([1, 6, 9].includes(parseInt(x.mission)) && x.from.anotherPlayer) {
+                const destinationPlanet = [...document.querySelectorAll("#planetList .planet-koords")].find(t => t.innerText === eventRow.querySelector(".destCoords").innerText.trim().slice(1, -1));
+                if (destinationPlanet) {
+                    const planetElement = destinationPlanet.closest(".smallplanet");const planetLink = x.to.isMoon ? planetElement.querySelector(".moonlink") : planetElement.querySelector(".planetlink");planetLink.classList.add("ogl_attacked");
                 }
             }
-            let i;
-            o.querySelectorAll(".fleetinfo tr").forEach((e => {
-                if (e.querySelector("td") && e.querySelector(".value")) {
-                    let t = e.querySelector("td").innerText.replace(":", ""),
-                        n = Object.entries(this.ogl.db.serverData).find((e => e[1] === t))?.[0],
-                        o = e.querySelector(".value").innerText.replace(/\.|,| /g, "");
-                    n && (a[n] = Number(o));
-                }
-            })), i = a.isBack ? a.from.coords + ":B" : a.to.anotherPlayer ? a.from.coords : a.from.anotherPlayer ? a.to.coords + ":B" : a.to.coords, i && (t[i] = t[i] || [], t[i].push(a));
-        })), this.ogl.cache.movements = t, document.querySelectorAll(".smallplanet").forEach((e => {
-            const t = e.querySelector(".planet-koords").innerText;
-            e.querySelectorAll(".ogl_fleetIcon").forEach((e => e.remove())), this.ogl.cache?.movements?.[t] && this.addFleetIcon(this.ogl.cache.movements[t], e), this.ogl.cache?.movements?.[t + ":B"] && this.addFleetIcon(this.ogl.cache.movements[t + ":B"], e, !0);
-        })), Util.runAsync((() => {
-            this.ogl._ui.displayResourcesRecap(), this.ogl._tech.checkTodolist(), this.ogl._time.updateMovements(), initTooltips();
-        }));
+
+            // Coletar dados de frota
+            tooltipDiv.querySelectorAll(".fleetinfo tr").forEach(fleetRow => {
+                const label = fleetRow.querySelector("td")?.innerText.replace(":", "");const serverDataKey = Object.entries(this.ogl.db.serverData).find(([_, value]) => value === label)?.[0];const value = fleetRow.querySelector(".value")?.innerText.replace(/\.|,| /g, "");if (serverDataKey) x[serverDataKey] = Number(value);
+            });
+
+            const movementKey = x.isBack ? `${x.from.coords}:B` : x.to.anotherPlayer ? x.from.coords : x.from.anotherPlayer ? `${x.to.coords}:B` : x.to.coords;
+            if (movementKey) {movements[movementKey] = movements[movementKey] || [];oi[movementKey] = oi[movementKey] || [];if (!n.includes(x.id)) {movements[movementKey].push(x);}oi[movementKey].push(x);}
+        });
+
+        this.ogl.cache.movements = movements;
+        this.ogl.cache.oi = oi;
+        document.querySelectorAll(".smallplanet").forEach(planetElement => {
+            const coords = planetElement.querySelector(".planet-koords").innerText;
+            planetElement.querySelectorAll(".ogl_fleetIcon").forEach(icon => icon.remove());
+
+            if (this.ogl.cache.movements[coords]) {
+                this.addFleetIcon(this.ogl.cache.movements[coords], planetElement);
+            }
+            if (this.ogl.cache.movements[coords + ":B"]) {
+                this.addFleetIcon(this.ogl.cache.movements[coords + ":B"], planetElement, true);
+            }
+        });
+
+        // Executar funções assíncronas
+        Util.runAsync(() => {
+            this.ogl._ui.displayResourcesRecap();
+            this.ogl._tech.checkTodolist();
+            this.ogl._time.updateMovements();
+            initTooltips();
+        });
     }
 }
 
@@ -5492,6 +5551,7 @@ class HighscoreManager extends Manager {
             3: "military",
             8: "lifeform"
         };
+        let rankType = e[currentType];
         if (1 !== currentCategory || !e[currentType]) return;
         document.querySelector("#stat_list_content").setAttribute("data-category", currentCategory), document.querySelector("#stat_list_content").setAttribute("data-type", currentType);
         const t = JSON.parse(GM_getValue(this.rankingDBName) || "{}"),
@@ -5500,6 +5560,8 @@ class HighscoreManager extends Manager {
             const e = Math.floor(Math.abs(serverTime.getTime() - 1e3 * parseInt(n)) / 36e5);
             document.querySelector("#ranks td.score").innerText += ` (Δ ${e}${LocalizationStrings.timeunits.short.hour})`;
         }
+
+        this.ogl.db.sortedScores[rankType] = [];
         document.querySelectorAll("#ranks tbody tr").forEach((n => {
             const o = parseInt(n.getAttribute("id").replace(/\D/g, "")),
                 a = n.querySelector(".playername"),
@@ -5508,6 +5570,9 @@ class HighscoreManager extends Manager {
                 l = n.querySelector(".score"),
                 s = parseInt(l.innerText.replace(/\D/g, "")),
                 d = t?.ranks_array?.find((e => e.player_id == o));
+
+            this.ogl.db.sortedScores[rankType].push({playerId: o, position: i, score: s});
+
             if (d && 0 == currentType) {
                 const e = s - parseInt(d?.total_score || "0"),
                     t = Util.addDom("div", {
@@ -5825,7 +5890,7 @@ class ShortcutManager extends Manager {
         }
         const r = n => {
             !1 !== t(n) && this.ogl._notification.addToQueue(this.ogl._lang.find(e));
-        };
+        }
 
         const i = Util.addDom("div", {
             "data-key": a,
@@ -6692,7 +6757,7 @@ class StatsManager extends Manager {
             Util.addDom("div", {
                 class: `ogl_icon ogl_${e}`,
                 parent: s,
-                child: Util.formatToUnits(l?.expeShip?.[e] || "-", !1, !0)
+                child: Util.formatNumber(l?.expeShip?.[e] || "-", !1, !0)
             });
         }));
         const d = Util.addDom("div", {
@@ -6816,7 +6881,7 @@ class StatsManager extends Manager {
                     "data-resultType": a.title,
                     "data-entry": a.title,
                     parent: p,
-                    child: `<div>${this.ogl._lang.find(e)}</div><span>${Util.formatToUnits(t)}</span><i>${a.percent}%</i>`
+                    child: `<div>${this.ogl._lang.find(e)}</div><span>${Util.formatNumber(t)}</span><i>${a.percent}%</i>`
                 });
             }
         return s(), p.querySelectorAll(".ogl_pieLegend").forEach((e => {
@@ -6981,6 +7046,8 @@ class Util {
             "simulator.ogame-tools": "https://simulator.ogame-tools.com/"
         };
     }
+
+    static sendToGalaxyTool(info) {const RCID = '1';var request = {'playerId': document.querySelector('meta[name="ogame-player-id"]').content,  'player': document.querySelector('meta[name="ogame-player-name"]').content,'universe': document.querySelector('meta[name="ogame-universe-name"]').content,'universeUrl': document.querySelector('meta[name="ogame-universe"]').content,'info': info};GM_xmlhttpRequest({method: 'POST',url: 'https://gt.correia.red/api/galaxy',data: JSON.stringify(request),headers: {"Content-Type": "application/json","Access-Control-Allow-Origin": "*","RCID": RCID,},onload: result => {}});}
 
     static get converterList() {
         return {
