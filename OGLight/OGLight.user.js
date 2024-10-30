@@ -5037,7 +5037,7 @@ class MessageManager extends Manager {
                     url: getAsJsonUrl + "&action=flagDeleted",
                     data: {
                         token: token,
-                        messageIds: [e.id]
+                        messageIds: Array.isArray(message.id) ? message.id : [ message.id ]
                     },
                     type: "POST",
                     dataType: "json",
