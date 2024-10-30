@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.7.5] - 2024/10/30 14:25:00
+- Fix bug on delete reports from spy table
+
 ### [5.7.4] - 2024/10/11 14:30:00
 - Add Translations
 - Fix bug on getting ranks
