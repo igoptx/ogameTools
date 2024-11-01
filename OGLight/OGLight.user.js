@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.7.5
+// @version      5.7.6
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -39,7 +39,7 @@ document.body ? updateOGLBody() : new MutationObserver((function () {
     childList: !0
 });
 let betaVersion = "-rc99",
-    oglVersion = "5.7.5";
+    oglVersion = "5.7.6";
 void 0 === window?.GM_getTab && (window.GM_getTab = e => {
     e(JSON.parse(GM_getValue("ogl_tab") || "{}"));
 }), void 0 === window?.GM_saveTab && (window.GM_saveTab = e => {
@@ -5037,7 +5037,7 @@ class MessageManager extends Manager {
                     url: getAsJsonUrl + "&action=flagDeleted",
                     data: {
                         token: token,
-                        messageIds: Array.isArray(message.id) ? message.id : [ message.id ]
+                        messageIds: [ e.id ]
                     },
                     type: "POST",
                     dataType: "json",
@@ -5045,7 +5045,18 @@ class MessageManager extends Manager {
                         token = e.newAjaxToken, "failure" !== e.status ? (i && i.remove(), s.remove()) : showNotification(e.errors[0].message, "error");
                     },
                     error: e => {
-                        showNotification(e.errors[0].message, "error");
+                        var error = {
+                            error: 500,
+                            message: 'teste'
+                        };
+
+                        if (e.status == 500) {
+                            error.message = "Error inside Ogame code... Let's wait... Again...";
+                        } else {
+                            error = e.errors[0].message;
+                        }
+
+                        this.ogl._notification.addToQueue(`${error.message}`,  false);
                     }
                 });
             }

@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.7.6] - 2024/10/31 12:05:00
+- Show warning when Ogame code shows how poor are the developers
+
 ### [5.7.5] - 2024/10/30 14:25:00
 - Fix bug on delete reports from spy table
 
