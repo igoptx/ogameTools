@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.8.2] - 2025/03/14 12:20:00
+- Optimize Planets Scan
+
 ### [5.8.1] - 2025/03/14 12:00:00
 - Fix bug on sending spy probs
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.8.1
+// @version      5.8.2
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -40,7 +40,7 @@ let updateOGLBody = () => {
     document.body && (updateOGLBody(), this.disconnect());
 }).observe(document, {
     childList: !0
-}), "-rc58"), oglVersion = "5.8.1";
+}), "-rc58"), oglVersion = "5.8.2";
 
 void 0 === window?.GM_getTab && (window.GM_getTab = tab => {
     tab(JSON.parse(GM_getValue("ogl_tab") || "{}"));
@@ -6466,7 +6466,9 @@ class ShortcutManager extends Manager {
                                                     player_name.click();
 
                                                     setTimeout(() => {
-                                                        const planet_coords = document.querySelectorAll('.ogl_list .ogl_addedElement div[data-galaxy]'); // Seleciona o elemento 'div' com o atributo 'data-galaxy'
+                                                        const datagroups = document.querySelectorAll('.ogl_list div[data-group]');
+                                                        const planet_coords = document.querySelectorAll('.ogl_list .ogl_addedElement div[data-galaxy]');
+                                                        const systems_to_scan = planet_coords.length - datagroups.length;
 
                                                         function pressKey(key, times, interval) {
                                                             function createEvent(key) {
@@ -6506,7 +6508,7 @@ class ShortcutManager extends Manager {
                                                             sendEvent(key, 1);
                                                         }
 
-                                                        pressKey('m', (planet_coords.length + 1), 600);
+                                                        pressKey('m', (systems_to_scan), 600);
                                                     }, 500);
                                                 }
                                             }, 500);
