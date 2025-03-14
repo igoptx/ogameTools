@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.8.1] - 2025/03/14 12:00:00
+- Fix bug on sending spy probs
+
 ### [5.8] - 2025/03/14 10:20:00
 - Update with Original OGLight 5.2.2
 

@@ -2437,7 +2437,17 @@ class UIManager extends Manager {
             "data-spy-coords": `${coords[0]}:${coords[1]}:${coords[2]}:1`,
             child: "language",
             parent: parent,
-            onclick: e => window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${coords[0]}&system=${coords[1]}&position=${coords[2]}&type=1`
+            onclick: e => {
+                const url = new URL(window.location.href);
+                const parametros = new URLSearchParams(url.search);
+                const componente = parametros.get('component');
+
+                if (componente == 'galaxy') {
+                    this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 1);
+                } else {
+                    window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=galaxy&galaxy=${coords[0]}&system=${coords[1]}`;
+                }
+            }
         }), lastPlanetSpy = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:` + coords[2]]?.spy?.[0] || 0,
         serverTime.getTime() - lastPlanetSpy < this.ogl.db.options.spyIndicatorDelay && (planetIcon.setAttribute("data-spy", "recent"),
             planetIcon.setAttribute("title", "recently spied")), displayActivity && (lastPlanetSpy = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:` + coords[2]]?.acti || [],
@@ -2452,7 +2462,17 @@ class UIManager extends Manager {
                 "data-spy-coords": `${coords[0]}:${coords[1]}:${coords[2]}:3`,
                 child: "bedtime",
                 parent: parent,
-                onclick: e => window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=fleetdispatch&galaxy=${coords[0]}&system=${coords[1]}&position=${coords[2]}&type=3`
+                onclick: e => {
+                    const url = new URL(window.location.href);
+                    const parametros = new URLSearchParams(url.search);
+                    const componente = parametros.get('component');
+
+                    if (componente == 'galaxy') {
+                        this.ogl._fleet.addToSpyQueue(6, coords[0], coords[1], coords[2], 3);
+                    } else {
+                        window.location.href = `https://${window.location.host}/game/index.php?page=ingame&component=galaxy&galaxy=${coords[0]}&system=${coords[1]}`;
+                    }
+                }
             }) : Util.addDom("div", {
                 parent: parent
             }), isRecent = this.ogl.db.pdb[`${coords[0]}:${coords[1]}:` + coords[2]]?.spy?.[1] || 0;
