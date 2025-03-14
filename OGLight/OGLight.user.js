@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.8
+// @version      5.8.1
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -40,7 +40,7 @@ let updateOGLBody = () => {
     document.body && (updateOGLBody(), this.disconnect());
 }).observe(document, {
     childList: !0
-}), "-rc58"), oglVersion = "5.8";
+}), "-rc58"), oglVersion = "5.8.1";
 
 void 0 === window?.GM_getTab && (window.GM_getTab = tab => {
     tab(JSON.parse(GM_getValue("ogl_tab") || "{}"));
