@@ -7,7 +7,7 @@
 </table>
 
 # OGLight
-Version: 5.8.2
+Version: 5.8.3
 
 Last Update: 2025/03/14 12:20:00
 

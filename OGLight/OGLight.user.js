@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.8.2
+// @version      5.8.3
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -40,7 +40,7 @@ let updateOGLBody = () => {
     document.body && (updateOGLBody(), this.disconnect());
 }).observe(document, {
     childList: !0
-}), "-rc58"), oglVersion = "5.8.2";
+}), "-rc58"), oglVersion = "5.8.3";
 
 void 0 === window?.GM_getTab && (window.GM_getTab = tab => {
     tab(JSON.parse(GM_getValue("ogl_tab") || "{}"));
@@ -18203,9 +18203,6 @@ GM_addStyle(altStyle);
 
 const otherCss = '.ogl_icon.ogl_customsplit:before\n{\ntext-align: left !important; color:rgba(255,255,255,.5);\ncontent:\'call_split\';\nfont-family:\'Material Icons\';\nfont-size:20px;\n}\n\n.ogl_upgradeList{\ncolor:#6a7d95;\ndisplay:grid;\nfont-size:11px;\nfont-weight:bold;\ngrid-gap:3px 8px;\nmax-height:fit-content !important;\nmax-width:fit-content !important;\ngrid-template-columns:90px 100px 300px 70px 150px 150px 150px;\n}\n\n.ogl_buildIcon.ogl_baseBuilding\n{\ncolor:#3888ff;\n}\n\n.ogl_buildIcon.ogl_baseResearch\n{\ncolor:#38ffff;\n}\n\n.ogl_baseShip\n{\ncolor:#ffcb55;\n}\n\n.ogl_buildIcon.ogl_lfBuilding\n{\ncolor:#42ff38;\n}\n\n.ogl_buildIcon.ogl_lfResearch\n{\ncolor:#f5ff38;\n}\n\n.ogl_topbar\n{\nborder-bottom:2px solid #0e1116;\ncolor:#546a89;\ndisplay:grid;\nfont-size:16px;\ngrid-template-columns:repeat(8, 1fr);\ntext-align:center;\nuser-select:none;\nwidth:205px;\n}\n\n.ogl_upgradeList > *:not(.ogl_close):not(.ogl_share):not(a){background:var(--secondary);border-radius:3px;line-height:24px;position:relative;text-align:center;}\n\n.ogl_sideFleetIcon\n{width:auto;\n    align-items:center;\n    display:grid;\n    grid-gap:5px;\n    grid-template-columns:70px 30px 200px 60px 20px 30px 200px 98px 98px 98px 98px;\n    justify-content:center;\nmax-height:fit-content !important;\nmax-width:fit-content !important;}\n\n.ogl_sideFleetTooltip:not(.ogl_tooltipTriangle):not(.ogl_close)\n{\n    display:grid !important;\n    font-size:11px;\n    grid-gap:2px;\n    max-width:fit-content !important;\n}\n\n.ogl_normalScore .score\n{\n    vertical-align:top}\n\n.ogl_header{font-size: 10px;}\n\n.ogl_actionsList{\ncolor:#6a7d95;\ndisplay:grid;\nfont-size:11px;\nfont-weight:bold;\ngrid-gap:5px 5px;\nmax-height:fit-content !important;\nmax-width:fit-content !important;\ngrid-template-columns:100px 200px 600px;\n}\n\n.ogl_actionsList > *:not(.ogl_close):not(.ogl_share):not(a){background:var(--secondary);border-radius:3px;line-height:24px;position:relative;text-align:center;}';
 GM_addStyle(otherCss);
-
-const personalCSS = '\n\nbody{width: 50%}';
-GM_addStyle(personalCSS);
 
 class CSSManager {
     static miniMenu(layout) {
