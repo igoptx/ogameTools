@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.8] - 2025/03/14 10:20:00
+- Update with Original OGLight 5.2.2
+
 ### [5.7.6] - 2024/10/31 12:05:00
 - Show warning when Ogame code shows how poor are the developers
 
