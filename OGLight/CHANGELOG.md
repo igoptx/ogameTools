@@ -1,5 +1,8 @@
 # OGLight - Changelog
 
+### [5.8.4] - 2025/03/18 09:40:00
+- Fix Home Planet in planet list
+
 ### [5.8.3] - 2025/03/14 12:20:00
 - Optimize Planets Scan
 - Fix CSS

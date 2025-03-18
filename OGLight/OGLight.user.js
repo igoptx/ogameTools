@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OGLight
 // @namespace    https://github.com/igoptx/ogameTools/tree/main/OGLight
-// @version      5.8.3
+// @version      5.8.4
 // @description  OGLight script for OGame
 // @author       Igo (Original: Oz)
 // @license      MIT
@@ -40,7 +40,7 @@ let updateOGLBody = () => {
     document.body && (updateOGLBody(), this.disconnect());
 }).observe(document, {
     childList: !0
-}), "-rc58"), oglVersion = "5.8.3";
+}), "-rc58"), oglVersion = "5.8.4";
 
 void 0 === window?.GM_getTab && (window.GM_getTab = tab => {
     tab(JSON.parse(GM_getValue("ogl_tab") || "{}"));
@@ -1826,6 +1826,9 @@ class FetchManager extends Manager {
                             player.api = apiTime, xml.querySelectorAll("planet").forEach((element, index) => {
                             var pid = element.getAttribute("id"), coords = element.getAttribute("coords"), element = element.querySelector("moon")?.getAttribute("id"), planet = (this.ogl.db.pdb[coords] = this.ogl.db.pdb[coords] || {},
                                 this.ogl.db.pdb[coords]);
+                            if (index == 0) {
+                                this.ogl.db.pdb[coords].home = 1;
+                            }
                             planet.api = planet.api || 0, planet.api <= apiTime && (planet.uid = player.uid,
                                 planet.pid = pid, planet.mid = element, planet.coo = coords,
                                 planet.api = apiTime, 0 == index) && (planet.home = !0),
